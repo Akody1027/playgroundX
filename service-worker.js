@@ -1,6 +1,5 @@
 const CACHE_NAME = 'pgx-shell-v1';
 const urlsToCache = [
-  '/',
   './index.html',
   './home.html',
   './style.css',
@@ -21,6 +20,7 @@ self.addEventListener('fetch', event => {
   );
 
 });
+
 
 
 
