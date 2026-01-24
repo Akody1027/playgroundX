@@ -4,7 +4,8 @@ const urlsToCache = [
   '/index.html',
   '/home.html',
   '/style.css',
-  '/script.js'
+  '/script.js',
+  '/manifest.jason'
 ];
 
 self.addEventListener('install', event => {
@@ -19,4 +20,5 @@ self.addEventListener('fetch', event => {
     caches.match(event.request)
       .then(response => response || fetch(event.request))
   );
+
 });
