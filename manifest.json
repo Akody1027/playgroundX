@@ -1,6 +1,6 @@
 {
-  "name": "playgroundX",
-  "short_name": "",
+  "name": "PlaygroundX",
+  "short_name": "PlaygroundX",
   "start_url": "https://www.playgroundx.co/index.html",
   "display": "standalone",
   "background_color": "#121212",
@@ -22,3 +22,4 @@
   ]
 
 }
+
