@@ -1,10 +1,10 @@
 const CACHE_NAME = 'pgx-shell-v1';
 const urlsToCache = [
   '/',
-  'index.html',
-  'home.html',
-  'style.css',
-  'script.js'
+  './index.html',
+  './home.html',
+  './style.css',
+  './script.js'
 ];
 
 self.addEventListener('install', event => {
@@ -21,6 +21,7 @@ self.addEventListener('fetch', event => {
   );
 
 });
+
 
 
 
