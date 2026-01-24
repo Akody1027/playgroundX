@@ -8,8 +8,6 @@
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <link rel="stylesheet" href="style.css">
 
-    <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDFmhk3ybnsVsFenCE3xvdmy5y_4u9ss7o&libraries=places&callback=initGoogle" async defer></script>
-
     <script type="module">
       import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
       import { getFirestore, collection, doc, setDoc, getDocs, addDoc, query, orderBy, onSnapshot, limit, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
@@ -27,8 +25,21 @@
       const app = initializeApp(firebaseConfig);
       const db = getFirestore(app);
 
+      // EXPOSE TOOLS TO WINDOW (For script.js to use)
       window.db = db;
-      window.fbase = { collection, doc, setDoc, getDocs, addDoc, query, orderBy, onSnapshot, limit, serverTimestamp };
+      window.fbase = {
+          collection: collection,
+          doc: doc,
+          setDoc: setDoc,
+          getDocs: getDocs,
+          addDoc: addDoc,
+          query: query,
+          orderBy: orderBy,
+          onSnapshot: onSnapshot,
+          limit: limit,
+          serverTimestamp: serverTimestamp
+      };
+
       console.log("Firebase Tools Ready ✅");
     </script>
 </head>
@@ -40,9 +51,6 @@
         <h1 style="color: white; margin: 0; font-size: 20px;">playground<span style="color: var(--accent);">X</span></h1>
     </div>
     <div class="header-icons">
-        <div onclick="window.switchView('game', null)" style="cursor: pointer; display: flex; align-items: center;">
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><rect x="2" y="6" width="20" height="12" rx="2"></rect><path d="M6 12h4m-2-2v4"></path><circle cx="17" cy="11" r="1"></circle><circle cx="15" cy="13" r="1"></circle></svg>
-        </div>
         <div class="msg-icon-wrapper" onclick="window.openMsgModal()">
             <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"></path></svg>
             <span class="badge" id="msg-badge" style="display:none">0</span>
@@ -52,58 +60,50 @@
         </div>
     </div>
     <div id="user-dropdown">
-        <a href="#" id="open-my-profile" onclick="window.openMyProfile()">My Profile</a>
+        <a href="#" id="open-my-profile">My Profile</a>
         <a href="#" style="color: var(--accent);" onclick="location.reload()">Log Out</a>
     </div>
 </div>
 
-<div class="vertical-toolbar">
-    <button class="view-btn active" onclick="window.switchView('swipe', this)">
-        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><line x1="3" y1="9" x2="21" y2="9"></line></svg>
-    </button>
-    <button class="view-btn" onclick="window.switchView('grid', this)">
-        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke-width="2"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect></svg>
-    </button>
-    <button class="view-btn" onclick="window.switchView('map', this)">
-        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg>
-    </button>
-    
-    <div style="height: 20px;"></div> <button class="view-btn" onclick="document.getElementById('filter-modal').style.display='block'">
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="4" y1="21" x2="4" y2="14"></line><line x1="4" y1="10" x2="4" y2="3"></line><line x1="12" y1="21" x2="12" y2="12"></line><line x1="12" y1="8" x2="12" y2="3"></line><line x1="20" y1="21" x2="20" y2="16"></line><line x1="20" y1="12" x2="20" y2="3"></line></svg>
+<div class="toolbar">
+    <div class="view-group">
+        <button class="view-btn active" onclick="window.switchView('swipe', this)"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><line x1="3" y1="9" x2="21" y2="9"></line></svg></button>
+        <button class="view-btn" onclick="window.switchView('grid', this)"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke-width="2"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect></svg></button>
+        <button class="view-btn" onclick="window.switchView('map', this)"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg></button>
+    </div>
+    <button class="filter-btn" onclick="document.getElementById('filter-modal').style.display='block'">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="4" y1="21" x2="4" y2="14"></line><line x1="4" y1="10" x2="4" y2="3"></line><line x1="12" y1="21" x2="12" y2="12"></line><line x1="12" y1="8" x2="12" y2="3"></line><line x1="20" y1="21" x2="20" 
+        y2="16"></line><line x1="20" y1="12" x2="20" y2="3"></line><line x1="1" y1="14" x2="7" y2="14"></line><line x1="9" y1="8" x2="15" y2="8"></line><line x1="17" y1="16" x2="23" y2="16"></line></svg>
     </button>
 </div>
 
-<div id="view-swipe" class="app-view active fade-in">
-    <div id="swipe-zone">
-        </div>
+<div id="view-swipe" class="app-view active">
+    <div id="swipe-zone"></div>
     <div class="fixed-actions">
         <button id="btn-reject" class="swipe-btn" onclick="window.userSwipe('left')">✘</button>
         <div style="position:relative">
             <span class="wink-feedback" id="wink-txt">Wink sent!</span>
             <button id="btn-like" class="swipe-btn" style="border-color:var(--accent);color:var(--btnfont)" onclick="window.userSwipe('right')">
-                <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><path d="M8 15a6 6 0 0 0 8 0"></path><line x1="9" y1="9" x2="9.01" y2="9" stroke-width="3"></line><path d="M15 9h2"></path></svg>
+    <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="12" cy="12" r="10"></circle>
+        <path d="M8 15a6 6 0 0 0 8 0"></path>
+        <line x1="9" y1="9" x2="9.01" y2="9" stroke-width="3"></line>
+        <path d="M15 9h2"></path>
+    </svg>
             </button>
         </div>
     </div>
 </div>
 
-<div id="view-grid" class="app-view fade-in" style="padding-left: 60px;"> <div class="grid-container" id="grid-content"></div>
+<div id="view-grid" class="app-view">
+    <div class="grid-container" id="grid-content"></div>
 </div>
 
-<div id="view-map" class="app-view fade-in">
+<div id="view-map" class="app-view">
     <div id="map"></div>
 </div>
 
-<div id="view-game" class="app-view fade-in">
-    <h2 style="color:var(--accent); margin-bottom: 5px; text-align: center;">Neon Pong</h2>
-    <p style="color:#666; font-size:12px; margin-bottom:15px; text-align: center;">Drag to move paddle.</p>
-    <canvas id="game-canvas" width="300" height="400"></canvas>
-    <div style="display:flex; justify-content:center; gap:10px; margin-top:10px;">
-        <button onclick="window.initGame()" style="background:var(--accent); color:white; border:none; padding:8px 15px; border-radius:10px;">Start Game</button>
-    </div>
-</div>
-
-<div id="profile-modal" class="modal fade-in">
+<div id="profile-modal" class="modal">
     <div class="modal-header">
         <button class="back-arrow-btn" onclick="document.getElementById('profile-modal').style.display='none'">
             <svg viewBox="0 0 24 24" fill="none" stroke-width="2"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
@@ -113,11 +113,7 @@
     </div>
     <div style="padding: 20px; max-width: 500px; margin: 0 auto;">
         
-        <div style="text-align: center; margin-bottom: 20px;">
-             <span id="swipe-counter" style="background:#222; padding:5px 10px; border-radius:15px; font-size:12px; color:var(--accent);">📊 0 Swipes Today</span>
-        </div>
-
-        <div><label class="filter-label" style="margin-top:0;">DISPLAY NAME</label><input type="text" id="p-alias" class="style-input" placeholder="e.g. Jay_Rocker"></div>
+        <div><label class="filter-label" style="margin-top:0;">DISPLAY NAME (ALIAS)</label><input type="text" id="p-alias" class="style-input" placeholder="e.g. Jay_Rocker"></div>
 
         <div style="text-align: center; margin: 20px 0;">
             <div style="position: relative; width: 120px; height: 120px; margin: 0 auto;">
@@ -127,46 +123,102 @@
             </div>
         </div>
 
-        <div style="display: flex; flex-direction: column; gap: 10px; margin-bottom: 50px;">
-            <div><label class="filter-label" style="margin-top:0;">BIO</label><textarea id="p-bio" style="width: 100%; background: #111; border: 1px solid #333; padding: 12px; border-radius: 10px; color: white;"></textarea></div>
-
-            <div id="loc-manual" class="accordion-content" style="display:block;">
-                <label class="filter-label">LOCATION</label>
-                <input type="text" id="google-loc-input" class="style-input" placeholder="Enter City (Google Maps)...">
+        <div class="gallery-grid">
+            <div class="gallery-slot" style="border-color:var(--accent); position:relative; padding:0;">
+               <img id="g1-preview" src="" style="width:100%; height:100%; object-fit:cover; display:none;">
+               <label id="g1-lbl" style="position:absolute; inset:0; display:flex; align-items:center; justify-content:center; width:100%; height:100%;">★</label>
             </div>
-
-            <label class="filter-label">VICES</label>
-            <div class="toggle-row"><span>Smoker</span><input type="checkbox" id="p-smoker" class="toggle-checkbox"><label for="p-smoker" class="toggle-switch"></label></div>
-            <div class="toggle-row"><span>Drinker</span><input type="checkbox" id="p-drinker" class="toggle-checkbox"><label for="p-drinker" class="toggle-switch"></label></div>
-
-            <label class="filter-label">FAMILY</label>
-            <div class="toggle-row"><span>Has Children</span><input type="checkbox" id="p-kids" class="toggle-checkbox"><label for="p-kids" class="toggle-switch"></label></div>
-            <div class="toggle-row"><span>Wants Children</span><input type="checkbox" id="p-wants-kids" class="toggle-checkbox"><label for="p-wants-kids" class="toggle-switch"></label></div>
-
-            <label class="filter-label">ZODIAC</label>
-            <select id="p-zodiac" class="style-input">
-                <option value="Aries">Aries</option><option value="Taurus">Taurus</option><option value="Gemini">Gemini</option>
-                <option value="Cancer">Cancer</option><option value="Leo">Leo</option><option value="Virgo">Virgo</option>
-                <option value="Libra">Libra</option><option value="Scorpio">Scorpio</option><option value="Sagittarius">Sagittarius</option>
-                <option value="Capricorn">Capricorn</option><option value="Aquarius">Aquarius</option><option value="Pisces">Pisces</option>
-            </select>
-
-            <label class="filter-label">LOVE LANGUAGES (Select Multiple)</label>
-            <div class="toggle-row" onclick="window.toggleProfileAcc('acc-love')">
-                <span id="disp-love">Select...</span><span style="color:#666;">▼</span>
+            <div class="gallery-slot"><input type="file" id="g2" hidden><label for="g2">+</label></div>
+            <div class="gallery-slot"><input type="file" id="g3" hidden><label for="g3">+</label></div>
+            <div class="gallery-slot"><input type="file" id="g4" hidden><label for="g4">+</label></div>
+            <div class="gallery-slot">
+                <input type="file" id="vid-up" hidden accept="video/*" onchange="window.previewVideo(event)">
+                <label for="vid-up">▶</label>
+                <video id="vid-preview" style="display:none;" autoplay muted loop></video>
             </div>
-            <div id="acc-love" class="accordion-content">
-                <label class="checkbox-option"><input type="checkbox" value="Words"> Words of Affirmation</label>
-                <label class="checkbox-option"><input type="checkbox" value="Acts"> Acts of Service</label>
-                <label class="checkbox-option"><input type="checkbox" value="Gifts"> Receiving Gifts</label>
-                <label class="checkbox-option"><input type="checkbox" value="Time"> Quality Time</label>
-                <label class="checkbox-option"><input type="checkbox" value="Touch"> Physical Touch</label>
+        </div>
+
+<div style="display: flex; flex-direction: column; gap: 10px; margin-bottom: 50px;">
+    
+    <div><label class="filter-label" style="margin-top:0;">BIO</label><textarea id="p-bio" style="width: 100%; background: #111; border: 1px solid #333; padding: 12px; border-radius: 10px; color: white;"></textarea></div>
+
+    <div class="toggle-row"><span>Show Explicit Content</span><input type="checkbox" id="p-explicit" class="toggle-checkbox"><label for="p-explicit" class="toggle-switch"></label></div>
+    <div class="toggle-row"><span>Use GPS Location</span><input type="checkbox" id="p-use-gps" class="toggle-checkbox" checked onchange="window.toggleAccordion('loc-manual', !this.checked)"><label for="p-use-gps" class="toggle-switch"></label></div>
+    <div id="loc-manual" class="accordion-content"><input type="text" class="style-input" placeholder="Enter City..."></div>
+
+    <label class="filter-label">GENDER</label>
+    <div class="toggle-row" onclick="window.toggleProfileAcc('acc-gender')">
+        <span id="disp-gender">Select Gender...</span>
+        <span style="color:#666;">▼</span>
+    </div>
+    <div id="acc-gender" class="accordion-content">
+        <label class="radio-option" onclick="window.selectProfileOption('disp-gender', 'Man', 'acc-gender')">Man</label>
+        <label class="radio-option" onclick="window.selectProfileOption('disp-gender', 'Woman', 'acc-gender')">Woman</label>
+        <label class="radio-option" onclick="window.selectProfileOption('disp-gender', 'Non-Binary', 'acc-gender')">Non-Binary</label>
+    </div>
+
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+        <div>
+            <label class="filter-label">AGE</label>
+            <input type="number" id="p-age" class="style-input" value="21" style="text-align:center;">
+        </div>
+        <div>
+            <label class="filter-label">BODY TYPE</label>
+            <div class="toggle-row" onclick="window.toggleProfileAcc('acc-body')" style="justify-content:center;">
+                <span id="disp-body">Average</span>
             </div>
         </div>
     </div>
+    <div id="acc-body" class="accordion-content">
+        <label class="radio-option" onclick="window.selectProfileOption('disp-body', 'Average', 'acc-body')">Average</label>
+        <label class="radio-option" onclick="window.selectProfileOption('disp-body', 'Athletic', 'acc-body')">Athletic</label>
+        <label class="radio-option" onclick="window.selectProfileOption('disp-body', 'Curvy', 'acc-body')">Curvy</label>
+        <label class="radio-option" onclick="window.selectProfileOption('disp-body', 'Muscular', 'acc-body')">Muscular</label>
+    </div>
+
+    <label class="filter-label">RELATIONSHIP TYPE</label>
+    <div class="toggle-row" onclick="window.toggleProfileAcc('acc-rel')">
+        <span id="disp-rel">Select Type...</span>
+        <span style="color:#666;">▼</span>
+    </div>
+    <div id="acc-rel" class="accordion-content">
+        <label class="radio-option" onclick="window.selectProfileOption('disp-rel', 'Marriage', 'acc-rel')">Marriage</label>
+        <label class="radio-option" onclick="window.selectProfileOption('disp-rel', 'Long-Term', 'acc-rel')">Long-Term</label>
+        <label class="radio-option" onclick="window.selectProfileOption('disp-rel', 'Short-Term', 'acc-rel')">Short-Term</label>
+        <label class="radio-option" onclick="window.selectProfileOption('disp-rel', 'Fun', 'acc-rel')">Fun</label>
+    </div>
+
+    <label class="filter-label">LOVE LANGUAGE</label>
+    <div class="toggle-row" onclick="window.toggleProfileAcc('acc-love')">
+        <span id="disp-love">Select Love Language...</span>
+        <span style="color:#666;">▼</span>
+    </div>
+    <div id="acc-love" class="accordion-content">
+        <label class="radio-option" onclick="window.selectProfileOption('disp-love', 'Words of Affirmation', 'acc-love')">Words of Affirmation</label>
+        <label class="radio-option" onclick="window.selectProfileOption('disp-love', 'Acts of Service', 'acc-love')">Acts of Service</label>
+        <label class="radio-option" onclick="window.selectProfileOption('disp-love', 'Receiving Gifts', 'acc-love')">Receiving Gifts</label>
+        <label class="radio-option" onclick="window.selectProfileOption('disp-love', 'Quality Time', 'acc-love')">Quality Time</label>
+        <label class="radio-option" onclick="window.selectProfileOption('disp-love', 'Physical Touch', 'acc-love')">Physical Touch</label>
+    </div>
+
+    <label class="filter-label">VICES</label>
+    <div class="toggle-row" onclick="window.toggleProfileAcc('acc-vices')">
+        <span id="disp-vices">None</span>
+        <span style="color:#666;">▼</span>
+    </div>
+    <div id="acc-vices" class="accordion-content">
+        <label class="radio-option" onclick="window.selectProfileOption('disp-vices', 'None', 'acc-vices')">None</label>
+        <label class="radio-option" onclick="window.selectProfileOption('disp-vices', 'Smoker', 'acc-vices')">Smoker</label>
+        <label class="radio-option" onclick="window.selectProfileOption('disp-vices', 'Social Drinker', 'acc-vices')">Social Drinker</label>
+        <label class="radio-option" onclick="window.selectProfileOption('disp-vices', '420 Friendly', 'acc-vices')">420 Friendly</label>
+    </div>
+
 </div>
 
-<div id="filter-modal" class="modal fade-in" style="background: rgba(0,0,0,0.9);">
+    </div>
+</div>
+
+<div id="filter-modal" class="modal" style="background: rgba(0,0,0,0.9);">
     <div class="filter-content" style="background: #1A1A1A; width: 85%; max-width: 400px; height: 100%; float: right; padding: 30px; overflow-y: auto;">
         <div style="display: flex; justify-content: space-between; margin-bottom: 30px;">
             <h2 style="margin: 0;">Refine Search</h2>
@@ -174,72 +226,130 @@
         </div>
         
         <label class="filter-label">I'M LOOKING FOR</label>
-        <div class="toggle-row"><span>Men</span><input type="checkbox" id="f-men" class="toggle-checkbox" checked><label for="f-men" class="toggle-switch"></label></div>
-        <div class="toggle-row"><span>Women</span><input type="checkbox" id="f-women" class="toggle-checkbox" checked><label for="f-women" class="toggle-switch"></label></div>
-        
-        <label class="filter-label">AGE RANGE</label>
-        <div style="display:flex; gap:10px;">
-            <input type="number" id="f-min-age" class="style-input" value="18" placeholder="Min">
-            <input type="number" id="f-max-age" class="style-input" value="99" placeholder="Max">
-        </div>
+        <div class="toggle-row"><span>Men</span><input type="checkbox" id="f-men" class="toggle-checkbox" onchange="window.toggleAccordion('men-age', this.checked)"><label for="f-men" class="toggle-switch"></label></div>
+        <div id="men-age" class="accordion-content"><div style="display:flex; gap:10px;"><input type="number" placeholder="18" class="style-input"><input type="number" placeholder="99" class="style-input"></div></div>
+
+        <div class="toggle-row"><span>Women</span><input type="checkbox" id="f-women" class="toggle-checkbox" onchange="window.toggleAccordion('women-age', this.checked)"><label for="f-women" class="toggle-switch"></label></div>
+        <div id="women-age" class="accordion-content"><div style="display:flex; gap:10px;"><input type="number" placeholder="18" class="style-input"><input type="number" placeholder="99" class="style-input"></div></div>
+
+        <div class="toggle-row"><span>Transgender</span><input type="checkbox" id="f-trans" class="toggle-checkbox" onchange="window.toggleAccordion('trans-age', this.checked)"><label for="f-trans" class="toggle-switch"></label></div>
+        <div id="trans-age" class="accordion-content"><div style="display:flex; gap:10px;"><input type="number" placeholder="18" class="style-input"><input type="number" placeholder="99" class="style-input"></div></div>
 
         <label class="filter-label">DISTANCE: <span id="dist-val" style="color:var(--accent)">50 mi</span></label>
-        <input type="range" id="f-dist" min="1" max="100" value="50" oninput="document.getElementById('dist-val').innerText = this.value + ' mi'" style="accent-color: var(--accent); width: 100%;">
+        <input type="range" min="1" max="200" value="50" oninput="document.getElementById('dist-val').innerText = this.value + ' mi'" style="accent-color: var(--accent); width: 100%;">
 
-        <label class="filter-label">DEAL BREAKERS (Check to Exclude)</label>
-        <div class="toggle-row"><span>No Smokers</span><input type="checkbox" id="f-no-smoke" class="toggle-checkbox"><label for="f-no-smoke" class="toggle-switch"></label></div>
-        <div class="toggle-row"><span>No Drinkers</span><input type="checkbox" id="f-no-drink" class="toggle-checkbox"><label for="f-no-drink" class="toggle-switch"></label></div>
-        <div class="toggle-row"><span>No Kids</span><input type="checkbox" id="f-no-kids" class="toggle-checkbox"><label for="f-no-kids" class="toggle-switch"></label></div>
+        <label class="filter-label">RELATIONSHIP TYPE</label>
+        <div class="toggle-row"><span>Select Type</span><input type="checkbox" id="t-rt" class="toggle-checkbox" onchange="window.toggleAccordion('ac-rt', this.checked)"><label for="t-rt" class="toggle-switch"></label></div>
+        <div id="ac-rt" class="accordion-content"><label class="radio-option"><input type="checkbox" class="f-rt" value="Marriage"> Marriage</label><label class="radio-option"><input type="checkbox" class="f-rt" value="Long-Term"> Long-Term</label><label class="radio-option"><input type="checkbox" class="f-rt" value="Short-Term"> Short-Term</label><label class="radio-option"><input type="checkbox" class="f-rt" value="No strings"> No Strings</label><label class="radio-option"><input type="checkbox" class="f-rt" value="Friendship"> Friendship</label></div>
+
+        <label class="filter-label">VICES</label>
+        <div class="toggle-row"><span>Select Vices</span><input type="checkbox" id="t-vice" class="toggle-checkbox" onchange="window.toggleAccordion('ac-vice', this.checked)"><label for="t-vice" class="toggle-switch"></label></div>
+        <div id="ac-vice" class="accordion-content"><label class="radio-option"><input type="checkbox" class="f-vice" value="Smoker"> Smoker</label><label class="radio-option"><input type="checkbox" class="f-vice" value="420 Friendly"> 420 Friendly</label><label class="radio-option"><input type="checkbox" class="f-vice" value="Social Drinker"> Social Drinker</label></div>
 
         <button onclick="window.applyFilters()" style="width:100%; background: var(--accent); padding: 15px; border-radius: 12px; border:none; color:white; font-weight:bold; margin-top: 20px;">Apply Filters</button>
+        <div style="height: 50px;"></div> 
     </div>
 </div>
-
-<div id="view-user-modal" class="modal fade-in">
+<div id="view-user-modal" class="modal">
     <div class="modal-header">
         <button class="back-arrow-btn" onclick="document.getElementById('view-user-modal').style.display='none'">
             <svg viewBox="0 0 24 24" fill="none" stroke-width="2"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
         </button>
         <h2 style="font-size: 18px; margin: 0; color: white;">User Profile</h2>
+        <div style="position:relative;">
+            <button onclick="window.toggleReportMenu()" style="background: none; border: none; color: var(--warning); font-size: 24px; font-weight: bold;">✕</button>
+            <div id="report-menu" class="dropdown-menu">
+                <button onclick="alert('Blocked!');" class="dropdown-item">🚫 Block User</button>
+                <button onclick="alert('Reported!');" class="dropdown-item">⚠️ Report User</button>
+            </div>
+        </div>
     </div>
-    <div style="padding: 20px;">
-        <img id="vu-img" src="" style="width:100%; height:350px; object-fit:cover; border-radius:20px;">
-        <h1 id="vu-name" style="color:var(--accent); margin-top:15px;">Name</h1>
-        <div id="vu-tags" style="display:flex; gap:10px; margin-top:10px; flex-wrap:wrap;"></div>
-        <p id="vu-bio" style="color:#ccc; margin-top:20px;">Bio...</p>
+    
+    <div style="padding: 20px; max-width: 500px; margin: 0 auto; padding-bottom: 20px;">
+        <div style="width: 100%; height: 350px; background: #333; border-radius: 20px; overflow: hidden; margin-bottom: 20px;">
+            <img id="view-user-img" src="" style="width: 100%; height: 100%; object-fit: cover;">
+        </div>
+
+        <div class="gallery-grid">
+            <div class="gallery-slot" style="border-color:var(--accent);"><img id="view-user-img-small" src="" style="width:100%;height:100%;object-fit:cover;"></div>
+            <div class="gallery-slot" style="background: #222;"></div>
+            <div class="gallery-slot" style="background: #222;"></div>
+            <div class="gallery-slot" style="background: #222;"></div>
+            <div class="gallery-slot" style="background: #222; border-color: var(--accent);">▶</div>
+        </div>
+        
+        <h1 id="view-user-name" style="margin: 0; font-size: 28px; color: var(--accent);">Alias</h1>
+        <p style="color: #666; font-size: 13px; font-weight: bold; margin-bottom: 15px;">Verified Member ✓</p>
+
+        <div class="stats-grid" id="view-user-chips"></div>
+        <p style="color: #ccc; line-height: 1.5; margin-bottom: 50px;" id="view-user-bio">...</p>
+    </div>
+
+    <div class="sticky-actions">
+        <button class="action-btn-main" style="background: #222; color: white; border: 1px solid #444;" onclick="alert('Wink Sent! 😉')">😉 Wink</button>
+        <button class="action-btn-main" style="background: var(--accent); color: white;" onclick="alert('Opening Chat... 💬')">Message</button>
     </div>
 </div>
 
-<div id="confirm-modal" style="display:none !important;"> 
+<div id="msg-modal" class="modal">
+    <div class="modal-header">
+        <button class="back-arrow-btn" onclick="window.closeChat()">
+            <svg viewBox="0 0 24 24" fill="none" stroke-width="2"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
+        </button>
+        <h2 style="font-size: 18px; margin: 0; color: white;">Connect</h2>
+        <div style="width: 24px;"></div>
+    </div>
+    
+    <div id="msg-list-view">
+        <div class="tab-group">
+            <button class="tab-btn active" onclick="window.openTab('tab-winks', this)">Winks</button>
+            <button class="tab-btn" onclick="window.openTab('tab-chats', this)">Messages</button>
+        </div>
+        <div id="tab-winks" class="tab-pane active"></div>
+
+        <div id="tab-chats" class="tab-pane">
+            <div id="msg-jess" class="msg-item unread" onclick="window.openChatWrapper('Jess_Vibes', 'msg-jess')">
+                <img src="https://images.unsplash.com/photo-1517841905240-472988babdf9?w=100" class="msg-avatar">
+                <div>
+                    <h3 style="margin:0;color:white;font-size:14px;">Jess_Vibes</h3>
+                    <p style="margin:0;color:#888;font-size:12px;">Hey! Are you nearby?</p>
+                </div>
+                <button class="delete-btn" onclick="window.askToDelete(event, 'msg', 'msg-jess')">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <div id="chat-view">
+        <div style="padding:10px; background:#111; border-bottom:1px solid #333; display:flex; align-items:center; gap:10px;">
+            <div style="width:30px; height:30px; background:#444; border-radius:50%;"></div>
+            <span style="font-weight:bold; color:white;" id="chat-target-name">User</span>
+        </div>
+        <div id="chat-body">
+            <div class="chat-bubble them">Hey! How are you?</div>
+            <div class="chat-bubble me">I'm good! Just swiping around.</div>
+        </div>
+        <div class="chat-input-area">
+            <input type="text" class="chat-input" placeholder="Type a message...">
+            <button style="background:var(--accent); color:white; border:none; padding:8px 15px; border-radius:15px;">Send</button>
+        </div>
+    </div>
+</div>
+
+<div id="confirm-modal" style="display:none;"> 
     <div class="confirm-box">
         <h3 style="color:white; margin-top:0;">Delete Item?</h3>
-        <p style="color:#aaa; font-size:14px;">Are you sure? This cannot be undone.</p>
-        <div style="display: flex; gap: 10px; margin-top: 20px;">
+        <p style="color:#aaa; font-size:14px;">Are you sure you want to remove this? This cannot be undone.</p>
+        <div class="confirm-btn-group">
             <button class="btn-no" onclick="window.closeConfirm()">No</button>
             <button class="btn-yes" onclick="window.confirmYes()">Yes, Delete</button>
         </div>
     </div>
 </div>
 
-<div id="save-modal" style="display:none !important;"> 
-    <div class="confirm-box">
-        <div style="color:var(--accent); font-size:40px;">✓</div>
-        <h3 style="color:white; margin-top:10px;">Profile Saved</h3>
-        <p style="color:#aaa; font-size:14px;">Your changes are now live.</p>
-        <button class="btn-ok" onclick="document.getElementById('save-modal').style.display='none'">Awesome</button>
-    </div>
-</div>
-
-<div id="msg-modal" class="modal fade-in">
-    <div class="modal-header">
-        <button class="back-arrow-btn" onclick="document.getElementById('msg-modal').style.display='none'"><svg viewBox="0 0 24 24" fill="none" stroke-width="2"><line x1="19" y1="12" x2="5" y2="12"></line></svg></button>
-        <h2>Messages</h2>
-        <div></div>
-    </div>
-    <div style="padding:20px; text-align:center; color:#666;">No new messages.</div>
-</div>
-
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script src="script.js" defer></script>
 </body>
+
 </html>
