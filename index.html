@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>playgroundX | Login</title>
+    
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#8B5CF6">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <link rel="apple-touch-icon" href="icon-192.png">
+
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    
+    <style>
+        :root {
+            --accent: #8B5CF6;
+            --bg-dark: #121212;
+            --text-main: #E5E7EB;
+            --input-bg: #1E1E1E;
+        }
+        
+        * { box-sizing: border-box; }
+        
+        body {
+            margin: 0; padding: 0;
+            background-color: var(--bg-dark);
+            font-family: 'Inter', sans-serif;
+            color: var(--text-main);
+            height: 100dvh;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* THE APP WINDOW */
+        #app-viewport {
+            flex: 1;
+            width: 100%;
+            height: 100%;
+            border: none;
+            display: none; /* Hidden until verified */
+        }
+
+        /* THE GATEKEEPER OVERLAY */
+        #gatekeeper {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            background: var(--bg-dark);
+            z-index: 9999;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 30px;
+        }
+
+        .logo-area {
+            margin-bottom: 40px;
+            text-align: center;
+        }
+        
+        .logo-box {
+            width: 80px; height: 80px;
+            background: var(--accent);
+            border-radius: 20px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 40px; font-weight: bold; color: white;
+            margin: 0 auto 20px auto;
+            box-shadow: 0 0 30px rgba(139, 92, 246, 0.4);
+        }
+
+        h1 { margin: 0; font-size: 24px; letter-spacing: 1px; }
+        p { color: #888; font-size: 14px; margin-top: 10px; }
+
+        .form-group {
+            width: 100%; max-width: 350px;
+            display: flex; flex-direction: column; gap: 15px;
+        }
+
+        label {
+            font-size: 12px; font-weight: bold; color: #888; margin-bottom: -5px; margin-left: 5px;
+        }
+
+        input {
+            width: 100%;
+            padding: 16px;
+            background: var(--input-bg);
+            border: 1px solid #333;
+            border-radius: 12px;
+            color: white;
+            font-size: 16px;
+            outline: none;
+            transition: 0.2s;
+        }
+
+        input:focus { border-color: var(--accent); }
+
+        .btn-enter {
+            background: var(--accent);
+            color: white;
+            border: none;
+            padding: 18px;
+            border-radius: 12px;
+            font-size: 16px; font-weight: bold;
+            cursor: pointer;
+            margin-top: 10px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+        }
+        
+        .btn-enter:active { transform: scale(0.98); }
+
+        .error-msg {
+            color: #FF4444;
+            font-size: 13px;
+            text-align: center;
+            height: 20px;
+            margin-top: 10px;
+            font-weight: bold;
+        }
+
+        /* INSTALL BUTTON (Shows on Android/Desktop) */
+        #install-btn {
+            display: none;
+            margin-top: 20px;
+            background: transparent;
+            border: 1px solid #333;
+            color: #888;
+            padding: 10px 20px;
+            border-radius: 20px;
+            font-size: 12px;
+            cursor: pointer;
+        }
+
+    </style>
+</head>
+<body>
+
+    <iframe id="app-viewport" src=""></iframe>
+
+    <div id="gatekeeper">
+        <div class="logo-area">
+            <div class="logo-box">X</div>
+            <h1>playground<span style="color:var(--accent)">X</span></h1>
+            <p>Age Verification Required</p>
+        </div>
+
+        <div class="form-group">
+            <label>EMAIL</label>
+            <input type="email" id="email" placeholder="user@example.com">
+
+            <label>PASSWORD</label>
+            <input type="password" id="password" placeholder="••••••••">
+
+            <label>DATE OF BIRTH</label>
+            <input type="date" id="dob" style="color-scheme: dark;">
+
+            <button class="btn-enter" onclick="verifyAndEnter()">ENTER</button>
+            <div class="error-msg" id="error-txt"></div>
+        </div>
+
+        <button id="install-btn">📲 Install App</button>
+    </div>
+
+    <script>
+        // 1. PWA Service Worker Registration
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('service-worker.js')
+                .then(() => console.log('Service Worker Registered'));
+        }
+
+        // 2. Install Prompt Logic
+        let deferredPrompt;
+        const installBtn = document.getElementById('install-btn');
+
+        window.addEventListener('beforeinstallprompt', (e) => {
+            e.preventDefault();
+            deferredPrompt = e;
+            installBtn.style.display = 'block';
+        });
+
+        installBtn.addEventListener('click', async () => {
+            if (deferredPrompt) {
+                deferredPrompt.prompt();
+                const { outcome } = await deferredPrompt.userChoice;
+                deferredPrompt = null;
+                installBtn.style.display = 'none';
+            }
+        });
+
+        // 3. Age Verification Logic
+        function verifyAndEnter() {
+            const email = document.getElementById('email').value;
+            const pass = document.getElementById('password').value;
+            const dobVal = document.getElementById('dob').value;
+            const err = document.getElementById('error-txt');
+
+            if(!email || !pass || !dobVal) {
+                err.innerText = "Please fill in all fields.";
+                return;
+            }
+
+            // Calculate Age
+            const dob = new Date(dobVal);
+            const today = new Date();
+            let age = today.getFullYear() - dob.getFullYear();
+            const m = today.getMonth() - dob.getMonth();
+            if (m < 0 || (m === 0 && today.getDate() < dob.getDate())) {
+                age--;
+            }
+
+            if(age < 18) {
+                err.innerText = "Access Denied. You must be 18+.";
+                return;
+            }
+
+            // Success
+            enterApp();
+        }
+
+        function enterApp() {
+            // Save state so they don't have to login next time (optional)
+            localStorage.setItem('pgX_verified', 'true');
+
+            // Fade out gatekeeper
+            const gate = document.getElementById('gatekeeper');
+            gate.style.opacity = '0';
+            gate.style.transition = 'opacity 0.5s';
+            
+            // Load the App
+            const frame = document.getElementById('app-viewport');
+            frame.src = "home.html"; // Loads your main app
+            frame.style.display = 'block';
+
+            setTimeout(() => {
+                gate.style.display = 'none';
+            }, 500);
+        }
+
+        // 4. Auto-Login check (Uncomment if you want them to stay logged in)
+        // if(localStorage.getItem('pgX_verified') === 'true') {
+        //     document.getElementById('gatekeeper').style.display = 'none';
+        //     document.getElementById('app-viewport').src = 'home.html';
+        //     document.getElementById('app-viewport').style.display = 'block';
+        // }
+    </script>
+</body>
+</html>
