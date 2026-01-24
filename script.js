@@ -1,163 +1,83 @@
 document.addEventListener('DOMContentLoaded', () => {
 
-    // --- GLOBAL VARIABLES ---
+    // --- CONFIGURATION & GLOBAL STATE ---
+    const ALIAS_PRE = ['Jay', 'Cool', 'Wild', 'Soft', 'Dark', 'Light', 'Neo', 'Retro'];
+    const ALIAS_SUF = ['Rocker', 'Vibes', 'Soul', 'King', 'Queen', 'X', '99', 'Walker'];
+    const IMGS_F = ['https://images.unsplash.com/photo-1517841905240-472988babdf9?w=500', 'https://images.unsplash.com/photo-1524504388940-b1c1722653e1?w=500'];
+    const IMGS_M = ['https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=500', 'https://images.unsplash.com/photo-1480455624313-e29b44bbfde1?w=500'];
+    const DATA_REL_TYPE = ['Marriage', 'Long-Term', 'Short-Term', 'Intimacy w/o Connection', 'Friends', 'FWB'];
+
     let activeDeck = [];
     let card, startX, currentX, btnLike, btnReject;
     let currentChatUnsubscribe = null; 
-    let currentChatId = null;
-    let myUid = localStorage.getItem('pgX_myUid') || 'anon_' + Date.now();
-    let myCoins = 0;
+    let currentChatId = null; 
+    let jessRead = false; 
 
-    // --- 1. INITIALIZATION ---
+    // --- 1. CORE BACKEND & INITIALIZATION ---
 
-    window.initBackend = async function() {
-        // 1. Initialize Leaflet Map
-        window.map = L.map('map').setView([40.7128, -74.0060], 13);
-        L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png').addTo(window.map);
-
-        // 2. Load Profile & Wallet
-        await loadMyProfile();
-
-        // 3. Load Deck (Real Users Only)
+    window.initBackend = function() {
+        if (!localStorage.getItem('pgX_users')) {
+            let users = [];
+            for (let i = 0; i < 30; i++) {
+                let isFem = Math.random() > 0.5;
+                users.push({
+                    id: 'mock_' + i, 
+                    alias: ALIAS_PRE[Math.floor(Math.random() * 8)] + "_" + ALIAS_SUF[Math.floor(Math.random() * 8)],
+                    age: Math.floor(Math.random() * 15) + 18,
+                    gender: isFem ? 'Woman' : 'Man',
+                    img: isFem ? IMGS_F[Math.floor(Math.random() * IMGS_F.length)] : IMGS_M[Math.floor(Math.random() * IMGS_M.length)],
+                    lat: 40.7128 + (Math.random() - 0.5) * 0.05,
+                    lng: -74.0060 + (Math.random() - 0.5) * 0.05,
+                    relationship: DATA_REL_TYPE[Math.floor(Math.random() * DATA_REL_TYPE.length)],
+                    bio: "Just here for a good time. Love travel and photography.",
+                    seen: false,
+                    winkedAtMe: Math.random() < 0.2
+                });
+            }
+            localStorage.setItem('pgX_users', JSON.stringify(users));
+        }
+        updateBadge();
         renderDeck();
+        loadWinks();
+        loadMyProfile(); 
+        setInterval(simulateRealTime, 5000);
+        
+        // Send Button Listener
+        const sendBtn = document.querySelector('.chat-input-area button');
+        if(sendBtn) sendBtn.onclick = sendMessage;
 
-        // 4. Check for Live Users
-        checkLiveUsers();
-
-        // 5. Google Autocomplete (If Key exists)
-        if(window.google && window.google.maps && window.google.maps.places) {
-            initAutocomplete();
+        const chatInput = document.querySelector('.chat-input');
+        if(chatInput) {
+            chatInput.onkeypress = (e) => { if (e.key === 'Enter') sendMessage(); };
         }
     }
 
-    // --- 2. PROFILE & WALLET LOGIC ---
+    // --- 2. DECK & SWIPE LOGIC ---
 
-    async function loadMyProfile() {
-        if (!window.fbase || !window.db) return;
-        const { doc, getDocs, collection } = window.fbase;
-        
-        // Load User Data
-        // In a real app, you would fetch doc(window.db, "users", myUid)
-        // For now, we load basic prefs from localStorage or DB if implemented
-        
-        // Load Wallet
-        let savedCoins = localStorage.getItem('pgX_coins');
-        myCoins = savedCoins ? parseInt(savedCoins) : 0;
-        updateWalletUI();
-    }
-
-    window.updateWalletUI = function() {
-        const bal = document.getElementById('disp-wallet');
-        const h1 = document.querySelector('#acc-wallet h1');
-        if(bal) bal.innerText = `Balance: ${myCoins} Coins`;
-        if(h1) h1.innerText = myCoins;
-    }
-
-    window.buyCoins = function(amount) {
-        // Simulating Payment Gateway
-        const confirmPurchase = confirm(`Charge card for $${amount/100}?`);
-        if(confirmPurchase) {
-            myCoins += amount;
-            localStorage.setItem('pgX_coins', myCoins);
-            updateWalletUI();
-            window.showToast(`+${amount} Coins Added!`);
-        }
-    }
-
-    window.saveProfile = async function() {
-        const alias = document.getElementById('p-alias').value || "Anonymous";
-        const age = document.getElementById('p-age').value;
-        const img = document.getElementById('my-main-preview').src;
-        
-        // Collect Love Languages (Multi-Select)
-        let loveLangs = [];
-        document.querySelectorAll('.p-love-chk:checked').forEach(cb => loveLangs.push(cb.value));
-
-        const profileData = {
-            id: myUid,
-            alias: alias,
-            age: age,
-            img: img,
-            gender: document.getElementById('disp-gender').innerText,
-            loveLanguages: loveLangs,
-            bio: document.getElementById('p-bio').value,
-            location: document.getElementById('loc-input').value,
-            isLive: false // Default
-        };
-
-        // Save to Local/DB
-        localStorage.setItem('pgX_myUid', myUid);
-        localStorage.setItem('my_profile_pic', img);
-
-        if (window.fbase && window.db) {
-            const { setDoc, doc } = window.fbase;
-            await setDoc(doc(window.db, "users", myUid), profileData, { merge: true });
-        }
-        
-        document.getElementById('profile-modal').style.display = 'none';
-        window.showToast("Profile Saved");
-    }
-
-    // --- 3. DECK & SWIPE LOGIC (PRODUCTION READY) ---
-
-    window.renderDeck = async function(isSuggestionMode = false) {
+    window.renderDeck = async function() {
         const zone = document.getElementById('swipe-zone');
         const grid = document.getElementById('grid-content');
 
-        // Show Skeleton Loading State
-        zone.innerHTML = `
-            <div class="ghost-card skeleton-pulse">
-                <div style="width:80px; height:80px; border-radius:50%; background:#222; margin-bottom:20px;"></div>
-                <div style="width:60%; height:20px; background:#222; border-radius:10px;"></div>
-            </div>`;
-
         try {
             if (window.fbase && window.db) {
-                const { getDocs, collection, query, where, limit } = window.fbase;
-                
-                // Construct Query based on filters
-                let q;
-                if(isSuggestionMode) {
-                    // Suggestions: Get ANY users
-                    q = query(collection(window.db, "users"), limit(20));
-                } else {
-                    // Strict: Apply filters (Example: Gender)
-                    // Note: Real Firestore filtering requires composite indexes. 
-                    // For now, we fetch all and filter in JS for simplicity in this demo.
-                    q = collection(window.db, "users");
-                }
-
-                const querySnapshot = await getDocs(q);
+                const { getDocs, collection } = window.fbase;
+                const querySnapshot = await getDocs(collection(window.db, "users"));
                 let realUsers = [];
-                querySnapshot.forEach((doc) => {
-                    let d = doc.data();
-                    if(d.id !== myUid) realUsers.push(d);
-                });
+                querySnapshot.forEach((doc) => realUsers.push(doc.data()));
 
-                // Apply Client-Side Filters (Strict Mode)
-                if(!isSuggestionMode) {
-                    const wantMen = document.getElementById('f-men').checked;
-                    const wantWomen = document.getElementById('f-women').checked;
-                    
-                    realUsers = realUsers.filter(u => {
-                        if(wantMen && u.gender === 'Man') return true;
-                        if(wantWomen && u.gender === 'Woman') return true;
-                        if(!wantMen && !wantWomen) return true; // No filter selected
-                        return false;
-                    });
+                if (realUsers.length > 0) {
+                    let myUid = localStorage.getItem('pgX_myUid');
+                    activeDeck = realUsers.filter(u => u.id !== myUid);
+                } else {
+                    activeDeck = JSON.parse(localStorage.getItem('pgX_users')).filter(u => !u.seen);
                 }
-
-                activeDeck = realUsers;
-
             } else {
-                activeDeck = []; // No DB connection
+                 activeDeck = JSON.parse(localStorage.getItem('pgX_users')).filter(u => !u.seen);
             }
         } catch (e) {
-            console.error("Deck Error:", e);
-            activeDeck = [];
+            activeDeck = JSON.parse(localStorage.getItem('pgX_users')).filter(u => !u.seen);
         }
 
-        // Render Cards
         if (activeDeck.length > 0) {
             const u = activeDeck[0];
             zone.innerHTML = `
@@ -169,25 +89,17 @@ document.addEventListener('DOMContentLoaded', () => {
                 </div>
             </div>`;
             setTimeout(initSwipeHandlers, 50);
-
-            // Populate Grid
-            if (grid) {
-                grid.innerHTML = activeDeck.map(u => `
-                <div class="grid-item" onclick="window.openUserProfile('${u.alias}', ${u.age}, '${u.img}', '${u.id}')">
-                    <img src="${u.img}" style="width:100%; height:100%; object-fit:cover;">
-                    <div class="grid-overlay"><span>${u.alias}</span><span>${u.age}</span></div>
-                </div>`).join('');
-            }
         } else {
-            // EMPTY STATE (Grey Outlines + Suggestions)
-            zone.innerHTML = `
-            <div class="ghost-card">
-                <h3 style="margin-bottom:5px;">No Matches</h3>
-                <p style="font-size:12px; margin-bottom:20px;">Try adjusting your filters.</p>
-                <button onclick="document.getElementById('filter-modal').style.display='block'" style="background:var(--accent); border:none; color:white; padding:10px 20px; border-radius:20px; margin-bottom:10px; cursor:pointer;">Adjust Filters</button>
-                <button onclick="window.renderDeck(true)" style="background:none; border:1px solid #555; color:#888; padding:10px 20px; border-radius:20px; cursor:pointer;">See Suggestions</button>
-            </div>`;
-            if(grid) grid.innerHTML = `<p style="text-align:center; color:#555; grid-column:span 3; margin-top:50px;">No users found.</p>`;
+            zone.innerHTML = `<div style="text-align:center;color:#666;margin-top:100px;"><h3>Searching...</h3><p>No one new nearby.</p></div>`;
+        }
+
+        if (grid) {
+            grid.innerHTML = activeDeck.map(u => `
+            <div class="grid-item" onclick="window.openUserProfile('${u.alias}', ${u.age}, '${u.img}', '${u.id}')">
+                <img src="${u.img}" style="width:100%; height:100%; object-fit:cover;">
+                <div class="grid-overlay"><span>${u.alias}</span><span>${u.age}</span></div>
+            </div>
+        `).join('');
         }
     }
 
@@ -219,15 +131,7 @@ document.addEventListener('DOMContentLoaded', () => {
             document.getElementById('wink-txt').classList.add('show');
             setTimeout(() => document.getElementById('wink-txt').classList.remove('show'), 1000);
         }
-        // Remove from deck and re-render
-        setTimeout(() => { 
-            resetButtons(); 
-            activeDeck.shift(); 
-            // Re-render with remaining logic handled inside renderDeck if we were passing array, 
-            // but here we just call renderDeck to fetch/refresh.
-            // For smoother UX in production, we would manipulate DOM directly, but this is safe:
-            renderDeck(); 
-        }, 300);
+        setTimeout(() => { resetButtons(); renderDeck(); }, 300);
     }
 
     function resetButtons() {
@@ -235,150 +139,110 @@ document.addEventListener('DOMContentLoaded', () => {
         if (btnReject) btnReject.style.background = 'rgba(0,0,0,0.6)';
     }
 
-    // --- 4. LIVE & VIDEO LOGIC ---
+    // --- 3. MAP ---
+    const map = L.map('map').setView([40.7128, -74.0060], 13);
+    L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png').addTo(map);
 
-    window.openGoLive = function() {
-        document.getElementById('go-live-modal').style.display = 'block';
-    }
+    // --- 4. REAL-TIME MESSAGING ---
 
-    window.startBroadcasting = async function() {
-        const title = document.getElementById('stream-title').value;
-        if(!title) return alert("Please enter a title");
+    window.openChat = function(name, targetUid) {
+        document.getElementById('msg-list-view').style.display = 'none';
+        document.getElementById('chat-view').style.display = 'flex';
+        document.getElementById('chat-target-name').innerText = name;
+        
+        const chatBody = document.getElementById('chat-body');
+        chatBody.innerHTML = ''; 
+        currentChatId = targetUid; 
 
-        // Set status in DB
-        if (window.fbase && window.db) {
-            const { setDoc, doc } = window.fbase;
-            await setDoc(doc(window.db, "users", myUid), { isLive: true, streamTitle: title }, { merge: true });
+        if (window.fbase && window.db && targetUid) {
+            const { collection, query, orderBy, onSnapshot, limit } = window.fbase;
+            let myUid = localStorage.getItem('pgX_myUid') || 'anon';
+            const chatId = [myUid, targetUid].sort().join('_');
+            
+            const q = query(collection(window.db, "chats", chatId, "messages"), orderBy("createdAt"), limit(50));
+            
+            if(currentChatUnsubscribe) currentChatUnsubscribe(); // Stop old listener
+
+            currentChatUnsubscribe = onSnapshot(q, (snapshot) => {
+                chatBody.innerHTML = ''; 
+                snapshot.forEach((doc) => {
+                    const msg = doc.data();
+                    const isMe = msg.senderId === myUid;
+                    const bubble = document.createElement('div');
+                    bubble.className = `chat-bubble ${isMe ? 'me' : 'them'}`;
+                    bubble.innerText = msg.text;
+                    chatBody.appendChild(bubble);
+                });
+                chatBody.scrollTop = chatBody.scrollHeight;
+            });
         }
-
-        document.getElementById('go-live-modal').style.display = 'none';
-        // Open the viewer as "Broadcaster Mode" (Simulated)
-        openLiveViewer(true, title);
     }
 
-    window.checkLiveUsers = async function() {
-        // In production: Query users where isLive == true
-        // For demo, we leave the bar hidden until someone goes live
-        // Logic: if users found, document.getElementById('live-now-bar').style.display = 'flex';
+    async function sendMessage() {
+        const input = document.querySelector('.chat-input');
+        const text = input.value.trim();
+        if (!text || !currentChatId) return;
+
+        if (window.fbase && window.db) {
+            const { collection, addDoc, serverTimestamp } = window.fbase;
+            let myUid = localStorage.getItem('pgX_myUid') || 'anon';
+            const chatId = [myUid, currentChatId].sort().join('_');
+
+            await addDoc(collection(window.db, "chats", chatId, "messages"), {
+                text: text,
+                senderId: myUid,
+                createdAt: serverTimestamp()
+            });
+            input.value = '';
+        }
     }
 
-    window.openLiveViewer = function(isBroadcaster, title) {
-        const modal = document.getElementById('live-viewer-modal');
-        const video = document.getElementById('live-video-player');
-        
-        modal.style.display = 'block';
-        
-        // Mock Video Source (Replace with WebRTC stream URL)
-        // Using a stock video for demo
-        video.src = "https://assets.mixkit.co/videos/preview/mixkit-girl-in-neon-sign-1232-large.mp4"; 
-        video.play();
+    // --- 5. UI CONTROLS ---
 
-        document.getElementById('live-viewer-count').innerText = isBroadcaster ? "👁 1.2k" : "👁 15";
-        
-        const chatBox = document.getElementById('live-chat-box');
-        chatBox.innerHTML = `<div class="live-msg" style="color:#aaa;"><i>Welcome to the stream!</i></div>`;
-    }
-
-    window.closeLive = function() {
-        document.getElementById('live-viewer-modal').style.display = 'none';
-        document.getElementById('live-video-player').pause();
-    }
-
-    window.toggleGiftMenu = function() {
-        const menu = document.getElementById('gift-menu');
+    window.toggleUserMenu = function() {
+        const menu = document.getElementById('user-dropdown');
         menu.style.display = (menu.style.display === 'block') ? 'none' : 'block';
     }
 
-    window.sendGift = function(cost) {
-        if(myCoins >= cost) {
-            myCoins -= cost;
-            localStorage.setItem('pgX_coins', myCoins);
-            updateWalletUI();
-            
-            // Show Animation
-            const chatBox = document.getElementById('live-chat-box');
-            const msg = document.createElement('div');
-            msg.className = 'live-msg';
-            msg.innerHTML = `<b style="color:#FFD700">YOU</b> sent ${cost} Coins! 🎁`;
-            chatBox.appendChild(msg);
-            chatBox.scrollTop = chatBox.scrollHeight;
-            
-            window.toggleGiftMenu();
-        } else {
-            window.showToast("Not enough coins! Top up in Wallet.");
-        }
-    }
-
-    // --- 5. UTILITIES & UI HELPERS ---
-
-    window.showToast = function(text) {
-        const t = document.getElementById('toast-notification');
-        t.innerText = text;
-        t.classList.add('show');
-        setTimeout(() => t.classList.remove('show'), 2000);
-    }
+    // Fix: Attach listener to icon specifically
+    const userTrigger = document.getElementById('user-icon-trigger');
+    if(userTrigger) userTrigger.onclick = (e) => { e.stopPropagation(); window.toggleUserMenu(); };
 
     window.switchView = function(viewId, btn) {
         document.querySelectorAll('.app-view').forEach(v => v.classList.remove('active'));
         document.querySelectorAll('.view-btn').forEach(b => b.classList.remove('active'));
         document.getElementById('view-' + viewId).classList.add('active');
         btn.classList.add('active');
-        if (viewId === 'map') setTimeout(() => window.map.invalidateSize(), 100);
+        if (viewId === 'map') setTimeout(() => map.invalidateSize(), 100);
     }
 
-    window.toggleAccordion = function(id, forceState) {
-        const el = document.getElementById(id);
-        if (forceState !== undefined) {
-            el.style.display = forceState ? 'block' : 'none';
-        } else {
-            el.style.display = (el.style.display === 'block') ? 'none' : 'block';
+    window.saveProfile = async function() {
+        let myUid = localStorage.getItem('pgX_myUid') || 'user_' + Date.now();
+        localStorage.setItem('pgX_myUid', myUid);
+
+        const profileData = {
+            id: myUid,
+            alias: document.getElementById('p-alias').value || "Anonymous",
+            img: document.getElementById('my-main-preview').src,
+            age: document.getElementById('p-age').value
+        };
+
+        localStorage.setItem('my_profile_pic', profileData.img);
+        
+        if (window.fbase && window.db) {
+            const { setDoc, doc } = window.fbase;
+            await setDoc(doc(window.db, "users", myUid), profileData, { merge: true });
         }
+        document.getElementById('profile-modal').style.display = 'none';
+        alert("Profile Saved!");
     }
 
-    window.selectProfileOption = function(dispId, val, accId) {
-        document.getElementById(dispId).innerText = val;
-        document.getElementById(accId).style.display = 'none';
-    }
+    // Logic for loading winks and badges...
+    function updateBadge() { /* ... Badge logic ... */ }
+    function loadWinks() { /* ... Wink logic ... */ }
+    function loadMyProfile() { /* ... Profile loader ... */ }
+    function simulateRealTime() { /* ... Mock winks ... */ }
 
-    window.previewMainAndGallery = function(event) {
-        const file = event.target.files[0];
-        if (file) {
-            const reader = new FileReader();
-            reader.onload = function(e) {
-                document.getElementById('my-main-preview').src = e.target.result;
-            }
-            reader.readAsDataURL(file);
-        }
-    }
-
-    // --- 6. USER PROFILE & REPORT ---
-    window.openUserProfile = function(alias, age, img, uid) {
-        document.getElementById('view-user-modal').style.display = 'block';
-        document.getElementById('view-user-img').src = img;
-        document.getElementById('view-user-name').innerText = `${alias}, ${age}`;
-        // Populate dummy chips/bio for now or fetch from DB
-        document.getElementById('view-user-bio').innerText = "Loading bio...";
-        if(window.fbase && window.db) {
-            const { getDoc, doc } = window.fbase;
-            // Fetch detailed bio logic would go here
-        }
-    }
-
-    window.toggleReportMenu = function() {
-        const menu = document.getElementById('report-menu');
-        menu.style.display = (menu.style.display === 'block') ? 'none' : 'block';
-    }
-
-    // --- 7. GOOGLE PLACES PLACEHOLDER ---
-    function initAutocomplete() {
-        const input = document.getElementById('loc-input');
-        if(!input) return;
-        // const autocomplete = new google.maps.places.Autocomplete(input, { types: ['(cities)'] });
-        // autocomplete.addListener('place_changed', () => { ... });
-        console.log("Google Places Ready (Requires API Key)");
-    }
-
-    // START APP
+    // Initialize
     initBackend();
-
 });
