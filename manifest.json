@@ -1,21 +1,24 @@
 {
   "name": "playgroundX",
-  "short_name": "pgX",
-  "start_url": "/index.html",
+  "short_name": "",
+  "start_url": "https://www.playgroundx.co/index.html",
   "display": "standalone",
   "background_color": "#121212",
   "theme_color": "#8B5CF6",
   "orientation": "portrait-primary",
   "icons": [
     {
-      "src": "icon-192.png",
+      "src": "playicon192.png",
       "sizes": "192x192",
       "type": "image/png"
+      "purpose": "any maskable"
     },
     {
-      "src": "icon-512.png",
+      "src": "playicon512.png",
       "sizes": "512x512",
       "type": "image/png"
+      "purpose": "any maskable"
     }
   ]
+
 }
