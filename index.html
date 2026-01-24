@@ -52,8 +52,6 @@
             align-items: center;
             justify-content: center;
             padding: 30px;
-            opacity: 1;
-            transition: opacity 0.5s ease-in-out;
         }
 
         .logo-area {
@@ -196,9 +194,6 @@
             const dobVal = document.getElementById('dob').value;
             const err = document.getElementById('error-txt');
 
-            // Quick bypass for testing if empty (remove for strict production)
-            // if(!email && !pass && !dobVal) { enterApp(); return; }
-
             if(!email || !pass || !dobVal) {
                 err.innerText = "Please fill in all fields.";
                 return;
@@ -229,22 +224,31 @@
             // Fade out gatekeeper
             const gate = document.getElementById('gatekeeper');
             gate.style.opacity = '0';
+            gate.style.transition = 'opacity 0.5s';
             
-            // Wait for fade to finish before removing and showing app
+            // Load the App
+            const frame = document.getElementById('app-viewport');
+            frame.src = "home.html"; // Loads your main app
+            frame.style.display = 'block';
+
             setTimeout(() => {
                 gate.style.display = 'none';
-                
-                // Load the App
-                const frame = document.getElementById('app-viewport');
-                frame.src = "home.html"; 
-                frame.style.display = 'block';
             }, 500);
         }
 
-        // 4. Auto-Login check
-        if(localStorage.getItem('pgX_verified') === 'true') {
-           enterApp();
-        }
+        // 4. Auto-Login check (Uncomment if you want them to stay logged in)
+        // if(localStorage.getItem('pgX_verified') === 'true') {
+        //     document.getElementById('gatekeeper').style.display = 'none';
+        //     document.getElementById('app-viewport').src = 'home.html';
+        //     document.getElementById('app-viewport').style.display = 'block';
+        // }
     </script>
 </body>
+
 </html>
+
+
+
+
+
+
