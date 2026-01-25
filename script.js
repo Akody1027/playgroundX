@@ -13,6 +13,16 @@ document.addEventListener('DOMContentLoaded', () => {
     let currentChatId = null; 
     let jessRead = false; 
 
+    // --- NEW: HELPER FOR EMPTY STATES ---
+    function getEmptyStateHTML() {
+        return `
+            <div class="empty-placeholder-container">
+                <img src="user_placeholder.jpg" class="empty-placeholder-img">
+                <div class="empty-text">No users nearby</div>
+            </div>
+        `;
+    }
+
     // --- 1. CORE BACKEND & INITIALIZATION ---
 
     window.initBackend = function() {
@@ -78,6 +88,7 @@ document.addEventListener('DOMContentLoaded', () => {
             activeDeck = JSON.parse(localStorage.getItem('pgX_users')).filter(u => !u.seen);
         }
 
+        // --- UPDATED SWIPE VIEW LOGIC ---
         if (activeDeck.length > 0) {
             const u = activeDeck[0];
             zone.innerHTML = `
@@ -90,16 +101,26 @@ document.addEventListener('DOMContentLoaded', () => {
             </div>`;
             setTimeout(initSwipeHandlers, 50);
         } else {
-            zone.innerHTML = `<div style="text-align:center;color:#666;margin-top:100px;"><h3>Searching...</h3><p>No one new nearby.</p></div>`;
+            // SHOW PLACEHOLDER IMAGE IF EMPTY
+            zone.innerHTML = getEmptyStateHTML();
         }
 
+        // --- UPDATED GRID VIEW LOGIC ---
         if (grid) {
-            grid.innerHTML = activeDeck.map(u => `
-            <div class="grid-item" onclick="window.openUserProfile('${u.alias}', ${u.age}, '${u.img}', '${u.id}')">
-                <img src="${u.img}" style="width:100%; height:100%; object-fit:cover;">
-                <div class="grid-overlay"><span>${u.alias}</span><span>${u.age}</span></div>
-            </div>
-        `).join('');
+            if (activeDeck.length === 0) {
+                // If empty, switch to flex to center the placeholder image
+                grid.style.display = 'flex';
+                grid.innerHTML = getEmptyStateHTML();
+            } else {
+                // If users exist, ensure grid layout is active
+                grid.style.display = 'grid';
+                grid.innerHTML = activeDeck.map(u => `
+                <div class="grid-item" onclick="window.openUserProfile('${u.alias}', ${u.age}, '${u.img}', '${u.id}')">
+                    <img src="${u.img}" style="width:100%; height:100%; object-fit:cover;">
+                    <div class="grid-overlay"><span>${u.alias}</span><span>${u.age}</span></div>
+                </div>
+                `).join('');
+            }
         }
     }
 
