@@ -293,8 +293,29 @@ body {
 }
 
 
+
+
+
+.game-overlay.active {
+    background: rgba(0,0,0,0.7) !important;
+}
+
+.game-overlay.active .play-btn {
+    transform: scale(1) !important;
+    opacity: 1 !important;
+}
+
+.game-card:active {
+    transform: scale(0.98);
+}
+
+
+
+
+
 /* --- UNREAD INDICATOR --- */
 .msg-item.unread {
     border: 1px solid var(--accent) !important; /* Purple Border */
     background: #1a1a1a; /* Slightly lighter background */
 }
+
