@@ -214,6 +214,71 @@ window.initBackend = function() {
     window.setupImageUpload();
 };
 
+// --- 6. PROFILE SAVE & LOAD SYSTEM ---
+
+// This function gathers the data and saves it to the browser
+window.saveProfile = function() {
+    const nameInput = document.querySelector('input[placeholder="Jay_Rocker"]');
+    const bioInput = document.querySelector('textarea');
+    const mainImg = document.getElementById('main-profile-pic');
+    
+    const profileData = {
+        name: nameInput ? nameInput.value : '',
+        bio: bioInput ? bioInput.value : '',
+        image: mainImg ? mainImg.src : ''
+    };
+
+    // Save to browser memory
+    localStorage.setItem('user_profile', JSON.stringify(profileData));
+
+    // Update the Header Icon and Username immediately
+    const headerIcon = document.querySelector('.user-icon'); // Adjust selector to match your header
+    if (headerIcon && profileData.image) {
+        headerIcon.style.backgroundImage = `url(${profileData.image})`;
+        headerIcon.style.backgroundSize = "cover";
+        headerIcon.innerHTML = ""; // Clear any default initials/icons
+    }
+
+    alert('Profile Saved Successfully!');
+    document.getElementById('profile-modal').style.display = 'none';
+};
+
+// This function runs when the page opens to restore your data
+window.loadProfile = function() {
+    const savedData = localStorage.getItem('user_profile');
+    if (!savedData) return;
+
+    const data = JSON.parse(savedData);
+    
+    // Restore Name and Bio
+    const nameInput = document.querySelector('input[placeholder="Jay_Rocker"]');
+    if (nameInput) nameInput.value = data.name;
+    
+    const bioInput = document.querySelector('textarea');
+    if (bioInput) bioInput.value = data.bio;
+
+    // Restore Images
+    const mainImg = document.getElementById('main-profile-pic');
+    const slotOne = document.getElementById('slot-1');
+    const headerIcon = document.querySelector('.user-icon');
+
+    if (data.image) {
+        if (mainImg) mainImg.src = data.image;
+        if (slotOne) slotOne.innerHTML = `<img src="${data.image}" style="width:100%; height:100%; object-fit:cover; border-radius:12px;">`;
+        if (headerIcon) {
+            headerIcon.style.backgroundImage = `url(${data.image})`;
+            headerIcon.style.backgroundSize = "cover";
+            headerIcon.innerHTML = "";
+        }
+    }
+};
+
+// Call loadProfile inside your initBackend
+const originalInit = window.initBackend;
+window.initBackend = function() {
+    originalInit();
+    window.loadProfile();
+};
 
 
 
@@ -222,4 +287,5 @@ window.initBackend = function() {
 
     window.initBackend();
 });
+
 
