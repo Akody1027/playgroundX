@@ -3,148 +3,107 @@ document.addEventListener('DOMContentLoaded', () => {
     // --- GLOBAL STATE ---
     let activeDeck = [];
     let card, startX, currentX;
-    let currentChatUnsubscribe = null; 
-    let currentChatId = null; 
 
-    // --- 1. HEADER & NAVIGATION CONTROLS ---
-    // These ensure your top icons always work
-    window.toggleUserMenu = function() {
-        const menu = document.getElementById('user-dropdown');
-        menu.style.display = (menu.style.display === 'block') ? 'none' : 'block';
+    // --- 1. PROFILE & PHOTO LOGIC ---
+    // This fixes the "Photo not showing in circle" issue
+    window.previewMainAndGallery = function(event) {
+        const file = event.target.files[0];
+        if (!file) return;
+
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            const imageData = e.target.result;
+            // Update the Circle
+            document.getElementById('my-main-preview').src = imageData;
+            // Update Gallery Slot #1
+            const g1 = document.getElementById('g1-preview');
+            const lbl = document.getElementById('g1-lbl');
+            if(g1) {
+                g1.src = imageData;
+                g1.style.display = 'block';
+                if(lbl) lbl.style.display = 'none';
+            }
+        };
+        reader.readAsDataURL(file);
     };
 
-    window.openMsgModal = function() {
-        document.getElementById('msg-modal').style.display = 'block';
+    window.saveProfile = function() {
+        const profile = {
+            alias: document.getElementById('p-alias').value,
+            age: document.getElementById('p-age').value,
+            img: document.getElementById('my-main-preview').src,
+            bio: document.getElementById('p-bio').value
+        };
+        localStorage.setItem('pgX_myProfile', JSON.stringify(profile));
+        alert("Profile Saved Successfully! ✅");
+        document.getElementById('profile-modal').style.display = 'none';
     };
 
-    window.closeChat = function() {
-        document.getElementById('msg-modal').style.display = 'none';
-        document.getElementById('msg-list-view').style.display = 'block';
-        document.getElementById('chat-view').style.display = 'none';
-        if(currentChatUnsubscribe) currentChatUnsubscribe();
+    // --- 2. MAP & LOCATION LOGIC ---
+    const map = L.map('map').setView([40.7128, -74.0060], 13);
+    L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png').addTo(map);
+
+    // This fixes the "Map not showing my location" issue
+    function locateUser() {
+        map.locate({setView: true, maxZoom: 16});
+        function onLocationFound(e) {
+            L.circle(e.latlng, e.accuracy / 2, { color: '#8B5CF6' }).addTo(map);
+            L.marker(e.latlng).addTo(map).bindPopup("You are here").openPopup();
+        }
+        map.on('locationfound', onLocationFound);
+    }
+
+    // --- 3. HEADER & ARCADE CONTROLS (Restored) ---
+    window.toggleUserMenu = () => {
+        const m = document.getElementById('user-dropdown');
+        m.style.display = (m.style.display === 'block') ? 'none' : 'block';
+    };
+
+    window.openMsgModal = () => document.getElementById('msg-modal').style.display = 'block';
+    
+    window.closeArcade = () => {
+        document.getElementById('game-frame').src = '';
+        document.getElementById('game-modal').style.display = 'none';
     };
 
     window.switchView = function(viewId, btn) {
         document.querySelectorAll('.app-view').forEach(v => v.style.display = 'none');
         document.querySelectorAll('.view-btn').forEach(b => b.classList.remove('active'));
-        
-        const activeView = document.getElementById('view-' + viewId);
-        if(activeView) activeView.style.display = 'block';
-        if(btn) btn.classList.add('active');
-        
+        document.getElementById('view-' + viewId).style.display = 'block';
+        btn.classList.add('active');
         if (viewId === 'map') {
-            setTimeout(() => { map.invalidateSize(); }, 200);
+            setTimeout(() => { 
+                map.invalidateSize(); 
+                locateUser(); // Fire location search when map is opened
+            }, 200);
         }
     };
 
-    // --- 2. CONNECT DASHBOARD (WINKS VS MESSAGES) ---
-    window.openTab = function(tabId, btn) {
-        document.getElementById('tab-winks').style.display = (tabId === 'tab-winks') ? 'block' : 'none';
-        document.getElementById('tab-chats').style.display = (tabId === 'tab-chats') ? 'block' : 'none';
-        document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-        btn.classList.add('active');
-    };
-
-    // --- 3. ARCADE SYSTEM (GAMES & PLAY LOGIC) ---
-    const games = [
-        { name: "Simple Pong", file: "Simplepong.html", thumb: "simplepong.jpg" },
-        { name: "Speed Jump", file: "Speedjump.html", thumb: "speedjump.jpg" },
-        { name: "Ghost Poke", file: "ghostpoke.html", thumb: "ghostpoke.jpg" },
-        { name: "Caos Racer", file: "caosracer.html", thumb: "caosracer.jpg" },
-        { name: "Big Shot", file: "bigshot.html", thumb: "bigshot.jpg" },
-        { name: "Flap Dodge", file: "flapdodge.html", thumb: "flapdodge.jpg" },
-        { name: "Memory", file: "memory.html", thumb: "memory.jpg" },
-        { name: "Block Crush", file: "blockcrush.html", thumb: "blockcrush.jpg" }
-    ];
-
-    function initArcade() {
-        const arcadeGrid = document.getElementById('arcade-grid');
-        if (!arcadeGrid) return;
-        arcadeGrid.innerHTML = games.map(game => `
-            <div class="game-card" style="position:relative; background:#222; border-radius:12px; overflow:hidden; aspect-ratio:1/1; border:1px solid #333;">
-                <img src="${game.thumb}" style="width:100%; height:100%; object-fit:cover;">
-                <div class="game-overlay" onclick="window.revealPlay(this)" style="position:absolute; inset:0; background:rgba(0,0,0,0); display:flex; align-items:center; justify-content:center; cursor:pointer; transition:0.3s; z-index:5;">
-                    <button onclick="window.launchGame('${game.file}', event)" class="play-btn" style="background:var(--accent); color:white; border:none; padding:10px 20px; border-radius:20px; font-weight:bold; opacity:0; pointer-events:none; transition: 0.2s;">PLAY</button>
-                </div>
-                <div style="position:absolute; bottom:0; left:0; right:0; padding:8px; background:linear-gradient(transparent, rgba(0,0,0,0.8)); color:white; font-size:12px; z-index:2;">${game.name}</div>
-            </div>
-        `).join('');
-    }
-
+    // --- 4. ARCADE & GAMES ---
     window.revealPlay = function(overlay) {
-        document.querySelectorAll('.play-btn').forEach(btn => {
-            btn.style.opacity = "0";
-            btn.style.pointerEvents = "none";
-            btn.parentElement.style.background = "rgba(0,0,0,0)";
-        });
-        const btn = overlay.querySelector('.play-btn');
+        document.querySelectorAll('.play-btn').forEach(b => { b.style.opacity = "0"; b.parentElement.style.background = "transparent"; });
         overlay.style.background = "rgba(0,0,0,0.7)";
+        const btn = overlay.querySelector('.play-btn');
         btn.style.opacity = "1";
         btn.style.pointerEvents = "auto";
     };
 
-    window.launchGame = function(file, event) {
-        if (event) event.stopPropagation();
-        const player = document.getElementById('game-player');
+    window.launchGame = (file, e) => {
+        e.stopPropagation();
         document.getElementById('game-frame').src = file;
-        player.style.display = 'block';
+        document.getElementById('game-player').style.display = 'block';
     };
 
-    window.closeGame = function() {
-        document.getElementById('game-frame').src = '';
-        document.getElementById('game-player').style.display = 'none';
-    };
-
-    window.closeArcade = function() {
-        window.closeGame();
-        document.getElementById('game-modal').style.display = 'none';
-    };
-
-    // --- 4. SWIPE & GRID (WAITING FOR USERS) ---
-    function getEmptySlotHTML(isGrid = true) {
-        const size = isGrid ? "18px" : "60px";
-        return `
-            <div style="display:flex; flex-direction:column; align-items:center; justify-content:center; color:#444; height:100%; width:100%; border:1px dashed #444; border-radius:20px; background:#1a1a1a;">
-                <svg width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1">
-                    <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle>
-                </svg>
-                <p style="font-size:9px; font-weight:bold; margin-top:8px; letter-spacing:1px; text-align:center;">WAITING FOR USERS...</p>
-            </div>`;
-    }
-
-    window.renderDeck = async function() {
-        const zone = document.getElementById('swipe-zone');
-        const grid = document.getElementById('grid-content');
-        
-        // Swipe View Placeholder
-        zone.innerHTML = `<div style="width: 95%; max-width: 400px; height: 90%; margin: 0 auto;">${getEmptySlotHTML(false)}</div>`;
-
-        // Grid View with 9 Slots
-        if (grid) {
-            grid.style.display = 'grid';
-            let gridHTML = "";
-            for (let i = 0; i < 9; i++) {
-                gridHTML += `<div class="grid-item">${getEmptySlotHTML(true)}</div>`;
-            }
-            grid.innerHTML = gridHTML;
-        }
-    };
-
-    // --- 5. INITIALIZE MAP & BACKEND ---
-    const map = L.map('map').setView([40.7128, -74.0060], 13);
-    L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png').addTo(map);
-
+    // --- 5. INITIALIZE ---
     window.initBackend = function() {
         const profileBtn = document.getElementById('open-my-profile');
-        if(profileBtn) {
-            profileBtn.onclick = (e) => {
-                e.preventDefault();
-                document.getElementById('profile-modal').style.display = 'block';
-                document.getElementById('user-dropdown').style.display = 'none';
-            };
-        }
-        renderDeck();
-        initArcade();
+        if(profileBtn) profileBtn.onclick = () => {
+            document.getElementById('profile-modal').style.display = 'block';
+            document.getElementById('user-dropdown').style.display = 'none';
+        };
+        // Setup simple grid placeholders
+        const grid = document.getElementById('grid-content');
+        if(grid) grid.innerHTML = Array(9).fill('<div class="grid-item" style="border:1px dashed #444; background:#1a1a1a; height:100px;"></div>').join('');
     };
 
     window.initBackend();
