@@ -14,43 +14,38 @@ document.addEventListener('DOMContentLoaded', () => {
     let jessRead = false; 
 
     // --- NEW: HELPER FOR EMPTY STATES ---
-
-
-
-
     function getEmptyStateHTML() {
         return `
-            <div style="width:100%; height:100%; display:flex; flex-direction:column; align-items:center; justify-content:center; border:2px dashed #444; border-radius:20px; background:#1a1a1a;">
-                <svg width="60" height="60" viewBox="0 0 24 24" fill="none" stroke="#444" stroke-width="1.5">
-                    <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle>
-                </svg>
-                <div style="color:#666; font-size:12px; margin-top:10px; font-weight:bold; letter-spacing:1px;">WAITING FOR USERS...</div>
+            <div class="empty-placeholder-container">
+                <img src="user_placeholder.jpg" class="empty-placeholder-img">
+                <div class="empty-text">No users nearby</div>
             </div>
         `;
     }
 
-
-
-
-    
     // --- 1. CORE BACKEND & INITIALIZATION ---
 
-
-    
-
-
-window.initBackend = function() {
-    if (!localStorage.getItem('pgX_users')) {
-        // We set this to an empty list [] so real users can be added later
-        localStorage.setItem('pgX_users', JSON.stringify([]));
-    }
-    // ... keep the rest of the function calls below (updateBadge, renderDeck, etc.)
-}
-
-
-
-
-        
+    window.initBackend = function() {
+        if (!localStorage.getItem('pgX_users')) {
+            let users = [];
+            for (let i = 0; i < 30; i++) {
+                let isFem = Math.random() > 0.5;
+                users.push({
+                    id: 'mock_' + i, 
+                    alias: ALIAS_PRE[Math.floor(Math.random() * 8)] + "_" + ALIAS_SUF[Math.floor(Math.random() * 8)],
+                    age: Math.floor(Math.random() * 15) + 18,
+                    gender: isFem ? 'Woman' : 'Man',
+                    img: isFem ? IMGS_F[Math.floor(Math.random() * IMGS_F.length)] : IMGS_M[Math.floor(Math.random() * IMGS_M.length)],
+                    lat: 40.7128 + (Math.random() - 0.5) * 0.05,
+                    lng: -74.0060 + (Math.random() - 0.5) * 0.05,
+                    relationship: DATA_REL_TYPE[Math.floor(Math.random() * DATA_REL_TYPE.length)],
+                    bio: "Just here for a good time. Love travel and photography.",
+                    seen: false,
+                    winkedAtMe: Math.random() < 0.2
+                });
+            }
+            localStorage.setItem('pgX_users', JSON.stringify(users));
+        }
         updateBadge();
         renderDeck();
         loadWinks();
@@ -234,28 +229,6 @@ window.initBackend = function() {
     const userTrigger = document.getElementById('user-icon-trigger');
     if(userTrigger) userTrigger.onclick = (e) => { e.stopPropagation(); window.toggleUserMenu(); };
 
-
-
-
-    // --- ADD THIS TO FIX MESSAGE ICON ---
-    window.openMsgModal = function() {
-        const modal = document.getElementById('msg-modal');
-        if(modal) modal.style.display = 'block';
-    }
-
-    // Close dropdown when clicking anywhere else
-    window.onclick = function(event) {
-        if (!event.target.matches('#user-icon-trigger') && !event.target.closest('#user-icon-trigger')) {
-            document.getElementById('user-dropdown').style.display = 'none';
-        }
-    }
-
-
-
-
-
-
-
     window.switchView = function(viewId, btn) {
         document.querySelectorAll('.app-view').forEach(v => v.classList.remove('active'));
         document.querySelectorAll('.view-btn').forEach(b => b.classList.remove('active'));
@@ -371,19 +344,14 @@ window.initBackend = function() {
     // --- FINALIZE INITIALIZATION ---
     
     // Call initArcade inside your existing backend init
+    const originalInit = window.initBackend;
+    window.initBackend = function() {
+        if(originalInit) originalInit();
+        initArcade();
+    };
 
-
-    // Call everything directly on load
-    window.initBackend();
-    initArcade(); 
-
-
-
-
-
+    initBackend();
 });
-
-
 
 
 
