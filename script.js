@@ -11,19 +11,14 @@ document.addEventListener('DOMContentLoaded', () => {
     let card, startX, currentX, btnLike, btnReject;
     let currentChatUnsubscribe = null; 
     let currentChatId = null; 
+    let jessRead = false; 
 
-    // --- HELPER: EMPTY STATE WITH FILTER LINK ---
+    // --- NEW: HELPER FOR EMPTY STATES ---
     function getEmptyStateHTML() {
         return `
-            <div style="width: 100%; height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; opacity: 0.7;">
-                <svg width="120" height="120" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="margin-bottom: 15px;">
-                    <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
-                    <circle cx="12" cy="7" r="4"></circle>
-                </svg>
-                <div style="color: #888; font-size: 16px; font-weight: 600; text-align: center;">
-                    No new users nearby.<br>
-                    <span style="font-size: 14px; color: var(--accent); cursor: pointer; text-decoration: underline;" onclick="document.getElementById('filter-modal').style.display='block'">Adjust Filters</span>
-                </div>
+            <div class="empty-placeholder-container">
+                <img src="user_placeholder.jpg" class="empty-placeholder-img">
+                <div class="empty-text">No users nearby</div>
             </div>
         `;
     }
@@ -51,18 +46,10 @@ document.addEventListener('DOMContentLoaded', () => {
             }
             localStorage.setItem('pgX_users', JSON.stringify(users));
         }
-        
-        // Fix: Activate the "My Profile" button in the dropdown
-        const myProfileLink = document.getElementById('open-my-profile');
-        if(myProfileLink) {
-            myProfileLink.onclick = (e) => {
-                e.preventDefault(); // Stop it from jumping to top
-                document.getElementById('user-dropdown').style.display = 'none'; // Close dropdown
-                document.getElementById('profile-modal').style.display = 'block'; // Open modal
-            };
-        }
-
+        updateBadge();
         renderDeck();
+        loadWinks();
+        loadMyProfile(); 
         setInterval(simulateRealTime, 5000);
         
         // Send Button Listener
@@ -121,9 +108,11 @@ document.addEventListener('DOMContentLoaded', () => {
         // --- UPDATED GRID VIEW LOGIC ---
         if (grid) {
             if (activeDeck.length === 0) {
+                // If empty, switch to flex to center the placeholder image
                 grid.style.display = 'flex';
                 grid.innerHTML = getEmptyStateHTML();
             } else {
+                // If users exist, ensure grid layout is active
                 grid.style.display = 'grid';
                 grid.innerHTML = activeDeck.map(u => `
                 <div class="grid-item" onclick="window.openUserProfile('${u.alias}', ${u.age}, '${u.img}', '${u.id}')">
@@ -155,38 +144,15 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // --- FIX: UPDATED SWIPE FUNCTION TO SAVE 'SEEN' STATUS ---
     window.userSwipe = function(dir) {
         if (!card) return;
-        
-        // 1. Animate
         card.style.transition = 'transform 0.5s ease-in';
         card.style.transform = `translateX(${dir === 'right' ? 1000 : -1000}px)`;
-        
-        // 2. Visual Feedback
         if (dir === 'right') {
             document.getElementById('wink-txt').classList.add('show');
             setTimeout(() => document.getElementById('wink-txt').classList.remove('show'), 1000);
         }
-
-        // 3. CRITICAL: Mark User as Seen
-        if (activeDeck.length > 0) {
-            const swipedUser = activeDeck[0];
-            
-            // Update Local Storage
-            let allUsers = JSON.parse(localStorage.getItem('pgX_users')) || [];
-            const idx = allUsers.findIndex(u => u.id === swipedUser.id);
-            if (idx !== -1) {
-                allUsers[idx].seen = true;
-                localStorage.setItem('pgX_users', JSON.stringify(allUsers));
-            }
-        }
-
-        // 4. Reset
-        setTimeout(() => { 
-            resetButtons(); 
-            renderDeck(); 
-        }, 300);
+        setTimeout(() => { resetButtons(); renderDeck(); }, 300);
     }
 
     function resetButtons() {
@@ -198,25 +164,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const map = L.map('map').setView([40.7128, -74.0060], 13);
     L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png').addTo(map);
 
-    // --- 4. MESSAGING FUNCTIONS (FIXED) ---
-
-    // FIX: Added missing function to open the message modal
-    window.openMsgModal = function() {
-        document.getElementById('msg-modal').style.display = 'block';
-    }
-
-    // FIX: Added missing function to close the chat
-    window.closeChat = function() {
-        document.getElementById('msg-modal').style.display = 'none';
-        // Or if you want to go back to list:
-        // document.getElementById('chat-view').style.display = 'none';
-        // document.getElementById('msg-list-view').style.display = 'block';
-    }
-
-    // Wrapper for the demo chat item
-    window.openChatWrapper = function(name, targetId) {
-        window.openChat(name, targetId);
-    }
+    // --- 4. REAL-TIME MESSAGING ---
 
     window.openChat = function(name, targetUid) {
         document.getElementById('msg-list-view').style.display = 'none';
@@ -311,6 +259,9 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // Logic for loading winks and badges...
+    function updateBadge() { /* ... Badge logic ... */ }
+    function loadWinks() { /* ... Wink logic ... */ }
+    function loadMyProfile() { /* ... Profile loader ... */ }
     function simulateRealTime() { /* ... Mock winks ... */ }
 
     // Initialize
