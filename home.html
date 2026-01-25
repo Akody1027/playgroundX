@@ -8,40 +8,41 @@
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <link rel="stylesheet" href="style.css">
 
-    <script type="module">
-      import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-      import { getFirestore, collection, doc, setDoc, getDocs, addDoc, query, orderBy, onSnapshot, limit, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-      const firebaseConfig = {
-        apiKey: "AIzaSyDFmhk3ybnsVsFenCE3xvdmy5y_4u9ss7o", 
-        authDomain: "playgroundx-ca021.firebaseapp.com",
-        projectId: "playgroundx-ca021",
-        storageBucket: "playgroundx-ca021.firebasestorage.app",
-        messagingSenderId: "427340828971",
-        appId: "1:427340828971:web:1d9e2dc22ecd69593eb56e",
-        measurementId: "G-NEV8FYG0WK"
-      };
 
-      const app = initializeApp(firebaseConfig);
-      const db = getFirestore(app);
 
-      // EXPOSE TOOLS TO WINDOW (For script.js to use)
-      window.db = db;
-      window.fbase = {
-          collection: collection,
-          doc: doc,
-          setDoc: setDoc,
-          getDocs: getDocs,
-          addDoc: addDoc,
-          query: query,
-          orderBy: orderBy,
-          onSnapshot: onSnapshot,
-          limit: limit,
-          serverTimestamp: serverTimestamp
-      };
 
-      console.log("Firebase Tools Ready ✅");
-    </script>
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+  import { getFirestore, collection, doc, setDoc, getDocs, addDoc, query, orderBy, onSnapshot, limit, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js"; 
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyDFmhk3ybnsVsFenCE3xvdmy5y_4u9ss7o", 
+    authDomain: "playgroundx-ca021.firebaseapp.com",
+    projectId: "playgroundx-ca021",
+    storageBucket: "playgroundx-ca021.firebasestorage.app",
+    messagingSenderId: "427340828971",
+    appId: "1:427340828971:web:1d9e2dc22ecd69593eb56e",
+    measurementId: "G-NEV8FYG0WK"
+  }; 
+
+  const app = initializeApp(firebaseConfig);
+  const db = getFirestore(app); 
+
+  // THIS IS THE KEY: We attach these to 'window' so script.js can see them
+  window.db = db;
+  window.fbase = {
+    collection, doc, setDoc, getDocs, addDoc, query, orderBy, onSnapshot, limit, serverTimestamp
+  }; 
+
+  console.log("Firebase Global Tools Loaded ✅");
+</script>
+
+
+
+
+
+    
 </head>
 <body>
 
@@ -421,6 +422,7 @@
 </body>
 
 </html>
+
 
 
 
