@@ -25,27 +25,22 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // --- 1. CORE BACKEND & INITIALIZATION ---
 
-    window.initBackend = function() {
-        if (!localStorage.getItem('pgX_users')) {
-            let users = [];
-            for (let i = 0; i < 30; i++) {
-                let isFem = Math.random() > 0.5;
-                users.push({
-                    id: 'mock_' + i, 
-                    alias: ALIAS_PRE[Math.floor(Math.random() * 8)] + "_" + ALIAS_SUF[Math.floor(Math.random() * 8)],
-                    age: Math.floor(Math.random() * 15) + 18,
-                    gender: isFem ? 'Woman' : 'Man',
-                    img: isFem ? IMGS_F[Math.floor(Math.random() * IMGS_F.length)] : IMGS_M[Math.floor(Math.random() * IMGS_M.length)],
-                    lat: 40.7128 + (Math.random() - 0.5) * 0.05,
-                    lng: -74.0060 + (Math.random() - 0.5) * 0.05,
-                    relationship: DATA_REL_TYPE[Math.floor(Math.random() * DATA_REL_TYPE.length)],
-                    bio: "Just here for a good time. Love travel and photography.",
-                    seen: false,
-                    winkedAtMe: Math.random() < 0.2
-                });
-            }
-            localStorage.setItem('pgX_users', JSON.stringify(users));
-        }
+
+    
+
+
+window.initBackend = function() {
+    if (!localStorage.getItem('pgX_users')) {
+        // We set this to an empty list [] so real users can be added later
+        localStorage.setItem('pgX_users', JSON.stringify([]));
+    }
+    // ... keep the rest of the function calls below (updateBadge, renderDeck, etc.)
+}
+
+
+
+
+        
         updateBadge();
         renderDeck();
         loadWinks();
@@ -352,6 +347,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     initBackend();
 });
+
 
 
 
