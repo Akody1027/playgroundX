@@ -150,142 +150,96 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
 
+    // --- 6. IMAGE UPLOAD LOGIC ---
+    window.setupImageUpload = function() {
+        const fileInput = document.getElementById('profile-upload'); 
+        const uploadBtn = document.getElementById('upload-trigger'); 
+        const mainCircle = document.getElementById('profile-main-img'); 
+        const firstSlot = document.getElementById('gallery-slot-1'); 
 
+        if (!fileInput || !uploadBtn) return;
 
-// --- 6. PROFILE IMAGE UPLOADER ---
-window.setupImageUpload = function() {
-    const fileInput = document.getElementById('profile-upload'); // The hidden <input type="file">
-    const uploadBtn = document.getElementById('upload-trigger'); // The plus sign button
-    
-    // UI Elements to update
-    const headerIcon = document.querySelector('.user-icon'); // The small icon in top right
-    const mainCircle = document.getElementById('profile-main-img'); // Main circle in modal
-    const firstSlot = document.getElementById('gallery-slot-1'); // First slot in gallery
+        uploadBtn.onclick = () => fileInput.click();
 
-    if (!fileInput || !uploadBtn) return;
-
-    // Trigger file picker when plus sign is clicked
-    uploadBtn.onclick = () => fileInput.click();
-
-    // Handle the file selection
-    fileInput.onchange = (e) => {
-        const file = e.target.files[0];
-        if (file) {
-            const reader = new FileReader();
-            reader.onload = function(event) {
-                const imageUrl = event.target.result;
-
-                // 1. Update the Main Profile Circle
-                if (mainCircle) {
-                    mainCircle.src = imageUrl;
-                    mainCircle.style.objectFit = "cover";
-                }
-
-                // 2. Update the First Gallery Slot
-                if (firstSlot) {
-                    firstSlot.innerHTML = `<img src="${imageUrl}" style="width:100%; height:100%; object-fit:cover; border-radius:12px;">`;
-                }
-
-                // 3. Update the Header Icon
-                if (headerIcon) {
-                    // If header icon is an <img>
-                    if (headerIcon.tagName === 'IMG') {
-                        headerIcon.src = imageUrl;
-                    } else {
-                        // If header icon is a div with a background
-                        headerIcon.style.backgroundImage = `url(${imageUrl})`;
-                        headerIcon.style.backgroundSize = "cover";
-                        headerIcon.innerHTML = ''; // Clear any SVGs inside
-                    }
-                }
-                
-                // Optional: Save to localStorage so it persists on refresh
-                localStorage.setItem('userProfilePic', imageUrl);
-            };
-            reader.readAsDataURL(file);
-        }
-    };
-};
-
-// Add this call inside your existing window.initBackend
-const originalInit = window.initBackend;
-window.initBackend = function() {
-    originalInit();
-    window.setupImageUpload();
-};
-
-// --- 6. PROFILE SAVE & LOAD SYSTEM ---
-
-// This function gathers the data and saves it to the browser
-window.saveProfile = function() {
-    const nameInput = document.querySelector('input[placeholder="Jay_Rocker"]');
-    const bioInput = document.querySelector('textarea');
-    const mainImg = document.getElementById('main-profile-pic');
-    
-    const profileData = {
-        name: nameInput ? nameInput.value : '',
-        bio: bioInput ? bioInput.value : '',
-        image: mainImg ? mainImg.src : ''
+        fileInput.onchange = (e) => {
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = (event) => {
+                    const imageUrl = event.target.result;
+                    // Update the UI previews
+                    if (mainCircle) mainCircle.src = imageUrl;
+                    if (firstSlot) firstSlot.innerHTML = `<img src="${imageUrl}" style="width:100%; height:100%; object-fit:cover; border-radius:12px;">`;
+                };
+                reader.readAsDataURL(file);
+            }
+        };
     };
 
-    // Save to browser memory
-    localStorage.setItem('user_profile', JSON.stringify(profileData));
+    // --- 7. SAVE & LOAD LOGIC ---
+    window.saveProfile = function() {
+        const nameInput = document.querySelector('input[placeholder="Jay_Rocker"]');
+        const bioInput = document.querySelector('textarea');
+        const mainImg = document.getElementById('profile-main-img');
+        
+        const profileData = {
+            name: nameInput ? nameInput.value : '',
+            bio: bioInput ? bioInput.value : '',
+            image: mainImg ? mainImg.src : ''
+        };
 
-    // Update the Header Icon and Username immediately
-    const headerIcon = document.querySelector('.user-icon'); // Adjust selector to match your header
-    if (headerIcon && profileData.image) {
-        headerIcon.style.backgroundImage = `url(${profileData.image})`;
-        headerIcon.style.backgroundSize = "cover";
-        headerIcon.innerHTML = ""; // Clear any default initials/icons
-    }
+        localStorage.setItem('user_profile', JSON.stringify(profileData));
 
-    alert('Profile Saved Successfully!');
-    document.getElementById('profile-modal').style.display = 'none';
-};
-
-// This function runs when the page opens to restore your data
-window.loadProfile = function() {
-    const savedData = localStorage.getItem('user_profile');
-    if (!savedData) return;
-
-    const data = JSON.parse(savedData);
-    
-    // Restore Name and Bio
-    const nameInput = document.querySelector('input[placeholder="Jay_Rocker"]');
-    if (nameInput) nameInput.value = data.name;
-    
-    const bioInput = document.querySelector('textarea');
-    if (bioInput) bioInput.value = data.bio;
-
-    // Restore Images
-    const mainImg = document.getElementById('main-profile-pic');
-    const slotOne = document.getElementById('slot-1');
-    const headerIcon = document.querySelector('.user-icon');
-
-    if (data.image) {
-        if (mainImg) mainImg.src = data.image;
-        if (slotOne) slotOne.innerHTML = `<img src="${data.image}" style="width:100%; height:100%; object-fit:cover; border-radius:12px;">`;
-        if (headerIcon) {
-            headerIcon.style.backgroundImage = `url(${data.image})`;
+        // Update Header Icon
+        const headerIcon = document.querySelector('.user-icon');
+        if (headerIcon && profileData.image) {
+            headerIcon.style.backgroundImage = `url(${profileData.image})`;
             headerIcon.style.backgroundSize = "cover";
-            headerIcon.innerHTML = "";
+            headerIcon.innerHTML = ""; 
         }
-    }
-};
 
-// Call loadProfile inside your initBackend
-const originalInit = window.initBackend;
-window.initBackend = function() {
-    originalInit();
-    window.loadProfile();
-};
+        alert('Profile Saved!');
+        document.getElementById('profile-modal').style.display = 'none';
+    };
 
+    window.loadProfile = function() {
+        const savedData = localStorage.getItem('user_profile');
+        if (!savedData) return;
+        const data = JSON.parse(savedData);
+        
+        const nameInput = document.querySelector('input[placeholder="Jay_Rocker"]');
+        const bioInput = document.querySelector('textarea');
+        const mainImg = document.getElementById('profile-main-img');
+        const firstSlot = document.getElementById('gallery-slot-1');
 
+        if (nameInput) nameInput.value = data.name;
+        if (bioInput) bioInput.value = data.bio;
+        if (data.image) {
+            if (mainImg) mainImg.src = data.image;
+            if (firstSlot) firstSlot.innerHTML = `<img src="${data.image}" style="width:100%; height:100%; object-fit:cover; border-radius:12px;">`;
+        }
+    };
 
-
-    
+    // --- 8. FINAL INITIALIZATION ---
+    // This replaces ALL previous window.initBackend versions
+    window.initBackend = function() {
+        const profileBtn = document.getElementById('open-my-profile');
+        if(profileBtn) {
+            profileBtn.onclick = (e) => {
+                e.preventDefault();
+                document.getElementById('profile-modal').style.display = 'block';
+                document.getElementById('user-dropdown').style.display = 'none';
+            };
+        }
+        renderDeck();
+        initArcade();
+        window.setupImageUpload();
+        window.loadProfile();
+    };
 
     window.initBackend();
-});
+
+
+
 
 
