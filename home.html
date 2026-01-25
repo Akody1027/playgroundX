@@ -51,16 +51,20 @@
         <h1 style="color: white; margin: 0; font-size: 20px;">playground<span style="color: var(--accent);">X</span></h1>
     </div>
 
-    <div class="header-icons">
+
+
+
+
+    <div class="header-icons" style="display: flex; align-items: center; gap: 15px;">
         
-        <button class="icon-btn" onclick="document.getElementById('camera-modal').style.display='block'">
+        <button class="icon-btn" onclick="document.getElementById('camera-modal').style.display='block'" style="background: none; border: none; padding: 0; cursor: pointer;">
             <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                 <path d="M23 7l-7 5 7 5V7z"></path>
                 <rect x="1" y="5" width="15" height="14" rx="2" ry="2"></rect>
             </svg>
         </button>
 
-        <button class="icon-btn" onclick="document.getElementById('game-modal').style.display='block'">
+        <button class="icon-btn" onclick="document.getElementById('game-modal').style.display='block'" style="background: none; border: none; padding: 0; cursor: pointer;">
             <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                 <line x1="6" y1="12" x2="10" y2="12"></line>
                 <line x1="8" y1="10" x2="8" y2="14"></line>
@@ -75,12 +79,17 @@
             <span class="badge" id="msg-badge" style="display:none">0</span>
         </div>
 
-        <div id="user-icon-trigger" onclick="window.toggleUserMenu()" style="width: 40px; height: 40px; background: transparent; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; border: 1px solid #444;">
+        <div id="user-icon-trigger" onclick="window.toggleUserMenu()" style="width: 40px; height: 40px; background: #222; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; border: 1px solid #444;">
             <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
         </div>
 
     </div>
 
+
+
+
+    
+    
 
 
     
@@ -412,6 +421,7 @@
 </body>
 
 </html>
+
 
 
 
