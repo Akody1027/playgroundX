@@ -264,6 +264,66 @@ document.addEventListener('DOMContentLoaded', () => {
     function loadMyProfile() { /* ... Profile loader ... */ }
     function simulateRealTime() { /* ... Mock winks ... */ }
 
+
+
+    const games = [
+    { name: "Simple Pong", file: "Simplepong.html", thumb: "simplepong.jpg" },
+    { name: "Speed Jump", file: "Speedjump.html", thumb: "speedjump.jpg" },
+    { name: "Ghost Poke", file: "Ghostpoke.html", thumb: "ghostpoke.jpg" },
+    { name: "Caos Racer", file: "caosracer.html", thumb: "caosracer.jpg" },
+    { name: "Big Shot", file: "bigshot.html", thumb: "bigshot.jpg" },
+    { name: "Flap Dodge", file: "flapdodge.html", thumb: "flapdodge.jpg" },
+    { name: "Memory", file: "memory.html", thumb: "memory.jpg" },
+    { name: "Block Crush", file: "blockcrush.html", thumb: "blockcrush.jpg" }
+];
+
+function initArcade() {
+    const grid = document.getElementById('arcade-grid');
+    grid.innerHTML = ''; // Clear placeholder
+
+    games.forEach(game => {
+        const card = document.createElement('div');
+        card.className = 'game-card';
+        card.style = "position:relative; background:#222; border-radius:12px; overflow:hidden; aspect-ratio: 1/1; border: 1px solid #333;";
+        
+        card.innerHTML = `
+            <img src="${game.thumb}" style="width:100%; height:100%; object-fit:cover;">
+            <div class="game-overlay" onclick="this.classList.add('active')" style="position:absolute; inset:0; background:rgba(0,0,0,0.4); display:flex; align-items:center; justify-content:center; cursor:pointer; transition: 0.3s;">
+                <button onclick="window.launchGame('${game.file}')" class="play-btn" style="background:var(--accent); color:white; border:none; padding:10px 20px; border-radius:20px; font-weight:bold; transform: scale(0.9); opacity:0; transition:0.2s;">PLAY</button>
+            </div>
+            <div style="position:absolute; bottom:0; left:0; right:0; padding:8px; background:linear-gradient(transparent, rgba(0,0,0,0.8)); color:white; font-size:12px; font-weight:600;">${game.name}</div>
+        `;
+        grid.appendChild(card);
+    });
+}
+
+// Function to launch the game in the iframe
+window.launchGame = (file) => {
+    const player = document.getElementById('game-player');
+    const frame = document.getElementById('game-frame');
+    frame.src = file;
+    player.style.display = 'block';
+};
+
+// Function to close the iframe
+window.closeGame = () => {
+    const player = document.getElementById('game-player');
+    const frame = document.getElementById('game-frame');
+    frame.src = ''; // Stop game sound/action
+    player.style.display = 'none';
+};
+
+// Function to close Arcade Modal entirely
+window.closeArcade = () => {
+    window.closeGame();
+    document.getElementById('game-modal').style.display = 'none';
+};
+
+// Initialize on load
+document.addEventListener('DOMContentLoaded', initArcade);
+
+
     // Initialize
     initBackend();
 });
+
