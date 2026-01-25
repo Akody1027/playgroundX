@@ -147,5 +147,79 @@ document.addEventListener('DOMContentLoaded', () => {
         initArcade();
     };
 
+
+
+
+
+
+// --- 6. PROFILE IMAGE UPLOADER ---
+window.setupImageUpload = function() {
+    const fileInput = document.getElementById('profile-upload'); // The hidden <input type="file">
+    const uploadBtn = document.getElementById('upload-trigger'); // The plus sign button
+    
+    // UI Elements to update
+    const headerIcon = document.querySelector('.user-icon'); // The small icon in top right
+    const mainCircle = document.getElementById('profile-main-img'); // Main circle in modal
+    const firstSlot = document.getElementById('gallery-slot-1'); // First slot in gallery
+
+    if (!fileInput || !uploadBtn) return;
+
+    // Trigger file picker when plus sign is clicked
+    uploadBtn.onclick = () => fileInput.click();
+
+    // Handle the file selection
+    fileInput.onchange = (e) => {
+        const file = e.target.files[0];
+        if (file) {
+            const reader = new FileReader();
+            reader.onload = function(event) {
+                const imageUrl = event.target.result;
+
+                // 1. Update the Main Profile Circle
+                if (mainCircle) {
+                    mainCircle.src = imageUrl;
+                    mainCircle.style.objectFit = "cover";
+                }
+
+                // 2. Update the First Gallery Slot
+                if (firstSlot) {
+                    firstSlot.innerHTML = `<img src="${imageUrl}" style="width:100%; height:100%; object-fit:cover; border-radius:12px;">`;
+                }
+
+                // 3. Update the Header Icon
+                if (headerIcon) {
+                    // If header icon is an <img>
+                    if (headerIcon.tagName === 'IMG') {
+                        headerIcon.src = imageUrl;
+                    } else {
+                        // If header icon is a div with a background
+                        headerIcon.style.backgroundImage = `url(${imageUrl})`;
+                        headerIcon.style.backgroundSize = "cover";
+                        headerIcon.innerHTML = ''; // Clear any SVGs inside
+                    }
+                }
+                
+                // Optional: Save to localStorage so it persists on refresh
+                localStorage.setItem('userProfilePic', imageUrl);
+            };
+            reader.readAsDataURL(file);
+        }
+    };
+};
+
+// Add this call inside your existing window.initBackend
+const originalInit = window.initBackend;
+window.initBackend = function() {
+    originalInit();
+    window.setupImageUpload();
+};
+
+
+
+
+
+    
+
     window.initBackend();
 });
+
