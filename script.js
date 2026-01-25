@@ -14,14 +14,23 @@ document.addEventListener('DOMContentLoaded', () => {
     let jessRead = false; 
 
     // --- NEW: HELPER FOR EMPTY STATES ---
+
+
+    // --- NEW: HELPER FOR EMPTY STATES (SVG VERSION - NO CSS NEEDED) ---
     function getEmptyStateHTML() {
         return `
-            <div class="empty-placeholder-container">
-                <img src="user_placeholder.jpg" class="empty-placeholder-img">
-                <div class="empty-text">No users nearby</div>
+            <div style="width: 100%; height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; opacity: 0.7;">
+                <svg width="120" height="120" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="margin-bottom: 15px;">
+                    <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                    <circle cx="12" cy="7" r="4"></circle>
+                </svg>
+                <div style="color: #888; font-size: 16px; font-weight: 600;">No users nearby</div>
             </div>
         `;
     }
+
+
+    
 
     // --- 1. CORE BACKEND & INITIALIZATION ---
 
@@ -267,3 +276,4 @@ document.addEventListener('DOMContentLoaded', () => {
     // Initialize
     initBackend();
 });
+
