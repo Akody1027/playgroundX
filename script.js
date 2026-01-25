@@ -6,15 +6,17 @@ document.addEventListener('DOMContentLoaded', () => {
     let currentChatUnsubscribe = null; 
     let currentChatId = null; 
 
-    // --- HELPER FOR EMPTY SLOTS (GRID) ---
-    function getEmptySlotHTML() {
+    // --- HELPER FOR EMPTY SLOTS (CONSISTENT STYLE) ---
+    function getEmptySlotHTML(isGrid = true) {
+        const size = isGrid ? "14px" : "50px";
+        const fontSize = isGrid ? "8px" : "10px";
         return `
-            <div class="grid-item" style="border: 1px dashed #444; background: #1a1a1a; display: flex; align-items: center; justify-content: center; aspect-ratio: 1/1;">
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#333" stroke-width="2">
+            <div class="${isGrid ? 'grid-item' : ''}" style="display:flex; flex-direction:column; align-items:center; justify-content:center; color:#444; height:100%; border:1px dashed #444; border-radius:12px; background:#1a1a1a; aspect-ratio: 1/1;">
+                <svg width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1">
                     <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle>
                 </svg>
-            </div>
-        `;
+                <p style="font-size:${fontSize}; font-weight:bold; margin-top:5px; letter-spacing:1px; text-align:center;">WAITING FOR USERS...</p>
+            </div>`;
     }
 
     // --- 1. CORE BACKEND & INITIALIZATION ---
@@ -23,7 +25,6 @@ document.addEventListener('DOMContentLoaded', () => {
             localStorage.setItem('pgX_users', JSON.stringify([]));
         }
         
-        // FIX: Make "My Profile" link clickable in the dropdown
         const profileBtn = document.getElementById('open-my-profile');
         if(profileBtn) {
             profileBtn.onclick = (e) => {
@@ -34,10 +35,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         renderDeck();
-        
-        // Setup Chat Listeners
-        const sendBtn = document.querySelector('.chat-input-area button');
-        if(sendBtn) sendBtn.onclick = sendMessage;
+        initArcade(); // Load all games
     };
 
     // --- 2. DECK & GRID VIEW LOGIC ---
@@ -55,18 +53,15 @@ document.addEventListener('DOMContentLoaded', () => {
                     if (data.id !== localStorage.getItem('pgX_myUid')) usersToShow.push(data);
                 });
             }
-        } catch (e) { console.log("Database not connected yet."); }
+        } catch (e) { console.log("Database fetch failed/skipped."); }
 
         activeDeck = usersToShow;
 
-        // Render Swipe Zone Placeholder
+        // Swipe View Placeholder (Realistic Size)
         if (activeDeck.length === 0) {
             zone.innerHTML = `
-                <div style="display:flex; flex-direction:column; align-items:center; justify-content:center; color:#444; height:100%;">
-                    <svg width="50" height="50" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1">
-                        <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle>
-                    </svg>
-                    <p style="font-size:10px; font-weight:bold; margin-top:10px; letter-spacing:1px;">WAITING FOR USERS...</p>
+                <div style="width: 95%; max-width: 400px; height: 90%; margin: 0 auto;">
+                    ${getEmptySlotHTML(false)}
                 </div>`;
         } else {
             const u = activeDeck[0];
@@ -78,7 +73,7 @@ document.addEventListener('DOMContentLoaded', () => {
             initSwipeHandlers();
         }
 
-        // Render Grid View with Top-Row Dummy Logic
+        // Grid View Logic
         if (grid) {
             grid.style.display = 'grid';
             let gridHTML = activeDeck.map(u => `
@@ -88,54 +83,68 @@ document.addEventListener('DOMContentLoaded', () => {
                 </div>
             `).join('');
             
-            // Fill up to at least 6 slots with empty placeholders
-            let minSlots = 6;
-            let currentCount = activeDeck.length;
-            if (currentCount < minSlots) {
-                for (let i = 0; i < (minSlots - currentCount); i++) {
-                    gridHTML += getEmptySlotHTML();
-                }
+            // Show up to 9 slots, all showing "Waiting" if empty
+            let maxSlots = 9;
+            for (let i = activeDeck.length; i < maxSlots; i++) {
+                gridHTML += getEmptySlotHTML(true);
             }
             grid.innerHTML = gridHTML;
         }
     };
 
-    // --- 3. CONNECT DASHBOARD (TAB SWITCHING) ---
+    // --- 3. CONNECT DASHBOARD (FIXED TOGGLE) ---
     window.openTab = function(tabId, btn) {
-        // Hide all panes and remove active from all buttons
-        document.querySelectorAll('.tab-pane').forEach(p => p.classList.remove('active'));
-        document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+        // Toggle Panes
+        document.getElementById('tab-winks').style.display = (tabId === 'tab-winks') ? 'block' : 'none';
+        document.getElementById('tab-chats').style.display = (tabId === 'tab-chats') ? 'block' : 'none';
         
-        // Show selected pane and highlight button
-        document.getElementById(tabId).classList.add('active');
+        // Toggle Button Highlight
+        document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
         btn.classList.add('active');
     };
 
-    // --- 4. NAVIGATION & HEADER CONTROLS ---
+    // --- 4. ARCADE (DISPLAY ALL GAMES) ---
+    const games = [
+        { name: "Simple Pong", file: "Simplepong.html", thumb: "simplepong.jpg" },
+        { name: "Speed Jump", file: "Speedjump.html", thumb: "speedjump.jpg" },
+        { name: "Ghost Poke", file: "ghostpoke.html", thumb: "ghostpoke.jpg" },
+        { name: "Caos Racer", file: "caosracer.html", thumb: "caosracer.jpg" },
+        { name: "Big Shot", file: "bigshot.html", thumb: "bigshot.jpg" },
+        { name: "Flap Dodge", file: "flapdodge.html", thumb: "flapdodge.jpg" },
+        { name: "Memory", file: "memory.html", thumb: "memory.jpg" },
+        { name: "Block Crush", file: "blockcrush.html", thumb: "blockcrush.jpg" }
+    ];
+
+    function initArcade() {
+        const arcadeGrid = document.getElementById('arcade-grid');
+        if (!arcadeGrid) return;
+        arcadeGrid.innerHTML = games.map(game => `
+            <div class="game-card" style="position:relative; background:#222; border-radius:12px; overflow:hidden; aspect-ratio:1/1; border:1px solid #333;">
+                <img src="${game.thumb}" style="width:100%; height:100%; object-fit:cover;">
+                <div class="game-overlay" onclick="window.revealPlay(this)" style="position:absolute; inset:0; background:rgba(0,0,0,0); display:flex; align-items:center; justify-content:center; cursor:pointer; transition:0.3s;">
+                    <button onclick="window.launchGame('${game.file}', event)" class="play-btn" style="background:var(--accent); color:white; border:none; padding:10px 20px; border-radius:20px; font-weight:bold; opacity:0; pointer-events:none;">PLAY</button>
+                </div>
+                <div style="position:absolute; bottom:0; left:0; right:0; padding:8px; background:linear-gradient(transparent, rgba(0,0,0,0.8)); color:white; font-size:12px;">${game.name}</div>
+            </div>
+        `).join('');
+    }
+
+    // --- 5. MAP & NAVIGATION ---
+    const map = L.map('map').setView([40.7128, -74.0060], 13);
+    L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png').addTo(map);
+
     window.switchView = function(viewId, btn) {
-        document.querySelectorAll('.app-view').forEach(v => v.classList.remove('active'));
+        document.querySelectorAll('.app-view').forEach(v => v.style.display = 'none');
         document.querySelectorAll('.view-btn').forEach(b => b.classList.remove('active'));
-        document.getElementById('view-' + viewId).classList.add('active');
+        
+        const activeView = document.getElementById('view-' + viewId);
+        activeView.style.display = 'block';
         btn.classList.add('active');
-        if (viewId === 'map') setTimeout(() => map.invalidateSize(), 100);
+        
+        if (viewId === 'map') {
+            setTimeout(() => { map.invalidateSize(); }, 200);
+        }
     };
 
-    window.toggleUserMenu = function() {
-        const menu = document.getElementById('user-dropdown');
-        menu.style.display = (menu.style.display === 'block') ? 'none' : 'block';
-    };
-
-    window.openMsgModal = function() {
-        document.getElementById('msg-modal').style.display = 'block';
-    };
-
-    window.closeChat = function() {
-        document.getElementById('msg-modal').style.display = 'none';
-        // Reset to list view for next time
-        document.getElementById('msg-list-view').style.display = 'block';
-        document.getElementById('chat-view').style.display = 'none';
-    };
-
-    // --- 5. INITIALIZE ---
     window.initBackend();
 });
