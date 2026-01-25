@@ -1,26 +1,15 @@
 document.addEventListener('DOMContentLoaded', () => {
 
     // --- CONFIGURATION & GLOBAL STATE ---
-    const ALIAS_PRE = ['Jay', 'Cool', 'Wild', 'Soft', 'Dark', 'Light', 'Neo', 'Retro'];
-    const ALIAS_SUF = ['Rocker', 'Vibes', 'Soul', 'King', 'Queen', 'X', '99', 'Walker'];
-    const IMGS_F = ['https://images.unsplash.com/photo-1517841905240-472988babdf9?w=500', 'https://images.unsplash.com/photo-1524504388940-b1c1722653e1?w=500'];
-    const IMGS_M = ['https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=500', 'https://images.unsplash.com/photo-1480455624313-e29b44bbfde1?w=500'];
-    const DATA_REL_TYPE = ['Marriage', 'Long-Term', 'Short-Term', 'Intimacy w/o Connection', 'Friends', 'FWB'];
-
     let activeDeck = [];
     let card, startX, currentX, btnLike, btnReject;
     let currentChatUnsubscribe = null; 
     let currentChatId = null; 
-    let jessRead = false; 
 
-    // --- NEW: HELPER FOR EMPTY STATES ---
-
-
-
-
+    // --- HELPER FOR EMPTY STATES ---
     function getEmptyStateHTML() {
         return `
-            <div style="width:100%; height:100%; display:flex; flex-direction:column; align-items:center; justify-content:center; border:2px dashed #444; border-radius:20px; background:#1a1a1a;">
+            <div style="width:100%; height:100%; display:flex; flex-direction:column; align-items:center; justify-content:center; border:2px dashed #444; border-radius:20px; background:#1a1a1a; padding: 40px; text-align: center;">
                 <svg width="60" height="60" viewBox="0 0 24 24" fill="none" stroke="#444" stroke-width="1.5">
                     <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle>
                 </svg>
@@ -29,35 +18,19 @@ document.addEventListener('DOMContentLoaded', () => {
         `;
     }
 
-
-
-
-    
     // --- 1. CORE BACKEND & INITIALIZATION ---
-
-
-    
-
-
-window.initBackend = function() {
-    if (!localStorage.getItem('pgX_users')) {
-        // We set this to an empty list [] so real users can be added later
-        localStorage.setItem('pgX_users', JSON.stringify([]));
-    }
-    // ... keep the rest of the function calls below (updateBadge, renderDeck, etc.)
-}
-
-
-
-
+    window.initBackend = function() {
+        // Check if we have local users, if not, initialize empty list
+        if (!localStorage.getItem('pgX_users')) {
+            localStorage.setItem('pgX_users', JSON.stringify([]));
+        }
         
         updateBadge();
         renderDeck();
         loadWinks();
         loadMyProfile(); 
-        setInterval(simulateRealTime, 5000);
         
-        // Send Button Listener
+        // Setup Send Button Listeners
         const sendBtn = document.querySelector('.chat-input-area button');
         if(sendBtn) sendBtn.onclick = sendMessage;
 
@@ -65,35 +38,38 @@ window.initBackend = function() {
         if(chatInput) {
             chatInput.onkeypress = (e) => { if (e.key === 'Enter') sendMessage(); };
         }
-    }
+    };
 
     // --- 2. DECK & SWIPE LOGIC ---
-
     window.renderDeck = async function() {
         const zone = document.getElementById('swipe-zone');
         const grid = document.getElementById('grid-content');
+        let usersToShow = [];
 
         try {
+            // Try to get real users from Firebase first
             if (window.fbase && window.db) {
                 const { getDocs, collection } = window.fbase;
                 const querySnapshot = await getDocs(collection(window.db, "users"));
-                let realUsers = [];
-                querySnapshot.forEach((doc) => realUsers.push(doc.data()));
-
-                if (realUsers.length > 0) {
+                querySnapshot.forEach((doc) => {
+                    const data = doc.data();
                     let myUid = localStorage.getItem('pgX_myUid');
-                    activeDeck = realUsers.filter(u => u.id !== myUid);
-                } else {
-                    activeDeck = JSON.parse(localStorage.getItem('pgX_users')).filter(u => !u.seen);
-                }
-            } else {
-                 activeDeck = JSON.parse(localStorage.getItem('pgX_users')).filter(u => !u.seen);
+                    if (data.id !== myUid) usersToShow.push(data);
+                });
             }
         } catch (e) {
-            activeDeck = JSON.parse(localStorage.getItem('pgX_users')).filter(u => !u.seen);
+            console.log("Firebase not ready, checking local storage...");
         }
 
-        // --- UPDATED SWIPE VIEW LOGIC ---
+        // If Firebase is empty or failed, check local storage
+        if (usersToShow.length === 0) {
+            const localUsers = JSON.parse(localStorage.getItem('pgX_users')) || [];
+            usersToShow = localUsers.filter(u => !u.seen);
+        }
+
+        activeDeck = usersToShow;
+
+        // Render Swipe View
         if (activeDeck.length > 0) {
             const u = activeDeck[0];
             zone.innerHTML = `
@@ -104,20 +80,17 @@ window.initBackend = function() {
                     <span class="card-age">${u.age}</span>
                 </div>
             </div>`;
-            setTimeout(initSwipeHandlers, 50);
+            initSwipeHandlers();
         } else {
-            // SHOW PLACEHOLDER IMAGE IF EMPTY
             zone.innerHTML = getEmptyStateHTML();
         }
 
-        // --- UPDATED GRID VIEW LOGIC ---
+        // Render Grid View
         if (grid) {
             if (activeDeck.length === 0) {
-                // If empty, switch to flex to center the placeholder image
-                grid.style.display = 'flex';
+                grid.style.display = 'block'; // Block for the empty state centered
                 grid.innerHTML = getEmptyStateHTML();
             } else {
-                // If users exist, ensure grid layout is active
                 grid.style.display = 'grid';
                 grid.innerHTML = activeDeck.map(u => `
                 <div class="grid-item" onclick="window.openUserProfile('${u.alias}', ${u.age}, '${u.img}', '${u.id}')">
@@ -127,7 +100,7 @@ window.initBackend = function() {
                 `).join('');
             }
         }
-    }
+    };
 
     function initSwipeHandlers() {
         card = document.getElementById('active-card');
@@ -135,17 +108,27 @@ window.initBackend = function() {
         btnLike = document.getElementById('btn-like');
         if (!card) return;
 
-        card.addEventListener('touchstart', (e) => { startX = e.touches[0].clientX; card.style.transition = 'none'; });
+        card.addEventListener('touchstart', (e) => { 
+            startX = e.touches[0].clientX; 
+            card.style.transition = 'none'; 
+        });
+        
         card.addEventListener('touchmove', (e) => {
             currentX = e.touches[0].clientX - startX;
             card.style.transform = `translateX(${currentX}px) rotate(${currentX / 15}deg)`;
-            if (currentX > 0) { btnLike.style.background = 'var(--accent)'; } 
-            else { btnReject.style.background = 'grey'; }
+            if (currentX > 50) { btnLike.style.background = 'var(--accent)'; } 
+            else if (currentX < -50) { btnReject.style.background = 'grey'; }
+            else { resetButtons(); }
         });
+        
         card.addEventListener('touchend', () => {
             if (currentX > 100) window.userSwipe('right');
             else if (currentX < -100) window.userSwipe('left');
-            else { card.style.transform = 'translateX(0)'; resetButtons(); }
+            else { 
+                card.style.transition = 'transform 0.3s ease';
+                card.style.transform = 'translateX(0) rotate(0)'; 
+                resetButtons(); 
+            }
         });
     }
 
@@ -157,8 +140,12 @@ window.initBackend = function() {
             document.getElementById('wink-txt').classList.add('show');
             setTimeout(() => document.getElementById('wink-txt').classList.remove('show'), 1000);
         }
-        setTimeout(() => { resetButtons(); renderDeck(); }, 300);
-    }
+        setTimeout(() => { 
+            resetButtons(); 
+            activeDeck.shift(); // Remove the swiped user
+            renderDeck(); 
+        }, 300);
+    };
 
     function resetButtons() {
         if (btnLike) btnLike.style.background = 'rgba(0,0,0,0.6)';
@@ -169,7 +156,18 @@ window.initBackend = function() {
     const map = L.map('map').setView([40.7128, -74.0060], 13);
     L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png').addTo(map);
 
-    // --- 4. REAL-TIME MESSAGING ---
+    // --- 4. MESSAGING ---
+    window.openMsgModal = function() {
+        document.getElementById('msg-modal').style.display = 'block';
+    };
+
+    window.closeChat = function() {
+        document.getElementById('msg-modal').style.display = 'none';
+        if(currentChatUnsubscribe) {
+            currentChatUnsubscribe();
+            currentChatUnsubscribe = null;
+        }
+    };
 
     window.openChat = function(name, targetUid) {
         document.getElementById('msg-list-view').style.display = 'none';
@@ -187,7 +185,7 @@ window.initBackend = function() {
             
             const q = query(collection(window.db, "chats", chatId, "messages"), orderBy("createdAt"), limit(50));
             
-            if(currentChatUnsubscribe) currentChatUnsubscribe(); // Stop old listener
+            if(currentChatUnsubscribe) currentChatUnsubscribe();
 
             currentChatUnsubscribe = onSnapshot(q, (snapshot) => {
                 chatBody.innerHTML = ''; 
@@ -202,7 +200,7 @@ window.initBackend = function() {
                 chatBody.scrollTop = chatBody.scrollHeight;
             });
         }
-    }
+    };
 
     async function sendMessage() {
         const input = document.querySelector('.chat-input');
@@ -224,37 +222,10 @@ window.initBackend = function() {
     }
 
     // --- 5. UI CONTROLS ---
-
     window.toggleUserMenu = function() {
         const menu = document.getElementById('user-dropdown');
         menu.style.display = (menu.style.display === 'block') ? 'none' : 'block';
-    }
-
-    // Fix: Attach listener to icon specifically
-    const userTrigger = document.getElementById('user-icon-trigger');
-    if(userTrigger) userTrigger.onclick = (e) => { e.stopPropagation(); window.toggleUserMenu(); };
-
-
-
-
-    // --- ADD THIS TO FIX MESSAGE ICON ---
-    window.openMsgModal = function() {
-        const modal = document.getElementById('msg-modal');
-        if(modal) modal.style.display = 'block';
-    }
-
-    // Close dropdown when clicking anywhere else
-    window.onclick = function(event) {
-        if (!event.target.matches('#user-icon-trigger') && !event.target.closest('#user-icon-trigger')) {
-            document.getElementById('user-dropdown').style.display = 'none';
-        }
-    }
-
-
-
-
-
-
+    };
 
     window.switchView = function(viewId, btn) {
         document.querySelectorAll('.app-view').forEach(v => v.classList.remove('active'));
@@ -262,42 +233,18 @@ window.initBackend = function() {
         document.getElementById('view-' + viewId).classList.add('active');
         btn.classList.add('active');
         if (viewId === 'map') setTimeout(() => map.invalidateSize(), 100);
-    }
+    };
 
-    window.saveProfile = async function() {
-        let myUid = localStorage.getItem('pgX_myUid') || 'user_' + Date.now();
-        localStorage.setItem('pgX_myUid', myUid);
+    // Placeholder functions to prevent errors
+    function updateBadge() {}
+    function loadWinks() {}
+    function loadMyProfile() {}
 
-        const profileData = {
-            id: myUid,
-            alias: document.getElementById('p-alias').value || "Anonymous",
-            img: document.getElementById('my-main-preview').src,
-            age: document.getElementById('p-age').value
-        };
-
-        localStorage.setItem('my_profile_pic', profileData.img);
-        
-        if (window.fbase && window.db) {
-            const { setDoc, doc } = window.fbase;
-            await setDoc(doc(window.db, "users", myUid), profileData, { merge: true });
-        }
-        document.getElementById('profile-modal').style.display = 'none';
-        alert("Profile Saved!");
-    }
-
-    // Logic for loading winks and badges...
-    function updateBadge() { /* ... Badge logic ... */ }
-    function loadWinks() { /* ... Wink logic ... */ }
-    function loadMyProfile() { /* ... Profile loader ... */ }
-    function simulateRealTime() { /* ... Mock winks ... */ }
-
-
-
-    // --- ARCADE CONFIGURATION ---
+    // --- 6. ARCADE ---
     const games = [
         { name: "Simple Pong", file: "Simplepong.html", thumb: "simplepong.jpg" },
         { name: "Speed Jump", file: "Speedjump.html", thumb: "speedjump.jpg" },
-        { name: "Ghost Poke", file: "Ghostpoke.html", thumb: "Ghostpoke.jpg" }, // Note: check if this should be .jpg or .html for thumb
+        { name: "Ghost Poke", file: "ghostpoke.html", thumb: "ghostpoke.jpg" },
         { name: "Caos Racer", file: "caosracer.html", thumb: "caosracer.jpg" },
         { name: "Big Shot", file: "bigshot.html", thumb: "bigshot.jpg" },
         { name: "Flap Dodge", file: "flapdodge.html", thumb: "flapdodge.jpg" },
@@ -305,62 +252,42 @@ window.initBackend = function() {
         { name: "Block Crush", file: "blockcrush.html", thumb: "blockcrush.jpg" }
     ];
 
-    // --- ARCADE CORE FUNCTIONS ---
-
     function initArcade() {
         const grid = document.getElementById('arcade-grid');
         if (!grid) return;
-        grid.innerHTML = ''; 
-
-        games.forEach(game => {
-            const card = document.createElement('div');
-            card.className = 'game-card'; 
-            // Inline style for immediate structure, behavior handled by window functions
-            card.style = "position:relative; background:#222; border-radius:12px; overflow:hidden; aspect-ratio:1/1; border:1px solid #333;";
-            
-            card.innerHTML = `
+        grid.innerHTML = games.map(game => `
+            <div class="game-card" style="position:relative; background:#222; border-radius:12px; overflow:hidden; aspect-ratio:1/1; border:1px solid #333;">
                 <img src="${game.thumb}" style="width:100%; height:100%; object-fit:cover;">
                 <div class="game-overlay" onclick="window.revealPlay(this)" style="position:absolute; inset:0; background:rgba(0,0,0,0); display:flex; align-items:center; justify-content:center; cursor:pointer; transition:0.3s;">
                     <button onclick="window.launchGame('${game.file}', event)" class="play-btn" style="background:var(--accent); color:white; border:none; padding:10px 20px; border-radius:20px; font-weight:bold; transform: scale(0.8); opacity:0; transition:0.2s; pointer-events:none;">PLAY</button>
                 </div>
                 <div style="position:absolute; bottom:0; left:0; right:0; padding:8px; background:linear-gradient(transparent, rgba(0,0,0,0.8)); color:white; font-size:12px; font-weight:600; pointer-events:none;">${game.name}</div>
-            `;
-            grid.appendChild(card);
-        });
+            </div>
+        `).join('');
     }
 
-    // This handles the "Click thumbnail to see Play button" logic
     window.revealPlay = function(overlay) {
-        // Reset any other open play buttons first
-        document.querySelectorAll('.game-overlay').forEach(el => {
-            el.style.background = "rgba(0,0,0,0)";
-            const btn = el.querySelector('.play-btn');
+        document.querySelectorAll('.play-btn').forEach(btn => {
             btn.style.opacity = "0";
-            btn.style.transform = "scale(0.8)";
             btn.style.pointerEvents = "none";
         });
-
-        // Activate the clicked one
+        const btn = overlay.querySelector('.play-btn');
         overlay.style.background = "rgba(0,0,0,0.7)";
-        const activeBtn = overlay.querySelector('.play-btn');
-        activeBtn.style.opacity = "1";
-        activeBtn.style.transform = "scale(1)";
-        activeBtn.style.pointerEvents = "auto";
+        btn.style.opacity = "1";
+        btn.style.transform = "scale(1)";
+        btn.style.pointerEvents = "auto";
     };
 
     window.launchGame = function(file, event) {
-        if (event) event.stopPropagation(); // Prevents the overlay click from re-firing
+        if (event) event.stopPropagation();
         const player = document.getElementById('game-player');
-        const frame = document.getElementById('game-frame');
-        frame.src = file;
+        document.getElementById('game-frame').src = file;
         player.style.display = 'block';
     };
 
     window.closeGame = function() {
-        const player = document.getElementById('game-player');
-        const frame = document.getElementById('game-frame');
-        frame.src = ''; // Crucial: This kills the game process/audio
-        player.style.display = 'none';
+        document.getElementById('game-frame').src = '';
+        document.getElementById('game-player').style.display = 'none';
     };
 
     window.closeArcade = function() {
@@ -368,23 +295,7 @@ window.initBackend = function() {
         document.getElementById('game-modal').style.display = 'none';
     };
 
-    // --- FINALIZE INITIALIZATION ---
-    
-    // Call initArcade inside your existing backend init
-
-
-    // Call everything directly on load
+    // START EVERYTHING
     window.initBackend();
-    initArcade(); 
-
-
-
-
-
+    initArcade();
 });
-
-
-
-
-
-
