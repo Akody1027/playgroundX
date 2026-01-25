@@ -21,12 +21,12 @@
             overflow-x: hidden;
         }
 
-        /* --- UPDATED SLIDE-OUT DRAWER --- */
+        /* --- SLIDE-OUT DRAWER --- */
         #app-preview-container { 
             position: fixed;
             top: 0;
             left: -100%; 
-            width: 98%;   /* Updated to 98% */
+            width: 98%;   
             height: 100vh;
             z-index: 1000;
             background: #000;
@@ -209,7 +209,6 @@
             document.getElementById('app-frame').contentWindow.location.reload();
         };
 
-        // --- UPDATED BYPASS LOGIC ---
         window.toggleAuthBypass = () => {
             const isBypassed = document.getElementById('auth-bypass').checked;
             const appFrame = document.getElementById('app-frame');
@@ -217,9 +216,9 @@
             localStorage.setItem('admin_verified_bypass', isBypassed);
             
             if (isBypassed) {
-                appFrame.src = "home.html"; // Loads home.html
+                appFrame.src = "home.html"; 
             } else {
-                appFrame.src = "index.html"; // Loads index.html
+                appFrame.src = "index.html"; 
             }
         };
 
@@ -246,16 +245,20 @@
             const count = parseInt(document.getElementById('dummy-count').value);
             const log = document.getElementById('pop-log');
             log.innerHTML = "Generating...";
+            
             const ALIAS_PRE = ['Jay', 'Cool', 'Wild', 'Soft', 'Dark', 'Light', 'Neo', 'Retro'];
             const ALIAS_SUF = ['Rocker', 'Vibes', 'Soul', 'King', 'Queen', 'X', '99', 'Walker'];
-            const IMGS = ['https://images.unsplash.com/photo-1517841905240-472988babdf9?w=500', 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=500'];
+            
+            // Updated to simple user icon
+            const USER_ICON = 'https://cdn-icons-png.flaticon.com/512/149/149071.png';
+
             let users = JSON.parse(localStorage.getItem('pgX_users') || '[]');
             for (let i = 0; i < count; i++) {
                 users.push({
                     id: 'dummy_' + Math.random().toString(36).substr(2, 9),
                     alias: ALIAS_PRE[Math.floor(Math.random() * 8)] + "_" + ALIAS_SUF[Math.floor(Math.random() * 8)],
                     age: Math.floor(Math.random() * 20) + 18,
-                    img: IMGS[Math.floor(Math.random() * IMGS.length)],
+                    img: USER_ICON, // Using simple icon
                     lat: 40.7128 + (Math.random() - 0.5) * 0.1,
                     lng: -74.0060 + (Math.random() - 0.5) * 0.1,
                     bio: "Automated testing persona.",
@@ -263,7 +266,7 @@
                 });
             }
             localStorage.setItem('pgX_users', JSON.stringify(users));
-            log.innerHTML = `Success: ${count} users added.`;
+            log.innerHTML = `Success: ${count} users added with icons.`;
             reloadApp();
         };
 
