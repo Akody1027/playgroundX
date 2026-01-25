@@ -1,277 +1,158 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>playgroundX | Master Command Center</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="style.css">
-    <style>
-        :root {
-            --admin-bg: #050505;
-            --card-bg: #121212;
-            --accent: #00ff88;
-            --danger: #ff4444;
-        }
-        body { 
-            margin: 0; 
-            display: flex; 
-            height: 100vh; 
-            background: var(--admin-bg); 
-            font-family: 'Inter', sans-serif; 
-            color: white;
-            overflow: hidden;
-        }
+<style>
+    :root {
+        --admin-bg: #050505;
+        --card-bg: #121212;
+        --accent: #00ff88;
+        --danger: #ff4444;
+    }
+    body { 
+        margin: 0; 
+        background: var(--admin-bg); 
+        font-family: 'Inter', sans-serif; 
+        color: white;
+        overflow-x: hidden;
+    }
 
-        /* --- LAYOUT --- */
-        #app-preview-container { 
-            flex: 1; 
-            border-right: 2px solid #222; 
-            display: flex; 
-            flex-direction: column; 
-            background: #000;
-        }
-        iframe { 
-            flex: 1; 
-            border: none; 
-            width: 100%; 
-        }
-        #controls-panel { 
-            width: 420px; 
-            padding: 25px; 
-            overflow-y: auto; 
-            background: #0a0a0a;
-            box-shadow: -10px 0 30px rgba(0,0,0,0.5);
-        }
+    /* --- SLIDE-OUT DRAWER --- */
+    #app-preview-container { 
+        position: fixed;
+        top: 0;
+        left: -450px; /* Hidden by default */
+        width: 420px;
+        height: 100vh;
+        z-index: 1000;
+        background: #000;
+        transition: 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        box-shadow: 10px 0 50px rgba(0,0,0,0.8);
+        display: flex;
+        flex-direction: column;
+        border-right: 2px solid var(--accent);
+    }
+    
+    #app-preview-container.open {
+        left: 0;
+    }
 
-        /* --- UI COMPONENTS --- */
-        .admin-card {
-            background: var(--card-bg);
-            border: 1px solid #333;
-            border-radius: 16px;
-            padding: 20px;
-            margin-bottom: 20px;
-        }
-        h2 { color: var(--accent); margin-top: 0; font-size: 18px; text-transform: uppercase; letter-spacing: 1px; }
-        .label-sm { font-size: 11px; color: #888; display: block; margin-bottom: 8px; }
-        
-        input[type="text"], input[type="number"], textarea {
-            width: 100%;
-            background: #000;
-            border: 1px solid #444;
-            color: white;
-            padding: 10px;
-            border-radius: 8px;
-            margin-bottom: 10px;
-            font-size: 13px;
-        }
-        
-        .btn-group { display: flex; gap: 10px; }
-        .admin-btn {
-            flex: 1;
-            padding: 12px;
-            border-radius: 8px;
-            border: none;
-            font-weight: bold;
-            cursor: pointer;
-            transition: 0.2s;
-        }
-        .btn-primary { background: var(--accent); color: #000; }
-        .btn-primary:hover { opacity: 0.8; }
-        .btn-danger { background: var(--danger); color: white; }
-        
-        .log-box {
-            background: #000;
-            border: 1px solid #222;
-            height: 80px;
-            padding: 10px;
-            font-family: monospace;
-            font-size: 11px;
-            color: #00ff88;
-            overflow-y: auto;
-            border-radius: 8px;
-        }
+    /* --- THE TOGGLE BUTTON --- */
+    #preview-toggle {
+        position: fixed;
+        bottom: 25px;
+        left: 25px;
+        z-index: 1100;
+        background: var(--accent);
+        color: black;
+        border: none;
+        padding: 15px 20px;
+        border-radius: 50px;
+        font-weight: bold;
+        cursor: pointer;
+        box-shadow: 0 4px 15px rgba(0, 255, 136, 0.3);
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
 
-        .status-badge {
-            display: inline-block;
-            padding: 2px 8px;
-            border-radius: 4px;
-            font-size: 10px;
-            background: #222;
-            color: var(--accent);
-            margin-left: 10px;
-        }
-    </style>
-</head>
+    iframe { flex: 1; border: none; width: 100%; }
+
+    /* --- FULL WIDTH CONTROLS --- */
+    #controls-panel { 
+        max-width: 900px; 
+        margin: 0 auto;
+        padding: 50px 25px; 
+    }
+
+    .admin-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 20px;
+    }
+
+    @media (max-width: 800px) {
+        .admin-grid { grid-template-columns: 1fr; }
+    }
+
+    /* Standard Admin Cards ... (Existing styles remain) */
+    .admin-card { background: var(--card-bg); border: 1px solid #333; border-radius: 16px; padding: 20px; margin-bottom: 20px; }
+    h2 { color: var(--accent); margin-top: 0; font-size: 16px; text-transform: uppercase; }
+    .label-sm { font-size: 11px; color: #888; display: block; margin-bottom: 8px; }
+    input, textarea { width: 100%; background: #000; border: 1px solid #444; color: white; padding: 10px; border-radius: 8px; margin-bottom: 10px; }
+    .admin-btn { width: 100%; padding: 12px; border-radius: 8px; border: none; font-weight: bold; cursor: pointer; }
+    .btn-primary { background: var(--accent); color: #000; }
+    .log-box { background: #000; height: 80px; padding: 10px; font-family: monospace; font-size: 11px; color: #00ff88; overflow-y: auto; border-radius: 8px; }
+</style>
+
 <body>
 
+    <button id="preview-toggle" onclick="togglePreview()">
+        <span id="toggle-icon">📱</span> 
+        <span id="toggle-text">View Live App</span>
+    </button>
+
     <div id="app-preview-container">
-        <div style="padding: 15px; background: #111; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #222;">
-            <div style="display:flex; align-items:center;">
-                <div style="background: var(--accent); color: black; padding: 2px 8px; border-radius: 4px; font-weight: bold; margin-right: 10px;">LIVE</div>
-                <span>playgroundX Preview</span>
-            </div>
-            <button onclick="reloadApp()" style="background: none; border: 1px solid #444; color: white; cursor: pointer; padding: 5px 10px; border-radius: 4px;">Refresh App</button>
+        <div style="padding: 15px; background: #111; display: flex; justify-content: space-between; align-items: center;">
+            <span style="font-weight:bold">Preview Mode</span>
+            <button onclick="reloadApp()" style="background: none; border: 1px solid #444; color: white; padding: 4px 8px; border-radius: 4px; font-size: 11px;">Reload</button>
         </div>
         <iframe src="index.html" id="app-frame"></iframe>
     </div>
 
     <div id="controls-panel">
-        <h1 style="margin: 0 0 20px 0; font-size: 24px;">Admin <span style="color:var(--accent)">Control</span></h1>
+        <h1 style="margin: 0 0 40px 0; font-size: 32px; text-align: center;">Master <span style="color:var(--accent)">Command</span></h1>
 
-        <div class="admin-card">
-            <h2>Access Control</h2>
-            <div class="toggle-row" style="display: flex; justify-content: space-between; align-items: center;">
-                <span>Verified Bypass (God Mode)</span>
-                <div>
-                    <input type="checkbox" id="auth-bypass" class="toggle-checkbox" onchange="toggleAuthBypass()">
-                    <label for="auth-bypass" class="toggle-switch"></label>
+        <div class="admin-grid">
+            <div class="col">
+                <div class="admin-card">
+                    <h2>Access Control</h2>
+                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                        <span>Verified Bypass</span>
+                        <input type="checkbox" id="auth-bypass" onchange="toggleAuthBypass()">
+                    </div>
+                </div>
+
+                <div class="admin-card">
+                    <h2>Identity Control</h2>
+                    <input type="text" id="adm-img" placeholder="Avatar URL">
+                    <div style="display: flex; gap: 10px;">
+                        <input type="text" id="adm-lat" value="40.7128">
+                        <input type="text" id="adm-lng" value="-74.0060">
+                    </div>
+                    <button class="admin-btn btn-primary" onclick="syncAdminProfile()">Sync Profile</button>
                 </div>
             </div>
-            <p class="label-sm" style="margin-top:10px;">Forces "Verified" status on your session.</p>
-        </div>
 
-        <div class="admin-card">
-            <h2>Admin Identity</h2>
-            <label class="label-sm">TESTING AVATAR URL</label>
-            <input type="text" id="adm-img" placeholder="Paste image URL...">
-            
-            <div style="display: flex; gap: 10px;">
-                <div style="flex: 1;">
-                    <label class="label-sm">LATITUDE</label>
-                    <input type="text" id="adm-lat" value="40.7128">
+            <div class="col">
+                <div class="admin-card">
+                    <h2>Population Engine</h2>
+                    <input type="number" id="dummy-count" value="10">
+                    <button class="admin-btn btn-primary" style="background:#fff" onclick="injectDummies()">Inject Dummy Users</button>
+                    <div id="pop-log" class="log-box" style="margin-top:10px;">Idle...</div>
                 </div>
-                <div style="flex: 1;">
-                    <label class="label-sm">LONGITUDE</label>
-                    <input type="text" id="adm-lng" value="-74.0060">
+
+                <div class="admin-card">
+                    <h2>Messaging Blast</h2>
+                    <textarea id="blast-text" placeholder="Message content..."></textarea>
+                    <button class="admin-btn btn-primary" onclick="fireGlobalBlast()">FIRE BLAST</button>
+                    <div id="blast-log" class="log-box" style="margin-top:10px;">Idle...</div>
                 </div>
             </div>
-            <button class="admin-btn btn-primary" style="width: 100%;" onclick="syncAdminProfile()">Sync & Save Profile</button>
-        </div>
-
-        <div class="admin-card">
-            <h2>Population Engine</h2>
-            <label class="label-sm">NUMBER OF DUMMY USERS TO INJECT</label>
-            <input type="number" id="dummy-count" value="10" min="1" max="100">
-            <button class="admin-btn btn-primary" style="width: 100%; background: #fff;" onclick="injectDummies()">Inject Users</button>
-            <div id="pop-log" class="log-box" style="margin-top:10px;">System idle...</div>
-        </div>
-
-        <div class="admin-card">
-            <h2>Messaging Blast</h2>
-            <textarea id="blast-text" placeholder="Send announcement to all live users..."></textarea>
-            <button class="admin-btn btn-primary" style="width: 100%; background: #00ff88;" onclick="fireGlobalBlast()">FIRE BLAST</button>
-            <div id="blast-log" class="log-box" style="margin-top:10px;">No active blast...</div>
-        </div>
-
-        <div class="admin-card" style="border-color: var(--danger);">
-            <h2 style="color: var(--danger);">Danger Zone</h2>
-            <button class="admin-btn btn-danger" style="width: 100%;" onclick="clearAllData()">Wipe Local Storage</button>
         </div>
     </div>
 
     <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-        import { getFirestore, collection, getDocs, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+        /* --- Keep your existing Firebase Import and Init Logic here --- */
 
-        // Same config from your app
-        const firebaseConfig = {
-            apiKey: "AIzaSyDFmhk3ybnsVsFenCE3xvdmy5y_4u9ss7o",
-            authDomain: "playgroundx-ca021.firebaseapp.com",
-            projectId: "playgroundx-ca021",
-            storageBucket: "playgroundx-ca021.firebasestorage.app",
-            messagingSenderId: "427340828971",
-            appId: "1:427340828971:web:1d9e2dc22ecd69593eb56e"
-        };
-
-        const app = initializeApp(firebaseConfig);
-        const db = getFirestore(app);
-
-        // --- CORE FUNCTIONS ---
-
-        window.reloadApp = () => {
-            document.getElementById('app-frame').contentWindow.location.reload();
-        };
-
-        window.toggleAuthBypass = () => {
-            const val = document.getElementById('auth-bypass').checked;
-            localStorage.setItem('admin_verified_bypass', val);
-            reloadApp();
-        };
-
-        window.syncAdminProfile = () => {
-            const img = document.getElementById('adm-img').value;
-            const lat = document.getElementById('adm-lat').value;
-            const lng = document.getElementById('adm-lng').value;
+        window.togglePreview = () => {
+            const drawer = document.getElementById('app-preview-container');
+            const btnText = document.getElementById('toggle-text');
+            drawer.classList.toggle('open');
             
-            localStorage.setItem('my_profile_pic', img);
-            localStorage.setItem('pgX_myUid', 'ADMIN_MASTER');
-            localStorage.setItem('admin_lat', lat);
-            localStorage.setItem('admin_lng', lng);
-            
-            alert("Admin Identity Synced!");
-            reloadApp();
-        };
-
-        window.injectDummies = () => {
-            const count = parseInt(document.getElementById('dummy-count').value);
-            const log = document.getElementById('pop-log');
-            log.innerHTML = "Generating...";
-
-            const ALIAS_PRE = ['Jay', 'Cool', 'Wild', 'Soft', 'Dark', 'Light', 'Neo', 'Retro'];
-            const ALIAS_SUF = ['Rocker', 'Vibes', 'Soul', 'King', 'Queen', 'X', '99', 'Walker'];
-            const IMGS = ['https://images.unsplash.com/photo-1517841905240-472988babdf9?w=500', 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=500'];
-
-            let users = JSON.parse(localStorage.getItem('pgX_users') || '[]');
-            for (let i = 0; i < count; i++) {
-                users.push({
-                    id: 'dummy_' + Math.random().toString(36).substr(2, 9),
-                    alias: ALIAS_PRE[Math.floor(Math.random() * 8)] + "_" + ALIAS_SUF[Math.floor(Math.random() * 8)],
-                    age: Math.floor(Math.random() * 20) + 18,
-                    img: IMGS[Math.floor(Math.random() * IMGS.length)],
-                    lat: 40.7128 + (Math.random() - 0.5) * 0.1,
-                    lng: -74.0060 + (Math.random() - 0.5) * 0.1,
-                    bio: "Automated testing persona.",
-                    seen: false
-                });
-            }
-            localStorage.setItem('pgX_users', JSON.stringify(users));
-            log.innerHTML = `Success: ${count} users added to LocalStorage.`;
-            reloadApp();
-        };
-
-        window.fireGlobalBlast = async () => {
-            const msg = document.getElementById('blast-text').value;
-            const log = document.getElementById('blast-log');
-            if(!msg) return alert("Enter message first");
-
-            log.innerHTML = "Targeting all users...";
-            const snapshot = await getDocs(collection(db, "users"));
-            const adminId = 'ADMIN_MASTER';
-
-            snapshot.forEach(async (uDoc) => {
-                const chatId = [adminId, uDoc.id].sort().join('_');
-                await addDoc(collection(db, "chats", chatId, "messages"), {
-                    text: msg,
-                    senderId: adminId,
-                    createdAt: serverTimestamp()
-                });
-                log.innerHTML += `<br>Delivered to: ${uDoc.id}`;
-                log.scrollTop = log.scrollHeight;
-            });
-            document.getElementById('blast-text').value = '';
-        };
-
-        window.clearAllData = () => {
-            if(confirm("This will delete all dummy users and reset your admin session. Proceed?")) {
-                localStorage.clear();
-                location.reload();
+            if(drawer.classList.contains('open')) {
+                btnText.innerText = "Close Preview";
+            } else {
+                btnText.innerText = "View Live App";
             }
         };
 
-        // Initialize UI from storage
-        document.getElementById('auth-bypass').checked = localStorage.getItem('admin_verified_bypass') === 'true';
-        document.getElementById('adm-img').value = localStorage.getItem('my_profile_pic') || '';
+        // ... Keep all your other window.functions (reloadApp, syncAdminProfile, etc.)
     </script>
 </body>
-</html>
