@@ -250,7 +250,7 @@
             const ALIAS_SUF = ['Rocker', 'Vibes', 'Soul', 'King', 'Queen', 'X', '99', 'Walker'];
             const USER_ICON = 'https://cdn-icons-png.flaticon.com/512/149/149071.png'; 
 
-            let users = [];
+            let users = JSON.parse(localStorage.getItem('pgX_users') || '[]');
             for (let i = 0; i < count; i++) {
                 users.push({
                     id: 'dummy_' + Math.random().toString(36).substr(2, 9),
@@ -263,24 +263,13 @@
                     seen: false
                 });
             }
-
-            // Save to localStorage so home.html can read it
             localStorage.setItem('pgX_users', JSON.stringify(users));
             
-            // --- NEW FUNCTIONALITY: Injects into iframe memory immediately ---
-            const frameWin = document.getElementById('app-frame').contentWindow;
-            if (frameWin) {
-                // If script.js uses a global 'profiles' or 'users' variable
-                if (frameWin.profiles) frameWin.profiles = users;
-                if (frameWin.allUsers) frameWin.allUsers = users;
-                
-                // If script.js has a render/init function, trigger it
-                if (typeof frameWin.loadProfiles === "function") frameWin.loadProfiles();
-                if (typeof frameWin.renderUsers === "function") frameWin.renderUsers();
-            }
+            // Force the iframe to reload so it reads the new localStorage data
+            const frame = document.getElementById('app-frame');
+            frame.src = frame.src; 
 
-            log.innerHTML = `Success: ${count} users added to LocalStorage and Preview.`;
-            // reloadApp(); // Optional: Uncomment if you want a hard refresh
+            log.innerHTML = `Success: ${count} users added. Preview Refreshing...`;
         }; 
 
         window.fireGlobalBlast = async () => {
