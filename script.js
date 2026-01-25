@@ -270,7 +270,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const games = [
         { name: "Simple Pong", file: "Simplepong.html", thumb: "simplepong.jpg" },
         { name: "Speed Jump", file: "Speedjump.html", thumb: "speedjump.jpg" },
-        { name: "Ghost Poke", file: "Ghostpoke.html", thumb: "ghostpoke.html" }, // Note: check if this should be .jpg or .html for thumb
+        { name: "Ghost Poke", file: "Ghostpoke.html", thumb: "Ghostpoke.jpg" }, // Note: check if this should be .jpg or .html for thumb
         { name: "Caos Racer", file: "caosracer.html", thumb: "caosracer.jpg" },
         { name: "Big Shot", file: "bigshot.html", thumb: "bigshot.jpg" },
         { name: "Flap Dodge", file: "flapdodge.html", thumb: "flapdodge.jpg" },
@@ -352,6 +352,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     initBackend();
 });
+
 
 
 
