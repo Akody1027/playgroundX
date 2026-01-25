@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Simple Pong</title>
+    <style>
+        body { background: #222; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; color: white; font-family: sans-serif; }
+        canvas { border: 4px solid #fff; background: #000; box-shadow: 0 0 20px rgba(0,0,0,0.5); }
+        .info { position: absolute; top: 20px; text-align: center; }
+    </style>
+</head>
+<body>
+    <div class="info">
+        <h2>Simple Pong</h2>
+        <p>Use your <b>Mouse</b> or <b>Touch</b> to move</p>
+    </div>
+    <canvas id="pongCanvas" width="600" height="400"></canvas>
+
+    <script>
+        const canvas = document.getElementById("pongCanvas");
+        const ctx = canvas.getContext("2d");
+
+        // Game Objects
+        const paddleWidth = 10, paddleHeight = 80;
+        const ballSize = 10;
+        
+        let playerY = (canvas.height - paddleHeight) / 2;
+        let computerY = (canvas.height - paddleHeight) / 2;
+        let ballX = canvas.width / 2, ballY = canvas.height / 2;
+        let ballDX = 4, ballDY = 4; // Velocity (Direction x Speed)
+        let playerScore = 0, computerScore = 0;
+
+        // Mouse tracking
+        canvas.addEventListener("mousemove", (e) => {
+            const rect = canvas.getBoundingClientRect();
+            playerY = e.clientY - rect.top - paddleHeight / 2;
+        });
+
+        function update() {
+            // Move Ball
+            ballX += ballDX;
+            ballY += ballDY;
+
+            // Wall Bounce (Top/Bottom)
+            if (ballY <= 0 || ballY + ballSize >= canvas.height) ballDY *= -1;
+
+            // Simple AI for Computer Paddle (Follows the ball)
+            let computerSpeed = 3.5;
+            if (computerY + paddleHeight / 2 < ballY) computerY += computerSpeed;
+            else computerY -= computerSpeed;
+
+            // Collision Detection (Player Paddle)
+            if (ballX <= paddleWidth && ballY > playerY && ballY < playerY + paddleHeight) {
+                ballDX *= -1;
+                ballX = paddleWidth; // Prevent clipping
+            }
+
+            // Collision Detection (Computer Paddle)
+            if (ballX + ballSize >= canvas.width - paddleWidth && ballY > computerY && ballY < computerY + paddleHeight) {
+                ballDX *= -1;
+                ballX = canvas.width - paddleWidth - ballSize;
+            }
+
+            // Scoring
+            if (ballX < 0) { computerScore++; resetBall(); }
+            if (ballX > canvas.width) { playerScore++; resetBall(); }
+        }
+
+        function resetBall() {
+            ballX = canvas.width / 2;
+            ballY = canvas.height / 2;
+            ballDX *= -1; // Send it to the winner
+        }
+
+        function draw() {
+            // Clear Canvas
+            ctx.fillStyle = "black";
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            // Draw Net
+            ctx.strokeStyle = "white";
+            ctx.setLineDash([10, 10]);
+            ctx.beginPath();
+            ctx.moveTo(canvas.width / 2, 0);
+            ctx.lineTo(canvas.width / 2, canvas.height);
+            ctx.stroke();
+
+            // Draw Paddles & Ball
+            ctx.fillStyle = "white";
+            ctx.setLineDash([]); // Reset dash for shapes
+            ctx.fillRect(0, playerY, paddleWidth, paddleHeight); // Player
+            ctx.fillRect(canvas.width - paddleWidth, computerY, paddleWidth, paddleHeight); // AI
+            ctx.fillRect(ballX, ballY, ballSize, ballSize); // Ball
+
+            // Draw Score
+            ctx.font = "30px Arial";
+            ctx.fillText(playerScore, canvas.width / 4, 50);
+            ctx.fillText(computerScore, 3 * canvas.width / 4, 50);
+        }
+
+        function loop() {
+            update();
+            draw();
+            requestAnimationFrame(loop);
+        }
+
+        loop();
+    </script>
+</body>
+</html>

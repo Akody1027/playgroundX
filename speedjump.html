@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Dino Jump - Pro Version</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <style>
+        body { 
+            margin: 0; 
+            background: #f0f0f0; 
+            display: flex; 
+            flex-direction: column; 
+            align-items: center; 
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            overflow: hidden;
+            /* FIXES */
+            -webkit-tap-highlight-color: transparent; /* No more blue flash */
+            user-select: none;                       /* No text selection */
+            overscroll-behavior-y: contain;          /* No pull-to-refresh */
+            touch-action: manipulation;              /* Optimizes for tapping */
+        }
+        #game-container { 
+            position: relative; 
+            width: 100%; 
+            max-width: 400px; 
+            height: 200px; 
+            background: white; 
+            border-bottom: 3px solid #333; 
+            margin-top: 50px; 
+            overflow: hidden; 
+        }
+        #player { 
+            position: absolute; 
+            bottom: 0; 
+            left: 50px; 
+            width: 35px; 
+            height: 35px; 
+            background: #ff4757; 
+            border-radius: 6px; 
+        }
+        #obstacle { 
+            position: absolute; 
+            bottom: 0; 
+            right: -30px; 
+            width: 25px; 
+            height: 45px; 
+            background: #2f3542; 
+            border-radius: 4px;
+        }
+        #score { font-size: 40px; font-weight: 900; margin-top: 20px; color: #2f3542; }
+    </style>
+</head>
+<body onclick="jump()">
+
+    <div id="score">00</div>
+    <div id="game-container">
+        <div id="player"></div>
+        <div id="obstacle"></div>
+    </div>
+    <p style="color: #888;">Tap to Jump</p>
+
+    <script>
+        const player = document.getElementById('player');
+        const obstacle = document.getElementById('obstacle');
+        const scoreElement = document.getElementById('score');
+        
+        let score = 0;
+        let isJumping = false;
+        let position = 0;
+        let obstaclePos = 400;
+        let gameSpeed = 5; // We'll increase this!
+
+        function jump() {
+            if (isJumping) return;
+            isJumping = true;
+            
+            let velocity = 16;
+            let gravity = 0.8;
+            
+            let timer = setInterval(() => {
+                velocity -= gravity;
+                position += velocity;
+                
+                if (position <= 0) {
+                    position = 0;
+                    clearInterval(timer);
+                    isJumping = false;
+                }
+                player.style.bottom = position + 'px';
+            }, 20);
+        }
+
+        function gameLoop() {
+            obstaclePos -= gameSpeed;
+            
+            if (obstaclePos < -30) {
+                obstaclePos = 450;
+                score++;
+                scoreElement.innerHTML = score < 10 ? "0" + score : score;
+                
+                // Increase speed every 5 points!
+                if(score % 5 === 0) gameSpeed += 0.5;
+            }
+            
+            obstacle.style.left = obstaclePos + 'px';
+
+            // Better collision detection
+            if (obstaclePos > 50 && obstaclePos < 85 && position < 45) {
+                alert("Game Over! Score: " + score);
+                score = 0;
+                gameSpeed = 5;
+                scoreElement.innerHTML = "00";
+                obstaclePos = 450;
+            }
+
+            requestAnimationFrame(gameLoop);
+        }
+
+        gameLoop();
+    </script>
+</body>
+</html>

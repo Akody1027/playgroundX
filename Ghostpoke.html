@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Ghost Whacker: Speed Control</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <style>
+        body { 
+            margin: 0; background: #1a1a2e; color: white; 
+            font-family: sans-serif; display: flex; flex-direction: column; align-items: center;
+            -webkit-tap-highlight-color: transparent; user-select: none; touch-action: manipulation;
+        }
+        /* The Slider Container */
+        .controls {
+            margin-top: 20px;
+            background: #16213e;
+            padding: 15px;
+            border-radius: 10px;
+            text-align: center;
+            width: 280px;
+        }
+        input[type=range] { width: 100%; cursor: pointer; }
+
+        .grid { 
+            display: grid; grid-template-columns: repeat(3, 100px); grid-gap: 15px; 
+            margin-top: 20px; background: #16213e; padding: 15px; border-radius: 10px;
+        }
+        .hole { 
+            width: 100px; height: 100px; background: #0f3460; 
+            border-radius: 50%; position: relative; overflow: hidden; 
+        }
+        .ghost { 
+            width: 80px; height: 80px; position: absolute; 
+            top: 100px; left: 10px; transition: top 0.1s;
+            font-size: 45px; display: flex; align-items: center; justify-content: center;
+        }
+        .ghost.up { top: 10px; }
+        #score-board { font-size: 40px; margin-top: 20px; color: #e94560; }
+    </style>
+</head>
+<body>
+
+    <div id="score-board">Score: 0</div>
+
+    <div class="controls">
+        <label>Ghost Speed (Difficulty)</label>
+        <input type="range" id="speedSlider" min="1" max="10" value="5">
+        <div id="speedLabel">Level: 5</div>
+    </div>
+    
+    <div class="grid">
+        <div class="hole"><div class="ghost" onclick="whack(this)">👻</div></div>
+        <div class="hole"><div class="ghost" onclick="whack(this)">👻</div></div>
+        <div class="hole"><div class="ghost" onclick="whack(this)">👻</div></div>
+        <div class="hole"><div class="ghost" onclick="whack(this)">👻</div></div>
+        <div class="hole"><div class="ghost" onclick="whack(this)">👻</div></div>
+        <div class="hole"><div class="ghost" onclick="whack(this)">👻</div></div>
+        <div class="hole"><div class="ghost" onclick="whack(this)">👻</div></div>
+        <div class="hole"><div class="ghost" onclick="whack(this)">👻</div></div>
+        <div class="hole"><div class="ghost" onclick="whack(this)">👻</div></div>
+    </div>
+
+    <script>
+        const ghosts = document.querySelectorAll('.ghost');
+        const scoreBoard = document.querySelector('#score-board');
+        const speedSlider = document.querySelector('#speedSlider');
+        const speedLabel = document.querySelector('#speedLabel');
+        
+        let score = 0;
+        let lastHole;
+
+        // Update the label when you slide the bar
+        speedSlider.oninput = function() {
+            speedLabel.innerHTML = "Level: " + this.value;
+        }
+
+        function peep() {
+            // THE MATH: 
+            // Level 1: (11 - 1) * 200 = 2000ms (2 seconds - very slow)
+            // Level 10: (11 - 10) * 200 = 200ms (Extremely fast)
+            const difficulty = parseInt(speedSlider.value);
+            const stayTime = (11 - difficulty) * 200; 
+            
+            const waitTime = Math.random() * 1000 + 200;
+            const ghost = ghosts[Math.floor(Math.random() * ghosts.length)];
+
+            setTimeout(() => {
+                ghost.classList.add('up');
+                setTimeout(() => {
+                    ghost.classList.remove('up');
+                    peep();
+                }, stayTime);
+            }, waitTime);
+        }
+
+        function whack(e) {
+            if(!e.classList.contains('up')) return;
+            score++;
+            e.classList.remove('up');
+            scoreBoard.textContent = "Score: " + score;
+        }
+
+        // Start two ghost loops
+        peep();
+        peep();
+    </script>
+</body>
+</html>

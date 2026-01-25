@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Robust Tile Match</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <style>
+        body { 
+            background: #121212; color: white; font-family: 'Segoe UI', sans-serif;
+            display: flex; flex-direction: column; align-items: center; 
+            margin: 0; padding-top: 20px; overflow: hidden; touch-action: none;
+        }
+        .header { text-align: center; margin-bottom: 10px; }
+        #score { font-size: 40px; font-weight: 900; color: #00d2ff; }
+
+        /* The Game Board Container */
+        #game-outer {
+            padding: 10px; background: #1e1e1e; border-radius: 12px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+        }
+        #board {
+            position: relative; width: 320px; height: 400px; /* 8x10 grid, 40px per tile */
+            background: #252525; overflow: hidden; border-radius: 8px;
+        }
+
+        /* The Tile Style */
+        .tile {
+            position: absolute; width: 38px; height: 38px;
+            border-radius: 8px; cursor: pointer;
+            transition: top 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275), 
+                        left 0.3s ease, 
+                        transform 0.2s ease, 
+                        opacity 0.2s ease;
+            display: flex; align-items: center; justify-content: center;
+            box-shadow: inset 0 -4px rgba(0,0,0,0.2);
+        }
+        .tile:active { transform: scale(0.8); }
+        
+        /* Pop Animation for new tiles */
+        @keyframes popIn {
+            0% { transform: scale(0); }
+            100% { transform: scale(1); }
+        }
+        .new-tile { animation: popIn 0.3s forwards; }
+
+        /* Explode Animation for matched tiles */
+        @keyframes explode {
+            0% { transform: scale(1); opacity: 1; }
+            100% { transform: scale(1.5); opacity: 0; }
+        }
+        .matched { animation: explode 0.2s forwards; pointer-events: none; }
+    </style>
+</head>
+<body>
+
+    <div class="header">
+        <div>SCORE</div>
+        <div id="score">0</div>
+    </div>
+
+    <div id="game-outer">
+        <div id="board"></div>
+    </div>
+
+    <script>
+        const colors = ['#FF5252', '#448AFF', '#4CAF50', '#FFEB3B'];
+        const rows = 10, cols = 8, tileSize = 40;
+        let boardData = [];
+        let score = 0;
+        const boardEl = document.getElementById('board');
+
+        // Create the board
+        function initBoard() {
+            boardEl.innerHTML = '';
+            for (let r = 0; r < rows; r++) {
+                boardData[r] = [];
+                for (let c = 0; c < cols; c++) {
+                    spawnTile(r, c);
+                }
+            }
+        }
+
+        function spawnTile(r, c) {
+            const color = colors[Math.floor(Math.random() * colors.length)];
+            const tile = document.createElement('div');
+            tile.className = 'tile new-tile';
+            tile.style.backgroundColor = color;
+            tile.style.left = (c * tileSize + 1) + 'px';
+            tile.style.top = (r * tileSize + 1) + 'px';
+            
+            // Link data to the element
+            const tileObj = { r, c, color, el: tile };
+            boardData[r][c] = tileObj;
+
+            tile.onclick = () => handleTileClick(r, c);
+            boardEl.appendChild(tile);
+        }
+
+        function handleTileClick(r, c) {
+            const targetColor = boardData[r][c].color;
+            const matches = [];
+            findMatches(r, c, targetColor, matches);
+
+            if (matches.length > 1) {
+                score += matches.length * 10;
+                document.getElementById('score').innerText = score;
+
+                // 1. Animate match
+                matches.forEach(m => {
+                    const tileObj = boardData[m.r][m.c];
+                    tileObj.el.classList.add('matched');
+                    setTimeout(() => tileObj.el.remove(), 200);
+                    boardData[m.r][m.c] = null;
+                });
+
+                // 2. Delay gravity slightly for the "explode" animation
+                setTimeout(() => {
+                    applyGravity();
+                    fillGaps();
+                    updatePositions();
+                }, 200);
+            }
+        }
+
+        function findMatches(r, c, color, matches) {
+            if (r < 0 || r >= rows || c < 0 || c >= cols || !boardData[r][c]) return;
+            if (boardData[r][c].color !== color || matches.some(m => m.r === r && m.c === c)) return;
+
+            matches.push({r, c});
+            findMatches(r + 1, c, color, matches);
+            findMatches(r - 1, c, color, matches);
+            findMatches(r, c + 1, color, matches);
+            findMatches(r, c - 1, color, matches);
+        }
+
+        function applyGravity() {
+            for (let c = 0; c < cols; c++) {
+                let emptySpots = 0;
+                for (let r = rows - 1; r >= 0; r--) {
+                    if (boardData[r][c] === null) {
+                        emptySpots++;
+                    } else if (emptySpots > 0) {
+                        // Move data down
+                        const tileObj = boardData[r][c];
+                        boardData[r + emptySpots][c] = tileObj;
+                        tileObj.r = r + emptySpots;
+                        boardData[r][c] = null;
+                    }
+                }
+            }
+        }
+
+        function fillGaps() {
+            for (let c = 0; c < cols; c++) {
+                for (let r = 0; r < rows; r++) {
+                    if (boardData[r][c] === null) {
+                        spawnTile(r, c);
+                    }
+                }
+            }
+        }
+
+        function updatePositions() {
+            for (let r = 0; r < rows; r++) {
+                for (let c = 0; c < cols; c++) {
+                    const tileObj = boardData[r][c];
+                    tileObj.el.style.top = (r * tileSize + 1) + 'px';
+                    // Re-bind click event with new coordinates
+                    tileObj.el.onclick = () => handleTileClick(tileObj.r, tileObj.c);
+                }
+            }
+        }
+
+        initBoard();
+    </script>
+</body>
+</html>

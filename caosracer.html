@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title> Chaos Racer</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <style>
+        body { 
+            margin: 0; background: #1a1a1a; color: white; font-family: sans-serif;
+            display: flex; flex-direction: column; align-items: center;
+            -webkit-tap-highlight-color: transparent; user-select: none; touch-action: none;
+        }
+        #game-container {
+            position: relative; width: 300px; height: 500px;
+            background: #e67e22; border-left: 4px solid white; border-right: 4px solid white;
+            overflow: hidden; margin-top: 10px;
+            background-image: linear-gradient(to right, rgba(255,255,255,0.3) 2px, transparent 2px);
+            background-size: 100px 100%;
+        }
+        #player {
+            position: absolute; bottom: 30px; width: 40px; height: 60px; 
+            background: #c0392b; border-radius: 20px; border: 3px solid #fff;
+            left: 130px; z-index: 10;
+        }
+
+        /* --- OBSTACLE STYLES --- */
+        .obstacle { position: absolute; z-index: 5; }
+
+        /* Type 1: The Triangle */
+        .triangle {
+            width: 0; height: 0;
+            border-left: 25px solid transparent; border-right: 25px solid transparent;
+            border-bottom: 50px solid #2c3e50;
+        }
+
+        /* Type 2: The Wide Block */
+        .block {
+            width: 60px; height: 30px;
+            background: #34495e; border: 2px solid #ecf0f1;
+        }
+
+        /* Type 3: The Rolling Circle */
+        .circle {
+            width: 40px; height: 40px;
+            background: #f39c12; border-radius: 50%;
+            border: 2px dashed black;
+        }
+
+        .controls { 
+            margin-top: 15px; text-align: center; background: #333; 
+            padding: 15px; border-radius: 12px; width: 280px; 
+        }
+        input[type=range] { width: 100%; cursor: pointer; accent-color: #f1c40f; }
+        .score { font-size: 32px; font-weight: bold; margin: 10px; color: #f1c40f; }
+    </style>
+</head>
+<body>
+
+    <div class="score">SCORE: <span id="scoreVal">0</span></div>
+    <div id="game-container"><div id="player"></div></div>
+
+    <div class="controls">
+        <label id="speedLabel">Chaos Speed: 6</label><br>
+        <input type="range" id="speedSlider" min="3" max="25" value="6">
+    </div>
+
+    <script>
+        const container = document.getElementById('game-container');
+        const player = document.getElementById('player');
+        const scoreVal = document.getElementById('scoreVal');
+        const speedSlider = document.getElementById('speedSlider');
+
+        let score = 0;
+        const lanes = [30, 130, 230]; 
+        let targetX = lanes[1]; 
+        let currentX = lanes[1]; 
+
+        speedSlider.oninput = function() { document.getElementById('speedLabel').innerHTML = "Chaos Speed: " + this.value; }
+
+        // SMOOTH PLAYER MOVEMENT
+        function movePlayer() {
+            currentX += (targetX - currentX) * 0.15; 
+            player.style.left = currentX + 'px';
+            requestAnimationFrame(movePlayer);
+        }
+        movePlayer();
+
+        const handleInput = (x) => {
+            if (x < window.innerWidth / 2) {
+                let idx = lanes.indexOf(targetX);
+                if (idx > 0) targetX = lanes[idx - 1];
+            } else {
+                let idx = lanes.indexOf(targetX);
+                if (idx < 2) targetX = lanes[idx + 1];
+            }
+        };
+        window.addEventListener('mousedown', (e) => handleInput(e.clientX));
+        window.addEventListener('touchstart', (e) => handleInput(e.touches[0].clientX));
+
+        // RANDOM OBSTACLE SPAWNING
+        function spawnObstacle() {
+            const obs = document.createElement('div');
+            obs.className = 'obstacle';
+            
+            // Randomly pick a lane
+            const laneIdx = Math.floor(Math.random() * 3);
+            let xPos = lanes[laneIdx];
+
+            // Randomly pick a TYPE
+            const rand = Math.random();
+            let type = "";
+            if (rand < 0.4) {
+                type = "triangle";
+                xPos -= 5; // Center it
+            } else if (rand < 0.7) {
+                type = "block";
+                xPos -= 10; // Center it
+            } else {
+                type = "circle";
+            }
+            obs.classList.add(type);
+            
+            obs.style.left = xPos + 'px';
+            let yPos = -60;
+            container.appendChild(obs);
+
+            let wobbleDir = 1;
+            let wobbleAmount = 0;
+
+            function fall() {
+                let speed = parseInt(speedSlider.value);
+                yPos += speed;
+
+                // SPECIAL BEHAVIOR: Circles wobble left and right
+                if (type === "circle") {
+                    wobbleAmount += 0.1;
+                    let currentWobble = Math.sin(wobbleAmount) * 20;
+                    obs.style.transform = `translateX(${currentWobble}px)`;
+                }
+
+                obs.style.top = yPos + 'px';
+
+                // COLLISION
+                if (yPos > 380 && yPos < 450) {
+                    let rect1 = player.getBoundingClientRect();
+                    let rect2 = obs.getBoundingClientRect();
+
+                    if (!(rect1.right < rect2.left || rect1.left > rect2.right || rect1.bottom < rect2.top || rect1.top > rect2.bottom)) {
+                        alert("Buzzer Beater! Final Score: " + score);
+                        score = 0;
+                        scoreVal.innerText = score;
+                        document.querySelectorAll('.obstacle').forEach(o => o.remove());
+                        return;
+                    }
+                }
+
+                if (yPos < 500) {
+                    requestAnimationFrame(fall);
+                } else {
+                    obs.remove();
+                    score++;
+                    scoreVal.innerText = score;
+                }
+            }
+            requestAnimationFrame(fall);
+        }
+
+        setInterval(spawnObstacle, 1000);
+    </script>
+</body>
+</html>

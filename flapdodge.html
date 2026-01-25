@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Flap & Dodge</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <style>
+        body { margin: 0; background: #70c5ce; overflow: hidden; font-family: sans-serif; touch-action: none; display: flex; flex-direction: column; align-items: center; }
+        canvas { display: block; }
+        #ui { position: absolute; top: 20px; width: 100%; text-align: center; color: white; font-size: 30px; font-weight: bold; pointer-events: none; }
+        #prompt { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); color: white; font-size: 40px; font-weight: bold; text-shadow: 2px 2px 4px rgba(0,0,0,0.5); pointer-events: none; }
+        .controls { position: absolute; bottom: 20px; background: rgba(0,0,0,0.5); padding: 10px; border-radius: 10px; color: white; display: flex; flex-direction: column; align-items: center; }
+        input[type=range] { width: 200px; margin-top: 5px; }
+    </style>
+</head>
+<body onclick="flap()" ontouchstart="flap()">
+    <div id="ui">Score: 0</div>
+    <div id="prompt">TAP TAP</div>
+    <canvas id="gameCanvas"></canvas>
+    
+    <div class="controls" onclick="event.stopPropagation()" ontouchstart="event.stopPropagation()">
+        <label id="speedLabel">Game Speed: 3</label>
+        <input type="range" id="speedSlider" min="1" max="10" value="3">
+    </div>
+
+    <script>
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        const ui = document.getElementById('ui');
+        const prompt = document.getElementById('prompt');
+        const speedSlider = document.getElementById('speedSlider');
+        const speedLabel = document.getElementById('speedLabel');
+
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+
+        let birdY = canvas.height / 2;
+        let velocity = 0;
+        let gravity = 0.6;
+        let score = 0;
+        let pipes = [];
+        let frame = 0;
+        let gameStarted = false;
+
+        speedSlider.oninput = function() {
+            speedLabel.innerHTML = "Game Speed: " + this.value;
+        }
+
+        function flap() { 
+            if (!gameStarted) {
+                gameStarted = true;
+                prompt.style.display = 'none';
+            }
+            velocity = -8; 
+        }
+
+        function createPipe() {
+            const gap = 150;
+            const minHeight = 50;
+            const height = Math.random() * (canvas.height - gap - (minHeight * 2)) + minHeight;
+            pipes.push({ x: canvas.width, top: height, bottom: canvas.height - height - gap });
+        }
+
+        function loop() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            if (gameStarted) {
+                velocity += gravity;
+                birdY += velocity;
+            }
+            
+            // Draw Ball (Smaller)
+            ctx.fillStyle = "yellow";
+            ctx.beginPath(); ctx.arc(50, birdY, 12, 0, Math.PI * 2); ctx.fill();
+
+            const currentSpeed = parseInt(speedSlider.value);
+
+            // Pipes
+            if (gameStarted) {
+                if (frame % 100 === 0) createPipe();
+                
+                pipes.forEach((p, i) => {
+                    p.x -= currentSpeed;
+                    ctx.fillStyle = "#2ecc71";
+                    ctx.fillRect(p.x, 0, 50, p.top);
+                    ctx.fillRect(p.x, canvas.height - p.bottom, 50, p.bottom);
+
+                    // Collision (Adjusted for smaller ball)
+                    if (p.x < 62 && p.x + 50 > 38 && (birdY - 12 < p.top || birdY + 12 > canvas.height - p.bottom)) {
+                        location.reload();
+                    }
+
+                    if (p.x < 50 && p.x + currentSpeed >= 50) { score++; ui.innerText = "Score: " + score; }
+                    if (p.x + 50 < 0) pipes.splice(i, 1);
+                });
+
+                if (birdY > canvas.height || birdY < 0) location.reload();
+                frame++;
+            }
+
+            requestAnimationFrame(loop);
+        }
+        loop();
+    </script>
+</body>
+</html>

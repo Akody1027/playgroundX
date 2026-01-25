@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Pro NBA Trick Shot - Fixed Reset</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <style>
+        body { 
+            margin: 0; background: #121212; color: white; font-family: 'Arial Black', sans-serif;
+            display: flex; flex-direction: column; align-items: center;
+            overflow: hidden; touch-action: none; -webkit-tap-highlight-color: transparent;
+            height: 100vh; justify-content: center;
+        }
+        #court {
+            position: relative; width: 360px; height: 500px;
+            background: radial-gradient(circle at center, #f39c12 0%, #d35400 100%);
+            border: 6px solid #fff; border-bottom: 15px solid #fff;
+            border-radius: 15px; box-shadow: 0 0 50px rgba(0,0,0,0.5);
+        }
+        #backboard {
+            position: absolute; top: 20px; left: 105px;
+            width: 150px; height: 100px; background: rgba(255,255,255,0.2);
+            border: 4px solid white; border-radius: 5px;
+        }
+        #inner-square {
+            position: absolute; top: 50px; left: 45px;
+            width: 60px; height: 45px; border: 3px solid white;
+        }
+        .rim-back {
+            position: absolute; top: 110px; left: 145px;
+            width: 70px; height: 15px; border: 5px solid #e74c3c;
+            border-radius: 50%; z-index: 1;
+        }
+        .rim-front {
+            position: absolute; top: 110px; left: 145px;
+            width: 70px; height: 15px; border: 5px solid #e74c3c;
+            border-radius: 50%; border-top: transparent; z-index: 20;
+        }
+        #ball {
+            position: absolute; 
+            /* Fixed: Start exactly at the same 'top' value as the reset logic */
+            top: 355px; 
+            left: 158px;
+            width: 45px; height: 45px; background: #e67e22;
+            border-radius: 50%; box-shadow: inset -5px -5px 10px rgba(0,0,0,0.4), 0 5px 15px rgba(0,0,0,0.3);
+            display: flex; align-items: center; justify-content: center;
+            font-size: 30px; cursor: grab; z-index: 10;
+        }
+        #aim-line {
+            position: absolute; 
+            top: 375px; /* Aligned with the ball center */
+            left: 180px;
+            width: 3px; 
+            background: linear-gradient(to top, rgba(255,255,255,0.8), transparent);
+            transform-origin: bottom center; 
+            display: none; z-index: 5; border-radius: 2px;
+        }
+        .score { font-size: 36px; margin-bottom: 10px; color: #f1c40f; text-shadow: 2px 2px #000; }
+    </style>
+</head>
+<body>
+
+    <div class="score">POINTS: <span id="scoreVal">0</span></div>
+    
+    <div id="court">
+        <div id="backboard"><div id="inner-square"></div></div>
+        <div class="rim-back"></div>
+        <div id="aim-line"></div>
+        <div id="ball">🏀</div>
+        <div class="rim-front"></div>
+    </div>
+
+    <script>
+        const ball = document.getElementById('ball');
+        const aimLine = document.getElementById('aim-line');
+        const scoreVal = document.getElementById('scoreVal');
+        
+        // Unified Start Position
+        const startX = 158;
+        const startY = 355;
+
+        let score = 0;
+        let isDragging = false;
+        let mouseStartX, mouseStartY;
+        
+        let ballX = startX, ballY = startY;
+        let vx = 0, vy = 0, rotation = 0;
+        let gravity = 0.75;
+        let isFlying = false;
+
+        const startDrag = (e) => {
+            if (isFlying) return;
+            isDragging = true;
+            const pt = e.touches ? e.touches[0] : e;
+            mouseStartX = pt.clientX;
+            mouseStartY = pt.clientY;
+            aimLine.style.display = 'block';
+        };
+
+        const onDrag = (e) => {
+            if (!isDragging) return;
+            const pt = e.touches ? e.touches[0] : e;
+            let dx = pt.clientX - mouseStartX;
+            let dy = pt.clientY - mouseStartY;
+
+            ball.style.transform = `translate(${dx * 0.4}px, ${dy * 0.4}px)`;
+            
+            let angle = Math.atan2(-dy, -dx) * 180 / Math.PI;
+            let dist = Math.sqrt(dx*dx + dy*dy);
+            aimLine.style.height = (dist * 0.8) + 'px';
+            aimLine.style.transform = `rotate(${angle - 90}deg)`;
+
+            vx = -dx * 0.17;
+            vy = -dy * 0.19;
+        };
+
+        const release = () => {
+            if (!isDragging) return;
+            isDragging = false;
+            isFlying = true;
+            aimLine.style.display = 'none';
+            ball.style.transform = 'none';
+            loop();
+        };
+
+        function loop() {
+            if (!isFlying) return;
+
+            vy += gravity;
+            ballX += vx;
+            ballY += vy;
+            rotation += vx * 2;
+
+            ball.style.left = ballX + 'px';
+            ball.style.top = ballY + 'px';
+            ball.style.transform = `rotate(${rotation}deg)`;
+
+            // Scoring (Fall through rim)
+            if (vy > 0 && ballY > 105 && ballY < 130 && ballX > 140 && ballX < 185) {
+                score += 3;
+                scoreVal.innerText = score;
+                vy *= 0.4;
+                vx *= 0.8;
+            }
+
+            // Backboard bounce
+            if (ballY < 120 && ballY > 20 && ballX > 100 && ballX < 250 && vx > 0) {
+                vx *= -0.5;
+            }
+
+            if (ballY > 520 || ballX < -60 || ballX > 400) reset();
+            else requestAnimationFrame(loop);
+        }
+
+        function reset() {
+            isFlying = false;
+            ballX = startX; 
+            ballY = startY;
+            ball.style.left = startX + 'px';
+            ball.style.top = startY + 'px';
+            ball.style.transform = 'none';
+            vx = 0; vy = 0;
+        }
+
+        ball.addEventListener('mousedown', startDrag);
+        window.addEventListener('mousemove', onDrag);
+        window.addEventListener('mouseup', release);
+        ball.addEventListener('touchstart', startDrag);
+        window.addEventListener('touchmove', onDrag);
+        window.addEventListener('touchend', release);
+    </script>
+</body>
+</html>

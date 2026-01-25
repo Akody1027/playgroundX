@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Memory Match - Pro Shuffle</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        body { 
+            background: #2c3e50; color: white; 
+            display: flex; flex-direction: column; align-items: center; 
+            font-family: sans-serif; margin: 0; padding-top: 20px;
+            -webkit-tap-highlight-color: transparent;
+        }
+        .stats { font-size: 24px; margin-bottom: 10px; font-weight: bold; color: #f1c40f; }
+        
+        /* The Grid */
+        #grid { 
+            display: grid; 
+            grid-template-columns: repeat(4, 75px); 
+            gap: 10px; 
+            transition: opacity 0.3s ease;
+        }
+        
+        .tile { 
+            width: 75px; height: 75px; background: #34495e; 
+            display: flex; align-items: center; justify-content: center; 
+            font-size: 30px; cursor: pointer; border-radius: 8px; 
+            user-select: none;
+            box-shadow: 0 4px #2c3e50;
+        }
+        .tile:active { transform: translateY(2px); box-shadow: 0 2px #2c3e50; }
+        .tile.flipped { background: #ecf0f1; cursor: default; transform: none; box-shadow: none; }
+
+        /* Refresh Button Styling */
+        #refresh-btn {
+            margin-top: 30px; padding: 12px 25px;
+            background: #27ae60; color: white; border: none;
+            border-radius: 25px; font-size: 18px; font-weight: bold;
+            cursor: pointer; box-shadow: 0 4px #1e8449;
+        }
+        #refresh-btn:active { transform: translateY(2px); box-shadow: 0 2px #1e8449; }
+    </style>
+</head>
+<body>
+
+    <div class="stats">MATCHES: <span id="score">0</span></div>
+    
+    <div id="grid"></div>
+
+    <button id="refresh-btn" onclick="initGame()">🔄 RESHUFFLE BOARD</button>
+
+    <script>
+        const symbols = ['🍎', '🍌', '🍇', '🍓', '🍒', '🍍', '🥝', '🍉'];
+        const gridElement = document.getElementById('grid');
+        const scoreElement = document.getElementById('score');
+        
+        let flippedCards = [];
+        let matchCount = 0;
+        let isProcessing = false;
+
+        // THE MAIN INITIALIZER / RESHUFFLE FUNCTION
+        function initGame() {
+            // 1. Reset Stats
+            matchCount = 0;
+            scoreElement.innerText = matchCount;
+            flippedCards = [];
+            isProcessing = false;
+            
+            // 2. Clear the physical board
+            gridElement.style.opacity = '0'; 
+            
+            setTimeout(() => {
+                gridElement.innerHTML = '';
+                
+                // 3. Create and Shuffle the Deck
+                // We take the symbols, double them, then sort randomly
+                let deck = [...symbols, ...symbols].sort(() => Math.random() - 0.5);
+                
+                // 4. Rebuild the Grid Tiles
+                deck.forEach((symbol, index) => {
+                    const tile = document.createElement('div');
+                    tile.className = 'tile';
+                    tile.dataset.symbol = symbol;
+                    tile.onclick = () => flipTile(tile);
+                    gridElement.appendChild(tile);
+                });
+                
+                gridElement.style.opacity = '1';
+            }, 300);
+        }
+
+        function flipTile(tile) {
+            // Guard clauses: Don't flip if already flipped, or if 2 are already being checked
+            if (isProcessing || tile.classList.contains('flipped')) return;
+
+            tile.innerText = tile.dataset.symbol;
+            tile.classList.add('flipped');
+            flippedCards.push(tile);
+
+            if (flippedCards.length === 2) {
+                isProcessing = true; // Block clicking more cards
+                checkMatch();
+            }
+        }
+
+        function checkMatch() {
+            const [card1, card2] = flippedCards;
+
+            if (card1.dataset.symbol === card2.dataset.symbol) {
+                // IT'S A MATCH
+                matchCount++;
+                scoreElement.innerText = matchCount;
+                flippedCards = [];
+                isProcessing = false;
+                
+                if (matchCount === symbols.length) {
+                    setTimeout(() => alert("All matched! Great memory!"), 300);
+                }
+            } else {
+                // NOT A MATCH: Flip back after a delay
+                setTimeout(() => {
+                    card1.innerText = '';
+                    card1.classList.remove('flipped');
+                    card2.innerText = '';
+                    card2.classList.remove('flipped');
+                    flippedCards = [];
+                    isProcessing = false;
+                }, 800);
+            }
+        }
+
+        // Start the game for the first time
+        initGame();
+    </script>
+</body>
+</html>
