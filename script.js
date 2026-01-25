@@ -266,64 +266,92 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
 
+    // --- ARCADE CONFIGURATION ---
     const games = [
-    { name: "Simple Pong", file: "Simplepong.html", thumb: "simplepong.jpg" },
-    { name: "Speed Jump", file: "Speedjump.html", thumb: "speedjump.jpg" },
-    { name: "Ghost Poke", file: "Ghostpoke.html", thumb: "ghostpoke.jpg" },
-    { name: "Caos Racer", file: "caosracer.html", thumb: "caosracer.jpg" },
-    { name: "Big Shot", file: "bigshot.html", thumb: "bigshot.jpg" },
-    { name: "Flap Dodge", file: "flapdodge.html", thumb: "flapdodge.jpg" },
-    { name: "Memory", file: "memory.html", thumb: "memory.jpg" },
-    { name: "Block Crush", file: "blockcrush.html", thumb: "blockcrush.jpg" }
-];
+        { name: "Simple Pong", file: "Simplepong.html", thumb: "simplepong.jpg" },
+        { name: "Speed Jump", file: "Speedjump.html", thumb: "speedjump.jpg" },
+        { name: "Ghost Poke", file: "Ghostpoke.html", thumb: "ghostpoke.html" }, // Note: check if this should be .jpg or .html for thumb
+        { name: "Caos Racer", file: "caosracer.html", thumb: "caosracer.jpg" },
+        { name: "Big Shot", file: "bigshot.html", thumb: "bigshot.jpg" },
+        { name: "Flap Dodge", file: "flapdodge.html", thumb: "flapdodge.jpg" },
+        { name: "Memory", file: "memory.html", thumb: "memory.jpg" },
+        { name: "Block Crush", file: "blockcrush.html", thumb: "blockcrush.jpg" }
+    ];
 
-function initArcade() {
-    const grid = document.getElementById('arcade-grid');
-    grid.innerHTML = ''; // Clear placeholder
+    // --- ARCADE CORE FUNCTIONS ---
 
-    games.forEach(game => {
-        const card = document.createElement('div');
-        card.className = 'game-card';
-        card.style = "position:relative; background:#222; border-radius:12px; overflow:hidden; aspect-ratio: 1/1; border: 1px solid #333;";
-        
-        card.innerHTML = `
-            <img src="${game.thumb}" style="width:100%; height:100%; object-fit:cover;">
-            <div class="game-overlay" onclick="this.classList.add('active')" style="position:absolute; inset:0; background:rgba(0,0,0,0.4); display:flex; align-items:center; justify-content:center; cursor:pointer; transition: 0.3s;">
-                <button onclick="window.launchGame('${game.file}')" class="play-btn" style="background:var(--accent); color:white; border:none; padding:10px 20px; border-radius:20px; font-weight:bold; transform: scale(0.9); opacity:0; transition:0.2s;">PLAY</button>
-            </div>
-            <div style="position:absolute; bottom:0; left:0; right:0; padding:8px; background:linear-gradient(transparent, rgba(0,0,0,0.8)); color:white; font-size:12px; font-weight:600;">${game.name}</div>
-        `;
-        grid.appendChild(card);
-    });
-}
+    function initArcade() {
+        const grid = document.getElementById('arcade-grid');
+        if (!grid) return;
+        grid.innerHTML = ''; 
 
-// Function to launch the game in the iframe
-window.launchGame = (file) => {
-    const player = document.getElementById('game-player');
-    const frame = document.getElementById('game-frame');
-    frame.src = file;
-    player.style.display = 'block';
-};
+        games.forEach(game => {
+            const card = document.createElement('div');
+            card.className = 'game-card'; 
+            // Inline style for immediate structure, behavior handled by window functions
+            card.style = "position:relative; background:#222; border-radius:12px; overflow:hidden; aspect-ratio:1/1; border:1px solid #333;";
+            
+            card.innerHTML = `
+                <img src="${game.thumb}" style="width:100%; height:100%; object-fit:cover;">
+                <div class="game-overlay" onclick="window.revealPlay(this)" style="position:absolute; inset:0; background:rgba(0,0,0,0); display:flex; align-items:center; justify-content:center; cursor:pointer; transition:0.3s;">
+                    <button onclick="window.launchGame('${game.file}', event)" class="play-btn" style="background:var(--accent); color:white; border:none; padding:10px 20px; border-radius:20px; font-weight:bold; transform: scale(0.8); opacity:0; transition:0.2s; pointer-events:none;">PLAY</button>
+                </div>
+                <div style="position:absolute; bottom:0; left:0; right:0; padding:8px; background:linear-gradient(transparent, rgba(0,0,0,0.8)); color:white; font-size:12px; font-weight:600; pointer-events:none;">${game.name}</div>
+            `;
+            grid.appendChild(card);
+        });
+    }
 
-// Function to close the iframe
-window.closeGame = () => {
-    const player = document.getElementById('game-player');
-    const frame = document.getElementById('game-frame');
-    frame.src = ''; // Stop game sound/action
-    player.style.display = 'none';
-};
+    // This handles the "Click thumbnail to see Play button" logic
+    window.revealPlay = function(overlay) {
+        // Reset any other open play buttons first
+        document.querySelectorAll('.game-overlay').forEach(el => {
+            el.style.background = "rgba(0,0,0,0)";
+            const btn = el.querySelector('.play-btn');
+            btn.style.opacity = "0";
+            btn.style.transform = "scale(0.8)";
+            btn.style.pointerEvents = "none";
+        });
 
-// Function to close Arcade Modal entirely
-window.closeArcade = () => {
-    window.closeGame();
-    document.getElementById('game-modal').style.display = 'none';
-};
+        // Activate the clicked one
+        overlay.style.background = "rgba(0,0,0,0.7)";
+        const activeBtn = overlay.querySelector('.play-btn');
+        activeBtn.style.opacity = "1";
+        activeBtn.style.transform = "scale(1)";
+        activeBtn.style.pointerEvents = "auto";
+    };
 
-// Initialize on load
-document.addEventListener('DOMContentLoaded', initArcade);
+    window.launchGame = function(file, event) {
+        if (event) event.stopPropagation(); // Prevents the overlay click from re-firing
+        const player = document.getElementById('game-player');
+        const frame = document.getElementById('game-frame');
+        frame.src = file;
+        player.style.display = 'block';
+    };
 
+    window.closeGame = function() {
+        const player = document.getElementById('game-player');
+        const frame = document.getElementById('game-frame');
+        frame.src = ''; // Crucial: This kills the game process/audio
+        player.style.display = 'none';
+    };
 
-    // Initialize
+    window.closeArcade = function() {
+        window.closeGame();
+        document.getElementById('game-modal').style.display = 'none';
+    };
+
+    // --- FINALIZE INITIALIZATION ---
+    
+    // Call initArcade inside your existing backend init
+    const originalInit = window.initBackend;
+    window.initBackend = function() {
+        if(originalInit) originalInit();
+        initArcade();
+    };
+
     initBackend();
 });
+
+
 
