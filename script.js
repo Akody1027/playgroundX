@@ -11,42 +11,70 @@ document.addEventListener('DOMContentLoaded', () => {
     let card, startX, currentX, btnLike, btnReject;
     let currentChatUnsubscribe = null; 
     let currentChatId = null; 
-    let jessRead = false; 
 
-    // --- NEW: HELPER FOR EMPTY STATES ---
+    // --- HELPER FOR EMPTY STATES ---
     function getEmptyStateHTML() {
         return `
-            <div class="empty-placeholder-container">
-                <img src="user_placeholder.jpg" class="empty-placeholder-img">
+            <div class="empty-placeholder-container" style="text-align:center; padding-top:50px; color:#666;">
+                <div style="font-size:40px; margin-bottom:10px;">🔭</div>
                 <div class="empty-text">No users nearby</div>
             </div>
         `;
     }
 
     // --- 1. CORE BACKEND & INITIALIZATION ---
-    
 
     window.initBackend = function() {
-        // Inside initBackend
-let myUid = localStorage.getItem('pgX_myUid');
-if (!myUid) {
-    myUid = 'user_' + Date.now() + '_' + Math.floor(Math.random() * 1000);
-    localStorage.setItem('pgX_myUid', myUid);
-}
+        // 1. Establish Identity (Hybrid: Local + potentially Firebase)
+        let myUid = localStorage.getItem('pgX_myUid');
+        if (!myUid) {
+            myUid = 'user_' + Date.now() + '_' + Math.floor(Math.random() * 1000);
+            localStorage.setItem('pgX_myUid', myUid);
+        }
 
+        // 2. Create mock users if we have absolutely no data locally
+        if (!localStorage.getItem('pgX_users')) {
+            let users = [];
+            for (let i = 0; i < 30; i++) {
+                let isFem = Math.random() > 0.5;
+                users.push({
+                    id: 'mock_' + i, 
+                    alias: ALIAS_PRE[Math.floor(Math.random() * 8)] + "_" + ALIAS_SUF[Math.floor(Math.random() * 8)],
+                    age: Math.floor(Math.random() * 15) + 18,
+                    gender: isFem ? 'Woman' : 'Man',
+                    img: isFem ? IMGS_F[Math.floor(Math.random() * IMGS_F.length)] : IMGS_M[Math.floor(Math.random() * IMGS_M.length)],
+                    lat: 40.7128 + (Math.random() - 0.5) * 0.05,
+                    lng: -74.0060 + (Math.random() - 0.5) * 0.05,
+                    relationship: DATA_REL_TYPE[Math.floor(Math.random() * DATA_REL_TYPE.length)],
+                    bio: "Just here for a good time. Love travel and photography.",
+                    seen: false,
+                    winkedAtMe: Math.random() < 0.2
+                });
+            }
+            localStorage.setItem('pgX_users', JSON.stringify(users));
+        }
 
-        
-
-        // 2. Start the app processes
-        updateBadge();
+        // 3. Start the app processes
         renderDeck();
-        loadWinks();
+        initArcade();
         
-        // (We removed loadMyProfile() from here so it doesn't pop up instantly)
-
-        setInterval(simulateRealTime, 5000);
+        // 4. Load Saved Profile Picture into Header & Gallery
+        const savedImg = localStorage.getItem('my_profile_pic');
+        if (savedImg) {
+            const headerIcon = document.getElementById('user-icon-trigger');
+            if (headerIcon) {
+                headerIcon.innerHTML = `<img src="${savedImg}" style="width:100%; height:100%; border-radius:50%; object-fit:cover;">`;
+            }
+            const galleryImg = document.getElementById('g1-preview');
+            const galleryLabel = document.getElementById('g1-lbl');
+            if (galleryImg) {
+                galleryImg.src = savedImg;
+                galleryImg.style.display = 'block';
+                if(galleryLabel) galleryLabel.style.display = 'none';
+            }
+        }
         
-        // 3. Setup Chat
+        // 5. Setup Listeners
         const sendBtn = document.querySelector('.chat-input-area button');
         if(sendBtn) sendBtn.onclick = sendMessage;
 
@@ -55,7 +83,6 @@ if (!myUid) {
             chatInput.onkeypress = (e) => { if (e.key === 'Enter') sendMessage(); };
         }
 
-        // 4. Setup "My Profile" Button (This makes the dropdown click work)
         const profileBtn = document.getElementById('open-my-profile');
         if(profileBtn) {
             profileBtn.onclick = (e) => {
@@ -63,49 +90,9 @@ if (!myUid) {
                 window.loadMyProfile();
             };
         }
-
-
-
-
-        // --- PASTE THIS AT THE END OF initBackend ---
-
-        // 5. Load Saved Profile Picture into Header & Gallery
-        const savedImg = localStorage.getItem('my_profile_pic');
-        if (savedImg) {
-            // Update Header Icon
-            const headerIcon = document.getElementById('user-icon-trigger');
-            if (headerIcon) {
-                headerIcon.innerHTML = `<img src="${savedImg}" style="width:100%; height:100%; border-radius:50%; object-fit:cover;">`;
-            }
-            
-            // Update Gallery Slot #1
-            const galleryImg = document.getElementById('g1-preview');
-          const galleryLabel = document.getElementById('g1-lbl');
-            if (galleryImg) {
-                galleryImg.src = savedImg;
-                galleryImg.style.display = 'block';
-                if(galleryLabel) galleryLabel.style.display = 'none';
-            }
-        }
-
-
-
-
-
-
-
-        
     }
 
-
-
-
-        
     // --- 2. DECK & SWIPE LOGIC ---
-
-    
-
-        // --- 2. DECK & SWIPE LOGIC ---
 
     window.renderDeck = async function() {
         const zone = document.getElementById('swipe-zone');
@@ -168,10 +155,10 @@ if (!myUid) {
                 `).join('');
             }
         }
+        
+        // 5. DRAWING: Update Map
+        if(window.updateMapPins) window.updateMapPins(activeDeck);
     }
-
-
-
 
     function initSwipeHandlers() {
         card = document.getElementById('active-card');
@@ -193,22 +180,17 @@ if (!myUid) {
         });
     }
 
-        window.userSwipe = function(dir) {
+    window.userSwipe = function(dir) {
         if (!card) return;
         
-        // 1. Animate the card flying away
+        // 1. Animate
         card.style.transition = 'transform 0.5s ease-in';
         card.style.transform = `translateX(${dir === 'right' ? 1000 : -1000}px)`;
 
-        // 2. MARK AS SEEN (This is the missing piece!)
-        // Get the full list of users
-        let allUsers = JSON.parse(localStorage.getItem('pgX_users'));
-        
-        // Find the current user we just swiped on (they are always at index 0 of activeDeck)
+        // 2. Mark as Seen (Mock Logic)
+        let allUsers = JSON.parse(localStorage.getItem('pgX_users')) || [];
         if (activeDeck.length > 0) {
             let currentUserId = activeDeck[0].id;
-            
-            // Find them in the main storage list and mark seen = true
             let userIndex = allUsers.findIndex(u => u.id === currentUserId);
             if (userIndex > -1) {
                 allUsers[userIndex].seen = true;
@@ -216,19 +198,18 @@ if (!myUid) {
             }
         }
 
-        // 3. Handle Visual Feedback (Wink)
+        // 3. Feedback
         if (dir === 'right') {
             document.getElementById('wink-txt').classList.add('show');
             setTimeout(() => document.getElementById('wink-txt').classList.remove('show'), 1000);
         }
 
-        // 4. Wait for animation to finish, then load the NEW deck
+        // 4. Reload Deck
         setTimeout(() => { 
             resetButtons(); 
             renderDeck(); 
         }, 300);
     }
-
 
     function resetButtons() {
         if (btnLike) btnLike.style.background = 'rgba(0,0,0,0.6)';
@@ -236,8 +217,26 @@ if (!myUid) {
     }
 
     // --- 3. MAP ---
-    const map = L.map('map').setView([40.7128, -74.0060], 13);
+    const map = L.map('map', {zoomControl: false}).setView([40.7128, -74.0060], 13);
     L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png').addTo(map);
+
+    window.updateMapPins = function(users) {
+        map.eachLayer((layer) => { if(layer instanceof L.Marker) map.removeLayer(layer); });
+
+        users.forEach(u => {
+            if(u.lat && u.lng) {
+                const icon = L.divIcon({
+                    className: 'custom-pin',
+                    html: `<div class="user-dot-pin" style="width:12px; height:12px;"></div>`
+                });
+                L.marker([u.lat, u.lng], {icon: icon})
+                 .addTo(map)
+                 .bindPopup(`<b>${u.alias}</b><br>${u.age}`);
+            }
+        });
+        const myIcon = L.divIcon({ className: 'my-pin', html: `<div class="my-location-pin" style="width:20px; height:20px;"></div>` });
+        L.marker([40.7128, -74.0060], {icon: myIcon}).addTo(map);
+    }
 
     // --- 4. REAL-TIME MESSAGING ---
 
@@ -256,8 +255,7 @@ if (!myUid) {
             const chatId = [myUid, targetUid].sort().join('_');
             
             const q = query(collection(window.db, "chats", chatId, "messages"), orderBy("createdAt"), limit(50));
-            
-            if(currentChatUnsubscribe) currentChatUnsubscribe(); // Stop old listener
+            if(currentChatUnsubscribe) currentChatUnsubscribe(); 
 
             currentChatUnsubscribe = onSnapshot(q, (snapshot) => {
                 chatBody.innerHTML = ''; 
@@ -277,9 +275,9 @@ if (!myUid) {
     async function sendMessage() {
         const input = document.querySelector('.chat-input');
         const text = input.value.trim();
-        if (!text || !currentChatId) return;
+        if (!text) return;
 
-        if (window.fbase && window.db) {
+        if (window.fbase && window.db && currentChatId) {
             const { collection, addDoc, serverTimestamp } = window.fbase;
             let myUid = localStorage.getItem('pgX_myUid') || 'anon';
             const chatId = [myUid, currentChatId].sort().join('_');
@@ -289,8 +287,15 @@ if (!myUid) {
                 senderId: myUid,
                 createdAt: serverTimestamp()
             });
-            input.value = '';
+        } else {
+            // Local fallback
+            const chatBody = document.getElementById('chat-body');
+            const bubble = document.createElement('div');
+            bubble.className = 'chat-bubble me';
+            bubble.innerText = text;
+            chatBody.appendChild(bubble);
         }
+        input.value = '';
     }
 
     // --- 5. UI CONTROLS ---
@@ -300,7 +305,6 @@ if (!myUid) {
         menu.style.display = (menu.style.display === 'block') ? 'none' : 'block';
     }
 
-    // Fix: Attach listener to icon specifically
     const userTrigger = document.getElementById('user-icon-trigger');
     if(userTrigger) userTrigger.onclick = (e) => { e.stopPropagation(); window.toggleUserMenu(); };
 
@@ -311,210 +315,145 @@ if (!myUid) {
         btn.classList.add('active');
         if (viewId === 'map') setTimeout(() => map.invalidateSize(), 100);
     }
-    // --- PASTE THIS RIGHT AFTER window.switchView ---
 
-    // 1. Opens the main Connect Modal (Chat/Winks)
     window.openMsgModal = function() {
         document.getElementById('msg-modal').style.display = 'block';
     }
 
-    // 2. Closes the modal and resets the view
     window.closeChat = function() {
         document.getElementById('msg-modal').style.display = 'none';
-        // Reset to the main list (so it doesn't get stuck inside a conversation)
         document.getElementById('msg-list-view').style.display = 'block';
         document.getElementById('chat-view').style.display = 'none';
     }
 
-    // 3. Handles switching between "Winks" and "Messages" tabs
     window.openTab = function(tabId, btn) {
-        // Hide all tab content
         document.querySelectorAll('.tab-pane').forEach(t => t.style.display = 'none');
-        // Remove 'active' color from all buttons
         document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-        
-        // Show the specific tab you clicked
         document.getElementById(tabId).style.display = 'block';
-        // Light up the button you clicked
         btn.classList.add('active');
     }
+
+    window.toggleAccordion = function(id, isChecked) {
+        const el = document.getElementById(id);
+        if(el) el.style.display = isChecked ? 'block' : 'none';
+    }
+
+    window.toggleProfileAcc = function(id) {
+        const el = document.getElementById(id);
+        if(el.style.display === 'block') el.style.display = 'none';
+        else el.style.display = 'block';
+    }
     
-
-
-
-
-
-    // --- PASTE THIS IN SECTION 5 ---
+    window.selectProfileOption = function(displayId, value, accId) {
+        document.getElementById(displayId).innerText = value;
+        document.getElementById(accId).style.display = 'none';
+    }
 
     window.previewMainAndGallery = function(event) {
         const file = event.target.files[0];
         if (file) {
             const reader = new FileReader();
-            
             reader.onload = function(e) {
                 const imgUrl = e.target.result;
-
-                // 1. Update Main Profile Circle
+                // Update Main
                 document.getElementById('my-main-preview').src = imgUrl;
-
-                // 2. Update Gallery Slot #1
+                // Update Gallery #1
                 const galleryImg = document.getElementById('g1-preview');
                 galleryImg.src = imgUrl;
-                galleryImg.style.display = 'block'; // Make sure it is visible
-                
-                // Hide the "Star" label so we can see the photo
+                galleryImg.style.display = 'block';
                 const galleryLabel = document.getElementById('g1-lbl');
                 if(galleryLabel) galleryLabel.style.display = 'none';
-
-                // 3. Update Top Right Header Icon
+                // Update Header
                 const headerIcon = document.getElementById('user-icon-trigger');
-                // Replace the SVG icon with your new photo
                 headerIcon.innerHTML = `<img src="${imgUrl}" style="width:100%; height:100%; border-radius:50%; object-fit:cover;">`;
             }
-            
             reader.readAsDataURL(file);
         }
     }
-
-
-
-
-
     
-
-    // --- INSERT THIS CODE IN SECTION 5 ---
-
-    window.openUserProfile = function(alias, age, img, id) {
-        // 1. Target the Modal Elements based on your HTML IDs
-        const modal = document.getElementById('view-user-modal');
-        const imgMain = document.getElementById('view-user-img');
-        const imgSmall = document.getElementById('view-user-img-small');
-        const nameLabel = document.getElementById('view-user-name');
-        const bioLabel = document.getElementById('view-user-bio');
-        const chipsContainer = document.getElementById('view-user-chips');
-
-        // 2. Inject the data passed from the card
-        imgMain.src = img;
-        imgSmall.src = img; // Set the gallery thumb too
-        nameLabel.innerText = `${alias}, ${age}`;
-        
-        // 3. Generate some mock details (since we only passed basic info)
-        // In a real app, you would use 'id' to fetch the full bio from Firebase here.
-        bioLabel.innerText = `${alias} is a ${age} year old member looking for connections. (This is placeholder text until you connect the full database fetch).`;
-
-        // 4. Reset and Add Chips (Tags)
-        chipsContainer.innerHTML = ''; // Clear old tags
-        const tags = ['Verified Member', 'New', 'Active Now'];
-        tags.forEach(tag => {
-            const span = document.createElement('span');
-            span.className = 'stat-chip'; // Uses your CSS class
-            span.innerText = tag;
-            chipsContainer.appendChild(span);
-        });
-
-        // 5. Show the Modal
-        modal.style.display = 'block';
+    window.previewVideo = function(event) {
+        alert("Video selected!");
     }
 
+    window.saveProfile = async function() {
+        const alias = document.getElementById('p-alias').value;
+        const bio = document.getElementById('p-bio').value;
+        const imgVal = document.getElementById('my-main-preview').src;
 
+        // 1. Save Local
+        localStorage.setItem('pgX_alias', alias);
+        localStorage.setItem('pgX_bio', bio);
+        localStorage.setItem('my_profile_pic', imgVal);
 
-
-
-
-window.saveProfile = async function() {
-    // 1. Get values
-    const alias = document.getElementById('p-alias').value;
-    const bio = document.getElementById('p-bio').value;
-    // ... get other values ...
-
-    // 2. SAVE LOCAL (Instant UI update)
-    localStorage.setItem('pgX_alias', alias);
-    // ... save others ...
-    document.getElementById('profile-modal').style.display = 'none'; // Close immediately
-
-    // 3. SAVE TO FIREBASE (Background)
-    if (window.fbase && window.db) {
-        const myUid = localStorage.getItem('pgX_myUid');
-        try {
-            await window.fbase.setDoc(window.fbase.doc(window.db, "users", myUid), {
-                alias: alias,
-                bio: bio,
-                lastSeen: window.fbase.serverTimestamp(),
-                // Note: We can't easily save the Image Base64 to Firestore (it's too big).
-                // For now, keep the image local-only or use a placeholder URL.
-            }, { merge: true });
-            console.log("Synced to Cloud!");
-        } catch (e) {
-            console.error("Sync failed", e);
+        // 2. Save to Firebase (Hybrid)
+        if (window.fbase && window.db) {
+            const myUid = localStorage.getItem('pgX_myUid');
+            try {
+                await window.fbase.setDoc(window.fbase.doc(window.db, "users", myUid), {
+                    alias: alias,
+                    bio: bio,
+                    lastSeen: window.fbase.serverTimestamp()
+                }, { merge: true });
+            } catch (e) { console.error("Sync failed", e); }
         }
+
+        document.getElementById('profile-modal').style.display = 'none';
     }
-}
-
-
-
-    
 
     window.loadMyProfile = function() {
-        // 1. Read values from memory
         const storedAlias = localStorage.getItem('pgX_alias') || ""; 
         const storedBio = localStorage.getItem('pgX_bio') || "";
         const storedImg = localStorage.getItem('my_profile_pic') || "https://via.placeholder.com/120";
 
-        // 2. Fill Inputs
         document.getElementById('p-alias').value = storedAlias;
         document.getElementById('p-bio').value = storedBio;
-        
-        // 3. Fill Images (Main + Gallery #1)
         document.getElementById('my-main-preview').src = storedImg;
         
         const galleryImg = document.getElementById('g1-preview');
         const galleryLabel = document.getElementById('g1-lbl');
         
-        // If it's a real photo (not the placeholder), show it in gallery slot 1 too
         if (storedImg.includes('data:image') || storedImg.includes('http')) {
              galleryImg.src = storedImg;
              galleryImg.style.display = 'block';
              if(galleryLabel) galleryLabel.style.display = 'none';
         }
 
-        // 4. Reveal Modal
         document.getElementById('profile-modal').style.display = 'block';
         document.getElementById('user-dropdown').style.display = 'none';
     }
 
+    window.applyFilters = function() {
+        document.getElementById('filter-modal').style.display = 'none';
+        renderDeck();
+    }
 
+    window.openUserProfile = function(alias, age, img, id) {
+        const modal = document.getElementById('view-user-modal');
+        document.getElementById('view-user-img').src = img;
+        document.getElementById('view-user-img-small').src = img;
+        document.getElementById('view-user-name').innerText = alias + ", " + age;
+        document.getElementById('view-user-bio').innerText = `${alias} is a ${age} year old member.`;
+        
+        const chipsContainer = document.getElementById('view-user-chips');
+        chipsContainer.innerHTML = `<span class="stat-chip love">Words of Affirmation</span><span class="stat-chip">Non-Smoker</span>`;
+        
+        modal.style.display = 'block';
+    }
 
+    window.toggleReportMenu = function() {
+        const menu = document.getElementById('report-menu');
+        menu.style.display = (menu.style.display === 'block') ? 'none' : 'block';
+    }
 
-    
-    // Logic for loading winks and badges...
-    function updateBadge() { /* ... Badge logic ... */ }
-    function loadWinks() { /* ... Wink logic ... */ }
-
-
-    // --- PASTE THIS AT THE BOTTOM OF YOUR SCRIPT ---
-
-    
-
-
-
-    
-    function simulateRealTime() { /* ... Mock winks ... */ }
-
-
-
-    // --- ARCADE CONFIGURATION ---
+    // --- 6. ARCADE ---
     const games = [
-        { name: "Simple Pong", file: "Simplepong.html", thumb: "simplepong.jpg" },
-        { name: "Speed Jump", file: "Speedjump.html", thumb: "speedjump.jpg" },
-        { name: "Ghost Poke", file: "Ghostpoke.html", thumb: "Ghostpoke.jpg" }, // Note: check if this should be .jpg or .html for thumb
-        { name: "Caos Racer", file: "caosracer.html", thumb: "caosracer.jpg" },
-        { name: "Big Shot", file: "bigshot.html", thumb: "bigshot.jpg" },
-        { name: "Flap Dodge", file: "flapdodge.html", thumb: "flapdodge.jpg" },
-        { name: "Memory", file: "memory.html", thumb: "memory.jpg" },
-        { name: "Block Crush", file: "blockcrush.html", thumb: "blockcrush.jpg" }
+        { name: "Simple Pong", file: "Simplepong.html", thumb: "https://via.placeholder.com/150/000000/FFFFFF/?text=Pong" },
+        { name: "Speed Jump", file: "Speedjump.html", thumb: "https://via.placeholder.com/150/000000/FFFFFF/?text=Jump" },
+        { name: "Ghost Poke", file: "Ghostpoke.html", thumb: "https://via.placeholder.com/150/000000/FFFFFF/?text=Ghost" },
+        { name: "Caos Racer", file: "caosracer.html", thumb: "https://via.placeholder.com/150/000000/FFFFFF/?text=Racer" },
+        { name: "Big Shot", file: "bigshot.html", thumb: "https://via.placeholder.com/150/000000/FFFFFF/?text=Shot" },
+        { name: "Flap Dodge", file: "flapdodge.html", thumb: "https://via.placeholder.com/150/000000/FFFFFF/?text=Flap" }
     ];
-
-    // --- ARCADE CORE FUNCTIONS ---
 
     function initArcade() {
         const grid = document.getElementById('arcade-grid');
@@ -524,9 +463,7 @@ window.saveProfile = async function() {
         games.forEach(game => {
             const card = document.createElement('div');
             card.className = 'game-card'; 
-            // Inline style for immediate structure, behavior handled by window functions
             card.style = "position:relative; background:#222; border-radius:12px; overflow:hidden; aspect-ratio:1/1; border:1px solid #333;";
-            
             card.innerHTML = `
                 <img src="${game.thumb}" style="width:100%; height:100%; object-fit:cover;">
                 <div class="game-overlay" onclick="window.revealPlay(this)" style="position:absolute; inset:0; background:rgba(0,0,0,0); display:flex; align-items:center; justify-content:center; cursor:pointer; transition:0.3s;">
@@ -538,9 +475,7 @@ window.saveProfile = async function() {
         });
     }
 
-    // This handles the "Click thumbnail to see Play button" logic
     window.revealPlay = function(overlay) {
-        // Reset any other open play buttons first
         document.querySelectorAll('.game-overlay').forEach(el => {
             el.style.background = "rgba(0,0,0,0)";
             const btn = el.querySelector('.play-btn');
@@ -548,8 +483,6 @@ window.saveProfile = async function() {
             btn.style.transform = "scale(0.8)";
             btn.style.pointerEvents = "none";
         });
-
-        // Activate the clicked one
         overlay.style.background = "rgba(0,0,0,0.7)";
         const activeBtn = overlay.querySelector('.play-btn');
         activeBtn.style.opacity = "1";
@@ -558,17 +491,18 @@ window.saveProfile = async function() {
     };
 
     window.launchGame = function(file, event) {
-        if (event) event.stopPropagation(); // Prevents the overlay click from re-firing
+        if (event) event.stopPropagation();
         const player = document.getElementById('game-player');
         const frame = document.getElementById('game-frame');
-        frame.src = file;
+        // frame.src = file; // Enable this when you have real game files
+        frame.src = "about:blank"; 
         player.style.display = 'block';
     };
 
     window.closeGame = function() {
         const player = document.getElementById('game-player');
         const frame = document.getElementById('game-frame');
-        frame.src = ''; // Crucial: This kills the game process/audio
+        frame.src = ''; 
         player.style.display = 'none';
     };
 
@@ -576,33 +510,15 @@ window.saveProfile = async function() {
         window.closeGame();
         document.getElementById('game-modal').style.display = 'none';
     };
-
-    // --- FINALIZE INITIALIZATION ---
     
-    // Call initArcade inside your existing backend init
-    const originalInit = window.initBackend;
-    window.initBackend = function() {
-        if(originalInit) originalInit();
-        initArcade();
-    };
+    window.closeConfirm = function() {
+        document.getElementById('confirm-modal').style.display = 'none';
+    }
+    window.confirmYes = function() {
+        alert("Item deleted");
+        window.closeConfirm();
+    }
 
+    // START
     initBackend();
 });
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
