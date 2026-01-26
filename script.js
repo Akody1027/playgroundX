@@ -80,7 +80,7 @@ if (!myUid) {
             
             // Update Gallery Slot #1
             const galleryImg = document.getElementById('g1-preview');
-            const galleryLabel = document.getElementById('g1-lbl');
+          const galleryLabel = document.getElementById('g1-lbl');
             if (galleryImg) {
                 galleryImg.src = savedImg;
                 galleryImg.style.display = 'block';
@@ -108,6 +108,7 @@ if (!myUid) {
         
     // --- 2. DECK & SWIPE LOGIC ---
 
+    
     // --- REPLACE YOUR BROKEN renderDeck WITH THIS ---
 
     window.renderDeck = async function() {
@@ -590,6 +591,7 @@ window.saveProfile = async function() {
 
     initBackend();
 });
+
 
 
 
