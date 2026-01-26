@@ -260,7 +260,34 @@ document.addEventListener('DOMContentLoaded', () => {
         btn.classList.add('active');
         if (viewId === 'map') setTimeout(() => map.invalidateSize(), 100);
     }
+    // --- PASTE THIS RIGHT AFTER window.switchView ---
 
+    // 1. Opens the main Connect Modal (Chat/Winks)
+    window.openMsgModal = function() {
+        document.getElementById('msg-modal').style.display = 'block';
+    }
+
+    // 2. Closes the modal and resets the view
+    window.closeChat = function() {
+        document.getElementById('msg-modal').style.display = 'none';
+        // Reset to the main list (so it doesn't get stuck inside a conversation)
+        document.getElementById('msg-list-view').style.display = 'block';
+        document.getElementById('chat-view').style.display = 'none';
+    }
+
+    // 3. Handles switching between "Winks" and "Messages" tabs
+    window.openTab = function(tabId, btn) {
+        // Hide all tab content
+        document.querySelectorAll('.tab-pane').forEach(t => t.style.display = 'none');
+        // Remove 'active' color from all buttons
+        document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+        
+        // Show the specific tab you clicked
+        document.getElementById(tabId).style.display = 'block';
+        // Light up the button you clicked
+        btn.classList.add('active');
+    }
+    
 
 
 
@@ -469,6 +496,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     initBackend();
 });
+
 
 
 
