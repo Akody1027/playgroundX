@@ -505,12 +505,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const card = document.createElement('div');
             card.className = 'game-card'; 
             // Inline style for immediate structure, behavior handled by window functions
-            card.style = "position:relative; background:#222; border-radius:12px; ove
-                
-                
-            
-            
-            rflow:hidden; aspect-ratio:1/1; border:1px solid #333;";
+            card.style = "position:relative; background:#222; border-radius:12px; overflow:hidden; aspect-ratio:1/1; border:1px solid #333;";
             
             card.innerHTML = `
                 <img src="${game.thumb}" style="width:100%; height:100%; object-fit:cover;">
@@ -573,6 +568,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     initBackend();
 });
+
 
 
 
