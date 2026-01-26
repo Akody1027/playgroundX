@@ -11,13 +11,14 @@ document.addEventListener('DOMContentLoaded', () => {
     let card, startX, currentX, btnLike, btnReject;
     let currentChatUnsubscribe = null; 
     let currentChatId = null; 
+    let jessRead = false; 
 
     // --- NEW: HELPER FOR EMPTY STATES ---
     function getEmptyStateHTML() {
         return `
-            <div style="display:flex; flex-direction:column; align-items:center; justify-content:center; height:100%; color:#666;">
-                <div style="font-size:40px;">🔭</div>
-                <div style="margin-top:10px;">No users nearby</div>
+            <div class="empty-placeholder-container">
+                <img src="user_placeholder.jpg" class="empty-placeholder-img">
+                <div class="empty-text">No users nearby</div>
             </div>
         `;
     }
@@ -45,8 +46,11 @@ document.addEventListener('DOMContentLoaded', () => {
             }
             localStorage.setItem('pgX_users', JSON.stringify(users));
         }
+        updateBadge();
         renderDeck();
-        initArcade(); // Initialize Arcade
+        loadWinks();
+        loadMyProfile(); 
+        setInterval(simulateRealTime, 5000);
         
         // Send Button Listener
         const sendBtn = document.querySelector('.chat-input-area button');
@@ -64,20 +68,27 @@ document.addEventListener('DOMContentLoaded', () => {
         const zone = document.getElementById('swipe-zone');
         const grid = document.getElementById('grid-content');
 
-        // Try to get data (Local storage fallbacks for demo)
         try {
             if (window.fbase && window.db) {
-                // In a real app, you'd fetch from Firebase here
-                // For this demo, we use local mock data mostly
-                activeDeck = JSON.parse(localStorage.getItem('pgX_users')).filter(u => !u.seen);
+                const { getDocs, collection } = window.fbase;
+                const querySnapshot = await getDocs(collection(window.db, "users"));
+                let realUsers = [];
+                querySnapshot.forEach((doc) => realUsers.push(doc.data()));
+
+                if (realUsers.length > 0) {
+                    let myUid = localStorage.getItem('pgX_myUid');
+                    activeDeck = realUsers.filter(u => u.id !== myUid);
+                } else {
+                    activeDeck = JSON.parse(localStorage.getItem('pgX_users')).filter(u => !u.seen);
+                }
             } else {
                  activeDeck = JSON.parse(localStorage.getItem('pgX_users')).filter(u => !u.seen);
             }
         } catch (e) {
-            activeDeck = [];
+            activeDeck = JSON.parse(localStorage.getItem('pgX_users')).filter(u => !u.seen);
         }
 
-        // --- SWIPE VIEW RENDER ---
+        // --- UPDATED SWIPE VIEW LOGIC ---
         if (activeDeck.length > 0) {
             const u = activeDeck[0];
             zone.innerHTML = `
@@ -90,15 +101,18 @@ document.addEventListener('DOMContentLoaded', () => {
             </div>`;
             setTimeout(initSwipeHandlers, 50);
         } else {
+            // SHOW PLACEHOLDER IMAGE IF EMPTY
             zone.innerHTML = getEmptyStateHTML();
         }
 
-        // --- GRID VIEW RENDER ---
+        // --- UPDATED GRID VIEW LOGIC ---
         if (grid) {
             if (activeDeck.length === 0) {
+                // If empty, switch to flex to center the placeholder image
                 grid.style.display = 'flex';
                 grid.innerHTML = getEmptyStateHTML();
             } else {
+                // If users exist, ensure grid layout is active
                 grid.style.display = 'grid';
                 grid.innerHTML = activeDeck.map(u => `
                 <div class="grid-item" onclick="window.openUserProfile('${u.alias}', ${u.age}, '${u.img}', '${u.id}')">
@@ -108,9 +122,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 `).join('');
             }
         }
-        
-        // --- UPDATE MAP ---
-        if(window.updateMapPins) window.updateMapPins(activeDeck);
     }
 
     function initSwipeHandlers() {
@@ -137,14 +148,6 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!card) return;
         card.style.transition = 'transform 0.5s ease-in';
         card.style.transform = `translateX(${dir === 'right' ? 1000 : -1000}px)`;
-        
-        // Mark as seen in mock data
-        let allUsers = JSON.parse(localStorage.getItem('pgX_users'));
-        let currentUser = activeDeck[0];
-        let idx = allUsers.findIndex(u => u.id === currentUser.id);
-        if(idx > -1) allUsers[idx].seen = true;
-        localStorage.setItem('pgX_users', JSON.stringify(allUsers));
-
         if (dir === 'right') {
             document.getElementById('wink-txt').classList.add('show');
             setTimeout(() => document.getElementById('wink-txt').classList.remove('show'), 1000);
@@ -157,151 +160,11 @@ document.addEventListener('DOMContentLoaded', () => {
         if (btnReject) btnReject.style.background = 'rgba(0,0,0,0.6)';
     }
 
-    // --- 3. MAP LOGIC ---
-    const map = L.map('map', {zoomControl: false}).setView([40.7128, -74.0060], 13);
+    // --- 3. MAP ---
+    const map = L.map('map').setView([40.7128, -74.0060], 13);
     L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png').addTo(map);
-    
-    // Helper to update map pins based on deck
-    window.updateMapPins = function(users) {
-        // Clear existing markers (basic implementation)
-        map.eachLayer((layer) => {
-            if(layer instanceof L.Marker) map.removeLayer(layer);
-        });
 
-        // Add User pins
-        users.forEach(u => {
-            const icon = L.divIcon({
-                className: 'custom-pin',
-                html: `<div class="user-dot-pin" style="width:12px; height:12px;"></div>`
-            });
-            L.marker([u.lat, u.lng], {icon: icon})
-             .addTo(map)
-             .bindPopup(`<b>${u.alias}</b><br>${u.age}`);
-        });
-
-        // Add My Pin
-        const myIcon = L.divIcon({
-            className: 'my-pin',
-            html: `<div class="my-location-pin" style="width:20px; height:20px;"></div>`
-        });
-        L.marker([40.7128, -74.0060], {icon: myIcon}).addTo(map);
-    }
-
-
-    // --- 4. UI & NAVIGATION HELPER FUNCTIONS (MISSING FROM PREVIOUS CODE) ---
-
-    // View Switching
-    window.switchView = function(viewId, btn) {
-        document.querySelectorAll('.app-view').forEach(v => v.classList.remove('active'));
-        document.querySelectorAll('.view-btn').forEach(b => b.classList.remove('active'));
-        document.getElementById('view-' + viewId).classList.add('active');
-        btn.classList.add('active');
-        if (viewId === 'map') setTimeout(() => map.invalidateSize(), 100);
-    }
-
-    // Toggle Menus
-    window.toggleUserMenu = function() {
-        const menu = document.getElementById('user-dropdown');
-        menu.style.display = (menu.style.display === 'block') ? 'none' : 'block';
-    }
-
-    // Modal Handlers
-    window.openMsgModal = function() {
-        document.getElementById('msg-modal').style.display = 'block';
-    }
-    window.closeChat = function() {
-        document.getElementById('msg-modal').style.display = 'none';
-        // Return to message list view when closing
-        document.getElementById('msg-list-view').style.display = 'block';
-        document.getElementById('chat-view').style.display = 'none';
-    }
-    
-    // Tab Switching (Winks vs Messages)
-    window.openTab = function(tabId, btn) {
-        document.querySelectorAll('.tab-pane').forEach(t => t.style.display = 'none');
-        document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-        document.getElementById(tabId).style.display = 'block';
-        btn.classList.add('active');
-    }
-
-    // Accordion Logic (Filters & Profile Edit)
-    window.toggleAccordion = function(id, isChecked) {
-        const el = document.getElementById(id);
-        if(el) el.style.display = isChecked ? 'block' : 'none';
-    }
-
-    // Profile Edit Specifics
-    window.toggleProfileAcc = function(id) {
-        const el = document.getElementById(id);
-        if(el.style.display === 'block') el.style.display = 'none';
-        else el.style.display = 'block';
-    }
-    
-    window.selectProfileOption = function(displayId, value, accId) {
-        document.getElementById(displayId).innerText = value;
-        document.getElementById(accId).style.display = 'none';
-    }
-
-    window.previewMainAndGallery = function(event) {
-        const file = event.target.files[0];
-        if (file) {
-            const reader = new FileReader();
-            reader.onload = function(e) {
-                document.getElementById('my-main-preview').src = e.target.result;
-            }
-            reader.readAsDataURL(file);
-        }
-    }
-    
-    window.previewVideo = function(event) {
-        // Basic stub for video preview
-        const file = event.target.files[0];
-        if(file) {
-            alert("Video selected! (Preview logic here)");
-        }
-    }
-
-    window.saveProfile = function() {
-        alert("Profile Saved (Locally)!");
-        document.getElementById('profile-modal').style.display = 'none';
-    }
-
-    // Filters
-    window.applyFilters = function() {
-        alert("Filters Applied! Reloading deck...");
-        document.getElementById('filter-modal').style.display = 'none';
-        // In real app, re-fetch data here
-        renderDeck();
-    }
-
-    // --- 5. USER PROFILE MODAL ---
-    
-    window.openUserProfile = function(alias, age, img, id) {
-        const modal = document.getElementById('view-user-modal');
-        document.getElementById('view-user-img').src = img;
-        document.getElementById('view-user-img-small').src = img;
-        document.getElementById('view-user-name').innerText = alias + ", " + age;
-        
-        // Random bio generation for demo
-        document.getElementById('view-user-bio').innerText = "This is a generated bio for " + alias + ". I like hiking, coffee, and coding late at night.";
-        
-        // Random chips
-        const chipsContainer = document.getElementById('view-user-chips');
-        chipsContainer.innerHTML = `
-            <span class="stat-chip love">Words of Affirmation</span>
-            <span class="stat-chip">Non-Smoker</span>
-            <span class="stat-chip">Average Body</span>
-        `;
-        
-        modal.style.display = 'block';
-    }
-
-    window.toggleReportMenu = function() {
-        const menu = document.getElementById('report-menu');
-        menu.style.display = (menu.style.display === 'block') ? 'none' : 'block';
-    }
-
-    // --- 6. REAL-TIME MESSAGING (FIREBASE) ---
+    // --- 4. REAL-TIME MESSAGING ---
 
     window.openChat = function(name, targetUid) {
         document.getElementById('msg-list-view').style.display = 'none';
@@ -339,10 +202,9 @@ document.addEventListener('DOMContentLoaded', () => {
     async function sendMessage() {
         const input = document.querySelector('.chat-input');
         const text = input.value.trim();
-        if (!text) return;
+        if (!text || !currentChatId) return;
 
-        // If firebase is active
-        if (window.fbase && window.db && currentChatId) {
+        if (window.fbase && window.db) {
             const { collection, addDoc, serverTimestamp } = window.fbase;
             let myUid = localStorage.getItem('pgX_myUid') || 'anon';
             const chatId = [myUid, currentChatId].sort().join('_');
@@ -352,25 +214,71 @@ document.addEventListener('DOMContentLoaded', () => {
                 senderId: myUid,
                 createdAt: serverTimestamp()
             });
-        } else {
-            // Local simulation
-            const chatBody = document.getElementById('chat-body');
-            const bubble = document.createElement('div');
-            bubble.className = 'chat-bubble me';
-            bubble.innerText = text;
-            chatBody.appendChild(bubble);
-            chatBody.scrollTop = chatBody.scrollHeight;
+            input.value = '';
         }
-        input.value = '';
     }
 
-    // --- 7. ARCADE LOGIC ---
+    // --- 5. UI CONTROLS ---
+
+    window.toggleUserMenu = function() {
+        const menu = document.getElementById('user-dropdown');
+        menu.style.display = (menu.style.display === 'block') ? 'none' : 'block';
+    }
+
+    // Fix: Attach listener to icon specifically
+    const userTrigger = document.getElementById('user-icon-trigger');
+    if(userTrigger) userTrigger.onclick = (e) => { e.stopPropagation(); window.toggleUserMenu(); };
+
+    window.switchView = function(viewId, btn) {
+        document.querySelectorAll('.app-view').forEach(v => v.classList.remove('active'));
+        document.querySelectorAll('.view-btn').forEach(b => b.classList.remove('active'));
+        document.getElementById('view-' + viewId).classList.add('active');
+        btn.classList.add('active');
+        if (viewId === 'map') setTimeout(() => map.invalidateSize(), 100);
+    }
+
+    window.saveProfile = async function() {
+        let myUid = localStorage.getItem('pgX_myUid') || 'user_' + Date.now();
+        localStorage.setItem('pgX_myUid', myUid);
+
+        const profileData = {
+            id: myUid,
+            alias: document.getElementById('p-alias').value || "Anonymous",
+            img: document.getElementById('my-main-preview').src,
+            age: document.getElementById('p-age').value
+        };
+
+        localStorage.setItem('my_profile_pic', profileData.img);
+        
+        if (window.fbase && window.db) {
+            const { setDoc, doc } = window.fbase;
+            await setDoc(doc(window.db, "users", myUid), profileData, { merge: true });
+        }
+        document.getElementById('profile-modal').style.display = 'none';
+        alert("Profile Saved!");
+    }
+
+    // Logic for loading winks and badges...
+    function updateBadge() { /* ... Badge logic ... */ }
+    function loadWinks() { /* ... Wink logic ... */ }
+    function loadMyProfile() { /* ... Profile loader ... */ }
+    function simulateRealTime() { /* ... Mock winks ... */ }
+
+
+
+    // --- ARCADE CONFIGURATION ---
     const games = [
-        { name: "Simple Pong", file: "Simplepong.html", thumb: "https://via.placeholder.com/150/000000/FFFFFF/?text=Pong" },
-        { name: "Speed Jump", file: "Speedjump.html", thumb: "https://via.placeholder.com/150/000000/FFFFFF/?text=Jump" },
-        { name: "Ghost Poke", file: "Ghostpoke.html", thumb: "https://via.placeholder.com/150/000000/FFFFFF/?text=Ghost" },
-        { name: "Caos Racer", file: "caosracer.html", thumb: "https://via.placeholder.com/150/000000/FFFFFF/?text=Racer" }
+        { name: "Simple Pong", file: "Simplepong.html", thumb: "simplepong.jpg" },
+        { name: "Speed Jump", file: "Speedjump.html", thumb: "speedjump.jpg" },
+        { name: "Ghost Poke", file: "Ghostpoke.html", thumb: "Ghostpoke.jpg" }, // Note: check if this should be .jpg or .html for thumb
+        { name: "Caos Racer", file: "caosracer.html", thumb: "caosracer.jpg" },
+        { name: "Big Shot", file: "bigshot.html", thumb: "bigshot.jpg" },
+        { name: "Flap Dodge", file: "flapdodge.html", thumb: "flapdodge.jpg" },
+        { name: "Memory", file: "memory.html", thumb: "memory.jpg" },
+        { name: "Block Crush", file: "blockcrush.html", thumb: "blockcrush.jpg" }
     ];
+
+    // --- ARCADE CORE FUNCTIONS ---
 
     function initArcade() {
         const grid = document.getElementById('arcade-grid');
@@ -380,6 +288,7 @@ document.addEventListener('DOMContentLoaded', () => {
         games.forEach(game => {
             const card = document.createElement('div');
             card.className = 'game-card'; 
+            // Inline style for immediate structure, behavior handled by window functions
             card.style = "position:relative; background:#222; border-radius:12px; overflow:hidden; aspect-ratio:1/1; border:1px solid #333;";
             
             card.innerHTML = `
@@ -393,7 +302,9 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
+    // This handles the "Click thumbnail to see Play button" logic
     window.revealPlay = function(overlay) {
+        // Reset any other open play buttons first
         document.querySelectorAll('.game-overlay').forEach(el => {
             el.style.background = "rgba(0,0,0,0)";
             const btn = el.querySelector('.play-btn');
@@ -401,6 +312,8 @@ document.addEventListener('DOMContentLoaded', () => {
             btn.style.transform = "scale(0.8)";
             btn.style.pointerEvents = "none";
         });
+
+        // Activate the clicked one
         overlay.style.background = "rgba(0,0,0,0.7)";
         const activeBtn = overlay.querySelector('.play-btn');
         activeBtn.style.opacity = "1";
@@ -409,18 +322,17 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     window.launchGame = function(file, event) {
-        if (event) event.stopPropagation();
+        if (event) event.stopPropagation(); // Prevents the overlay click from re-firing
         const player = document.getElementById('game-player');
         const frame = document.getElementById('game-frame');
-        // frame.src = file; // Uncomment when you have real game files
-        frame.src = "about:blank"; // Placeholder
+        frame.src = file;
         player.style.display = 'block';
     };
 
     window.closeGame = function() {
         const player = document.getElementById('game-player');
         const frame = document.getElementById('game-frame');
-        frame.src = ''; 
+        frame.src = ''; // Crucial: This kills the game process/audio
         player.style.display = 'none';
     };
 
@@ -428,18 +340,17 @@ document.addEventListener('DOMContentLoaded', () => {
         window.closeGame();
         document.getElementById('game-modal').style.display = 'none';
     };
+
+    // --- FINALIZE INITIALIZATION ---
     
-    // --- CONFIRMATION MODALS (DELETE) ---
-    window.closeConfirm = function() {
-        document.getElementById('confirm-modal').style.display = 'none';
-    }
-    // Stub for window.confirmYes if you add delete logic later
-    window.confirmYes = function() {
-        alert("Item deleted");
-        window.closeConfirm();
-    }
+    // Call initArcade inside your existing backend init
+    const originalInit = window.initBackend;
+    window.initBackend = function() {
+        if(originalInit) originalInit();
+        initArcade();
+    };
 
-
-    // START THE APP
     initBackend();
 });
+
+
