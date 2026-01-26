@@ -336,23 +336,32 @@ document.addEventListener('DOMContentLoaded', () => {
     // --- PASTE THIS AT THE BOTTOM OF YOUR SCRIPT ---
 
     window.loadMyProfile = function() {
-        // 1. Get saved data or use defaults
-        const storedAlias = localStorage.getItem('my_alias') || "";
-        const storedAge = localStorage.getItem('my_age') || "21";
-        const storedBio = localStorage.getItem('my_bio') || "";
-        const storedImg = localStorage.getItem('my_profile_pic') || "https://via.placeholder.com/120";
 
-        // 2. Fill the inputs in the modal
-        document.getElementById('p-alias').value = storedAlias;
-        document.getElementById('p-age').value = storedAge;
-        document.getElementById('p-bio').value = storedBio;
-        document.getElementById('my-main-preview').src = storedImg;
+    // PUT THIS INSIDE THE EXISTING empty loadMyProfile function:
 
-        // 3. Show the modal
-        document.getElementById('profile-modal').style.display = 'block';
+    // 1. Read values from memory (or use defaults if empty)
+    const storedAlias = localStorage.getItem('pgX_alias') || ""; 
+    const storedBio = localStorage.getItem('pgX_bio') || "";
+    const storedImg = localStorage.getItem('my_profile_pic') || "https://via.placeholder.com/120";
+
+    // 2. Put those values into the input boxes
+    const aliasInput = document.getElementById('p-alias');
+    const bioInput = document.getElementById('p-bio');
+    const imgPreview = document.getElementById('my-main-preview');
+
+    if(aliasInput) aliasInput.value = storedAlias;
+    if(bioInput) bioInput.value = storedBio;
+    if(imgPreview) imgPreview.src = storedImg;
+
+    // 3. Reveal the modal
+    document.getElementById('profile-modal').style.display = 'block';
+    
+    // 4. Close the dropdown menu so it's not in the way
+    document.getElementById('user-dropdown').style.display = 'none';
+
+
         
-        // 4. Hide the dropdown menu (cleanup)
-        document.getElementById('user-dropdown').style.display = 'none';
+
     }
 
 
@@ -448,6 +457,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     initBackend();
 });
+
 
 
 
