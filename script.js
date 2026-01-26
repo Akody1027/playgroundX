@@ -237,6 +237,51 @@ document.addEventListener('DOMContentLoaded', () => {
         if (viewId === 'map') setTimeout(() => map.invalidateSize(), 100);
     }
 
+
+
+
+    // --- INSERT THIS CODE IN SECTION 5 ---
+
+    window.openUserProfile = function(alias, age, img, id) {
+        // 1. Target the Modal Elements based on your HTML IDs
+        const modal = document.getElementById('view-user-modal');
+        const imgMain = document.getElementById('view-user-img');
+        const imgSmall = document.getElementById('view-user-img-small');
+        const nameLabel = document.getElementById('view-user-name');
+        const bioLabel = document.getElementById('view-user-bio');
+        const chipsContainer = document.getElementById('view-user-chips');
+
+        // 2. Inject the data passed from the card
+        imgMain.src = img;
+        imgSmall.src = img; // Set the gallery thumb too
+        nameLabel.innerText = `${alias}, ${age}`;
+        
+        // 3. Generate some mock details (since we only passed basic info)
+        // In a real app, you would use 'id' to fetch the full bio from Firebase here.
+        bioLabel.innerText = `${alias} is a ${age} year old member looking for connections. (This is placeholder text until you connect the full database fetch).`;
+
+        // 4. Reset and Add Chips (Tags)
+        chipsContainer.innerHTML = ''; // Clear old tags
+        const tags = ['Verified Member', 'New', 'Active Now'];
+        tags.forEach(tag => {
+            const span = document.createElement('span');
+            span.className = 'stat-chip'; // Uses your CSS class
+            span.innerText = tag;
+            chipsContainer.appendChild(span);
+        });
+
+        // 5. Show the Modal
+        modal.style.display = 'block';
+    }
+
+
+
+
+
+
+
+
+    
     window.saveProfile = async function() {
         let myUid = localStorage.getItem('pgX_myUid') || 'user_' + Date.now();
         localStorage.setItem('pgX_myUid', myUid);
@@ -352,5 +397,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
     initBackend();
 });
+
 
 
