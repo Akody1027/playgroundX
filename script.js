@@ -108,46 +108,39 @@ if (!myUid) {
         
     // --- 2. DECK & SWIPE LOGIC ---
 
+    // --- REPLACE YOUR BROKEN renderDeck WITH THIS ---
 
+    window.renderDeck = async function() {
+        const zone = document.getElementById('swipe-zone');
+        const grid = document.getElementById('grid-content');
 
-window.renderDeck = async function() {
-    let realUsers = [];
-    
-    // 1. Try to get Real People
-    if (window.fbase && window.db) {
-        try {
-            const snapshot = await window.fbase.getDocs(window.fbase.collection(window.db, "users"));
-            snapshot.forEach(doc => {
-                // Don't show myself
-                if (doc.id !== localStorage.getItem('pgX_myUid')) {
-                    realUsers.push({ id: doc.id, ...doc.data() });
-                }
-            });
-        } catch (e) {
-            console.log("Offline or DB error, using mocks");
-        }
-    }
-
-    // 2. Decide: Real or Mock?
-    if (realUsers.length > 0) {
-        activeDeck = realUsers;
-    } else {
-        // Fallback to your existing mock data logic
-        activeDeck = JSON.parse(localStorage.getItem('pgX_users')) || [];
-    }
-    
-    // ... rest of your render code ...
-}
-
-
-
-
-
-
-
+        let realUsers = [];
         
+        // 1. DATA: Try to get Real People from Firebase
+        if (window.fbase && window.db) {
+            try {
+                const snapshot = await window.fbase.getDocs(window.fbase.collection(window.db, "users"));
+                snapshot.forEach(doc => {
+                    // Don't show myself
+                    if (doc.id !== localStorage.getItem('pgX_myUid')) {
+                        realUsers.push({ id: doc.id, ...doc.data() });
+                    }
+                });
+            } catch (e) {
+                console.log("Offline or DB error, using mocks");
+            }
+        }
 
-        // --- UPDATED SWIPE VIEW LOGIC ---
+        // 2. LOGIC: Decide Real or Mock?
+        if (realUsers.length > 0) {
+            activeDeck = realUsers;
+        } else {
+            // Fallback to local mocks
+            activeDeck = JSON.parse(localStorage.getItem('pgX_users')) || [];
+            activeDeck = activeDeck.filter(u => !u.seen);
+        }
+        
+        // 3. DRAWING: Render Swipe View (This was the missing part!)
         if (activeDeck.length > 0) {
             const u = activeDeck[0];
             zone.innerHTML = `
@@ -160,18 +153,15 @@ window.renderDeck = async function() {
             </div>`;
             setTimeout(initSwipeHandlers, 50);
         } else {
-            // SHOW PLACEHOLDER IMAGE IF EMPTY
             zone.innerHTML = getEmptyStateHTML();
         }
 
-        // --- UPDATED GRID VIEW LOGIC ---
+        // 4. DRAWING: Render Grid View
         if (grid) {
             if (activeDeck.length === 0) {
-                // If empty, switch to flex to center the placeholder image
                 grid.style.display = 'flex';
                 grid.innerHTML = getEmptyStateHTML();
             } else {
-                // If users exist, ensure grid layout is active
                 grid.style.display = 'grid';
                 grid.innerHTML = activeDeck.map(u => `
                 <div class="grid-item" onclick="window.openUserProfile('${u.alias}', ${u.age}, '${u.img}', '${u.id}')">
@@ -182,6 +172,8 @@ window.renderDeck = async function() {
             }
         }
     }
+
+
 
     function initSwipeHandlers() {
         card = document.getElementById('active-card');
@@ -598,6 +590,7 @@ window.saveProfile = async function() {
 
     initBackend();
 });
+
 
 
 
