@@ -100,16 +100,12 @@ if (!myUid) {
 
 
 
-
-
-
-
-
         
     // --- 2. DECK & SWIPE LOGIC ---
 
     
-    // --- REPLACE YOUR BROKEN renderDeck WITH THIS ---
+
+        // --- 2. DECK & SWIPE LOGIC ---
 
     window.renderDeck = async function() {
         const zone = document.getElementById('swipe-zone');
@@ -141,7 +137,7 @@ if (!myUid) {
             activeDeck = activeDeck.filter(u => !u.seen);
         }
         
-        // 3. DRAWING: Render Swipe View (This was the missing part!)
+        // 3. DRAWING: Render Swipe View
         if (activeDeck.length > 0) {
             const u = activeDeck[0];
             zone.innerHTML = `
@@ -172,7 +168,8 @@ if (!myUid) {
                 `).join('');
             }
         }
-    
+    }
+
 
 
 
@@ -591,6 +588,7 @@ window.saveProfile = async function() {
 
     initBackend();
 });
+
 
 
 
