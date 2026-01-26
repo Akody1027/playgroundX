@@ -45,6 +45,18 @@ document.addEventListener('DOMContentLoaded', () => {
                 });
             }
             localStorage.setItem('pgX_users', JSON.stringify(users));
+
+                // Add this inside initBackend()
+    
+    // Connect the "My Profile" button in the dropdown
+    const profileBtn = document.getElementById('open-my-profile');
+    if(profileBtn) {
+        profileBtn.onclick = (e) => {
+            e.preventDefault(); // Stop the link from jumping to top of page
+            window.loadMyProfile();
+        };
+    }
+
         }
         updateBadge();
         renderDeck();
@@ -436,6 +448,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     initBackend();
 });
+
 
 
 
