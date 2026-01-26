@@ -108,29 +108,44 @@ if (!myUid) {
         
     // --- 2. DECK & SWIPE LOGIC ---
 
-    window.renderDeck = async function() {
-        const zone = document.getElementById('swipe-zone');
-        const grid = document.getElementById('grid-content');
 
+
+window.renderDeck = async function() {
+    let realUsers = [];
+    
+    // 1. Try to get Real People
+    if (window.fbase && window.db) {
         try {
-            if (window.fbase && window.db) {
-                const { getDocs, collection } = window.fbase;
-                const querySnapshot = await getDocs(collection(window.db, "users"));
-                let realUsers = [];
-                querySnapshot.forEach((doc) => realUsers.push(doc.data()));
-
-                if (realUsers.length > 0) {
-                    let myUid = localStorage.getItem('pgX_myUid');
-                    activeDeck = realUsers.filter(u => u.id !== myUid);
-                } else {
-                    activeDeck = JSON.parse(localStorage.getItem('pgX_users')).filter(u => !u.seen);
+            const snapshot = await window.fbase.getDocs(window.fbase.collection(window.db, "users"));
+            snapshot.forEach(doc => {
+                // Don't show myself
+                if (doc.id !== localStorage.getItem('pgX_myUid')) {
+                    realUsers.push({ id: doc.id, ...doc.data() });
                 }
-            } else {
-                 activeDeck = JSON.parse(localStorage.getItem('pgX_users')).filter(u => !u.seen);
-            }
+            });
         } catch (e) {
-            activeDeck = JSON.parse(localStorage.getItem('pgX_users')).filter(u => !u.seen);
+            console.log("Offline or DB error, using mocks");
         }
+    }
+
+    // 2. Decide: Real or Mock?
+    if (realUsers.length > 0) {
+        activeDeck = realUsers;
+    } else {
+        // Fallback to your existing mock data logic
+        activeDeck = JSON.parse(localStorage.getItem('pgX_users')) || [];
+    }
+    
+    // ... rest of your render code ...
+}
+
+
+
+
+
+
+
+        
 
         // --- UPDATED SWIPE VIEW LOGIC ---
         if (activeDeck.length > 0) {
@@ -583,6 +598,7 @@ window.saveProfile = async function() {
 
     initBackend();
 });
+
 
 
 
