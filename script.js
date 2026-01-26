@@ -416,34 +416,35 @@ if (!myUid) {
 
 
 
-    window.saveProfile = async function() {
-        // 1. Grab values from inputs
-        const aliasVal = document.getElementById('p-alias').value;
-        const ageVal = document.getElementById('p-age').value;
-        const bioVal = document.getElementById('p-bio').value;
-        const imgVal = document.getElementById('my-main-preview').src;
+window.saveProfile = async function() {
+    // 1. Get values
+    const alias = document.getElementById('p-alias').value;
+    const bio = document.getElementById('p-bio').value;
+    // ... get other values ...
 
-        // 2. Save to LocalStorage (So it remembers you)
-        localStorage.setItem('my_alias', aliasVal);
-        localStorage.setItem('my_age', ageVal);
-        localStorage.setItem('my_bio', bioVal);
-        localStorage.setItem('my_profile_pic', imgVal);
+    // 2. SAVE LOCAL (Instant UI update)
+    localStorage.setItem('pgX_alias', alias);
+    // ... save others ...
+    document.getElementById('profile-modal').style.display = 'none'; // Close immediately
 
-        // 3. (Optional) Save to Firebase if connected
-        let myUid = localStorage.getItem('pgX_myUid');
-        if (window.fbase && window.db && myUid) {
-            const { setDoc, doc } = window.fbase;
-            await setDoc(doc(window.db, "users", myUid), {
-                alias: aliasVal,
-                age: ageVal,
-                img: imgVal
+    // 3. SAVE TO FIREBASE (Background)
+    if (window.fbase && window.db) {
+        const myUid = localStorage.getItem('pgX_myUid');
+        try {
+            await window.fbase.setDoc(window.fbase.doc(window.db, "users", myUid), {
+                alias: alias,
+                bio: bio,
+                lastSeen: window.fbase.serverTimestamp(),
+                // Note: We can't easily save the Image Base64 to Firestore (it's too big).
+                // For now, keep the image local-only or use a placeholder URL.
             }, { merge: true });
+            console.log("Synced to Cloud!");
+        } catch (e) {
+            console.error("Sync failed", e);
         }
-
-        // 4. Close Modal
-        document.getElementById('profile-modal').style.display = 'none';
-        alert("Profile Saved!");
     }
+}
+
 
 
     
@@ -582,6 +583,7 @@ if (!myUid) {
 
     initBackend();
 });
+
 
 
 
