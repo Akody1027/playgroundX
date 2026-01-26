@@ -200,16 +200,42 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    window.userSwipe = function(dir) {
+        window.userSwipe = function(dir) {
         if (!card) return;
+        
+        // 1. Animate the card flying away
         card.style.transition = 'transform 0.5s ease-in';
         card.style.transform = `translateX(${dir === 'right' ? 1000 : -1000}px)`;
+
+        // 2. MARK AS SEEN (This is the missing piece!)
+        // Get the full list of users
+        let allUsers = JSON.parse(localStorage.getItem('pgX_users'));
+        
+        // Find the current user we just swiped on (they are always at index 0 of activeDeck)
+        if (activeDeck.length > 0) {
+            let currentUserId = activeDeck[0].id;
+            
+            // Find them in the main storage list and mark seen = true
+            let userIndex = allUsers.findIndex(u => u.id === currentUserId);
+            if (userIndex > -1) {
+                allUsers[userIndex].seen = true;
+                localStorage.setItem('pgX_users', JSON.stringify(allUsers));
+            }
+        }
+
+        // 3. Handle Visual Feedback (Wink)
         if (dir === 'right') {
             document.getElementById('wink-txt').classList.add('show');
             setTimeout(() => document.getElementById('wink-txt').classList.remove('show'), 1000);
         }
-        setTimeout(() => { resetButtons(); renderDeck(); }, 300);
+
+        // 4. Wait for animation to finish, then load the NEW deck
+        setTimeout(() => { 
+            resetButtons(); 
+            renderDeck(); 
+        }, 300);
     }
+
 
     function resetButtons() {
         if (btnLike) btnLike.style.background = 'rgba(0,0,0,0.6)';
@@ -568,6 +594,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     initBackend();
 });
+
 
 
 
