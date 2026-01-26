@@ -279,34 +279,73 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
 
-
-
-    
     window.saveProfile = async function() {
-        let myUid = localStorage.getItem('pgX_myUid') || 'user_' + Date.now();
-        localStorage.setItem('pgX_myUid', myUid);
+        // 1. Grab values from inputs
+        const aliasVal = document.getElementById('p-alias').value;
+        const ageVal = document.getElementById('p-age').value;
+        const bioVal = document.getElementById('p-bio').value;
+        const imgVal = document.getElementById('my-main-preview').src;
 
-        const profileData = {
-            id: myUid,
-            alias: document.getElementById('p-alias').value || "Anonymous",
-            img: document.getElementById('my-main-preview').src,
-            age: document.getElementById('p-age').value
-        };
+        // 2. Save to LocalStorage (So it remembers you)
+        localStorage.setItem('my_alias', aliasVal);
+        localStorage.setItem('my_age', ageVal);
+        localStorage.setItem('my_bio', bioVal);
+        localStorage.setItem('my_profile_pic', imgVal);
 
-        localStorage.setItem('my_profile_pic', profileData.img);
-        
-        if (window.fbase && window.db) {
+        // 3. (Optional) Save to Firebase if connected
+        let myUid = localStorage.getItem('pgX_myUid');
+        if (window.fbase && window.db && myUid) {
             const { setDoc, doc } = window.fbase;
-            await setDoc(doc(window.db, "users", myUid), profileData, { merge: true });
+            await setDoc(doc(window.db, "users", myUid), {
+                alias: aliasVal,
+                age: ageVal,
+                img: imgVal
+            }, { merge: true });
         }
+
+        // 4. Close Modal
         document.getElementById('profile-modal').style.display = 'none';
         alert("Profile Saved!");
     }
 
+
+    
+
+
+
+
+
+    
     // Logic for loading winks and badges...
     function updateBadge() { /* ... Badge logic ... */ }
     function loadWinks() { /* ... Wink logic ... */ }
-    function loadMyProfile() { /* ... Profile loader ... */ }
+
+
+    // --- PASTE THIS AT THE BOTTOM OF YOUR SCRIPT ---
+
+    window.loadMyProfile = function() {
+        // 1. Get saved data or use defaults
+        const storedAlias = localStorage.getItem('my_alias') || "";
+        const storedAge = localStorage.getItem('my_age') || "21";
+        const storedBio = localStorage.getItem('my_bio') || "";
+        const storedImg = localStorage.getItem('my_profile_pic') || "https://via.placeholder.com/120";
+
+        // 2. Fill the inputs in the modal
+        document.getElementById('p-alias').value = storedAlias;
+        document.getElementById('p-age').value = storedAge;
+        document.getElementById('p-bio').value = storedBio;
+        document.getElementById('my-main-preview').src = storedImg;
+
+        // 3. Show the modal
+        document.getElementById('profile-modal').style.display = 'block';
+        
+        // 4. Hide the dropdown menu (cleanup)
+        document.getElementById('user-dropdown').style.display = 'none';
+    }
+
+
+
+    
     function simulateRealTime() { /* ... Mock winks ... */ }
 
 
@@ -397,6 +436,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     initBackend();
 });
+
 
 
 
