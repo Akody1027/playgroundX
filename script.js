@@ -24,8 +24,10 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // --- 1. CORE BACKEND & INITIALIZATION ---
+    
 
     window.initBackend = function() {
+        // 1. Create mock users if they don't exist
         if (!localStorage.getItem('pgX_users')) {
             let users = [];
             for (let i = 0; i < 30; i++) {
@@ -45,26 +47,18 @@ document.addEventListener('DOMContentLoaded', () => {
                 });
             }
             localStorage.setItem('pgX_users', JSON.stringify(users));
-
-                // Add this inside initBackend()
-    
-    // Connect the "My Profile" button in the dropdown
-    const profileBtn = document.getElementById('open-my-profile');
-    if(profileBtn) {
-        profileBtn.onclick = (e) => {
-            e.preventDefault(); // Stop the link from jumping to top of page
-            window.loadMyProfile();
-        };
-    }
-
         }
+
+        // 2. Start the app processes
         updateBadge();
         renderDeck();
         loadWinks();
-        loadMyProfile(); 
+        
+        // (We removed loadMyProfile() from here so it doesn't pop up instantly)
+
         setInterval(simulateRealTime, 5000);
         
-        // Send Button Listener
+        // 3. Setup Chat
         const sendBtn = document.querySelector('.chat-input-area button');
         if(sendBtn) sendBtn.onclick = sendMessage;
 
@@ -72,8 +66,26 @@ document.addEventListener('DOMContentLoaded', () => {
         if(chatInput) {
             chatInput.onkeypress = (e) => { if (e.key === 'Enter') sendMessage(); };
         }
+
+        // 4. Setup "My Profile" Button (This makes the dropdown click work)
+        const profileBtn = document.getElementById('open-my-profile');
+        if(profileBtn) {
+            profileBtn.onclick = (e) => {
+                e.preventDefault(); 
+                window.loadMyProfile();
+            };
+        }
     }
 
+
+
+
+
+
+
+
+
+        
     // --- 2. DECK & SWIPE LOGIC ---
 
     window.renderDeck = async function() {
@@ -457,6 +469,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     initBackend();
 });
+
 
 
 
