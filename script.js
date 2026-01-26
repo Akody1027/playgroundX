@@ -75,6 +75,38 @@ document.addEventListener('DOMContentLoaded', () => {
                 window.loadMyProfile();
             };
         }
+
+
+
+
+        // --- PASTE THIS AT THE END OF initBackend ---
+
+        // 5. Load Saved Profile Picture into Header & Gallery
+        const savedImg = localStorage.getItem('my_profile_pic');
+        if (savedImg) {
+            // Update Header Icon
+            const headerIcon = document.getElementById('user-icon-trigger');
+            if (headerIcon) {
+                headerIcon.innerHTML = `<img src="${savedImg}" style="width:100%; height:100%; border-radius:50%; object-fit:cover;">`;
+            }
+            
+            // Update Gallery Slot #1
+            const galleryImg = document.getElementById('g1-preview');
+            const galleryLabel = document.getElementById('g1-lbl');
+            if (galleryImg) {
+                galleryImg.src = savedImg;
+                galleryImg.style.display = 'block';
+                if(galleryLabel) galleryLabel.style.display = 'none';
+            }
+        }
+
+
+
+
+
+
+
+        
     }
 
 
@@ -291,6 +323,46 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
 
+
+
+    // --- PASTE THIS IN SECTION 5 ---
+
+    window.previewMainAndGallery = function(event) {
+        const file = event.target.files[0];
+        if (file) {
+            const reader = new FileReader();
+            
+            reader.onload = function(e) {
+                const imgUrl = e.target.result;
+
+                // 1. Update Main Profile Circle
+                document.getElementById('my-main-preview').src = imgUrl;
+
+                // 2. Update Gallery Slot #1
+                const galleryImg = document.getElementById('g1-preview');
+                galleryImg.src = imgUrl;
+                galleryImg.style.display = 'block'; // Make sure it is visible
+                
+                // Hide the "Star" label so we can see the photo
+                const galleryLabel = document.getElementById('g1-lbl');
+                if(galleryLabel) galleryLabel.style.display = 'none';
+
+                // 3. Update Top Right Header Icon
+                const headerIcon = document.getElementById('user-icon-trigger');
+                // Replace the SVG icon with your new photo
+                headerIcon.innerHTML = `<img src="${imgUrl}" style="width:100%; height:100%; border-radius:50%; object-fit:cover;">`;
+            }
+            
+            reader.readAsDataURL(file);
+        }
+    }
+
+
+
+
+
+    
+
     // --- INSERT THIS CODE IN SECTION 5 ---
 
     window.openUserProfile = function(alias, age, img, id) {
@@ -362,6 +434,33 @@ document.addEventListener('DOMContentLoaded', () => {
 
     
 
+    window.loadMyProfile = function() {
+        // 1. Read values from memory
+        const storedAlias = localStorage.getItem('pgX_alias') || ""; 
+        const storedBio = localStorage.getItem('pgX_bio') || "";
+        const storedImg = localStorage.getItem('my_profile_pic') || "https://via.placeholder.com/120";
+
+        // 2. Fill Inputs
+        document.getElementById('p-alias').value = storedAlias;
+        document.getElementById('p-bio').value = storedBio;
+        
+        // 3. Fill Images (Main + Gallery #1)
+        document.getElementById('my-main-preview').src = storedImg;
+        
+        const galleryImg = document.getElementById('g1-preview');
+        const galleryLabel = document.getElementById('g1-lbl');
+        
+        // If it's a real photo (not the placeholder), show it in gallery slot 1 too
+        if (storedImg.includes('data:image') || storedImg.includes('http')) {
+             galleryImg.src = storedImg;
+             galleryImg.style.display = 'block';
+             if(galleryLabel) galleryLabel.style.display = 'none';
+        }
+
+        // 4. Reveal Modal
+        document.getElementById('profile-modal').style.display = 'block';
+        document.getElementById('user-dropdown').style.display = 'none';
+    }
 
 
 
@@ -374,34 +473,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // --- PASTE THIS AT THE BOTTOM OF YOUR SCRIPT ---
 
-    window.loadMyProfile = function() {
-
-    // PUT THIS INSIDE THE EXISTING empty loadMyProfile function:
-
-    // 1. Read values from memory (or use defaults if empty)
-    const storedAlias = localStorage.getItem('pgX_alias') || ""; 
-    const storedBio = localStorage.getItem('pgX_bio') || "";
-    const storedImg = localStorage.getItem('my_profile_pic') || "https://via.placeholder.com/120";
-
-    // 2. Put those values into the input boxes
-    const aliasInput = document.getElementById('p-alias');
-    const bioInput = document.getElementById('p-bio');
-    const imgPreview = document.getElementById('my-main-preview');
-
-    if(aliasInput) aliasInput.value = storedAlias;
-    if(bioInput) bioInput.value = storedBio;
-    if(imgPreview) imgPreview.src = storedImg;
-
-    // 3. Reveal the modal
-    document.getElementById('profile-modal').style.display = 'block';
     
-    // 4. Close the dropdown menu so it's not in the way
-    document.getElementById('user-dropdown').style.display = 'none';
-
-
-        
-
-    }
 
 
 
@@ -433,7 +505,12 @@ document.addEventListener('DOMContentLoaded', () => {
             const card = document.createElement('div');
             card.className = 'game-card'; 
             // Inline style for immediate structure, behavior handled by window functions
-            card.style = "position:relative; background:#222; border-radius:12px; overflow:hidden; aspect-ratio:1/1; border:1px solid #333;";
+            card.style = "position:relative; background:#222; border-radius:12px; ove
+                
+                
+            
+            
+            rflow:hidden; aspect-ratio:1/1; border:1px solid #333;";
             
             card.innerHTML = `
                 <img src="${game.thumb}" style="width:100%; height:100%; object-fit:cover;">
@@ -496,6 +573,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     initBackend();
 });
+
 
 
 
