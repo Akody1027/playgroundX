@@ -351,6 +351,32 @@
             animation: spin 1s linear infinite; margin-bottom: 20px;
         }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+
+        /* --- THROB ANIMATION FOR EMPTY STATE --- */
+        @keyframes throb {
+            0% { transform: scale(1); opacity: 0.5; }
+            50% { transform: scale(1.08); opacity: 0.8; }
+            100% { transform: scale(1); opacity: 0.5; }
+        }
+        .empty-throb-img {
+            width: 150px; height: 150px; object-fit: contain;
+            animation: throb 2s infinite ease-in-out;
+        }
+        .empty-throb-text {
+            color: gray; font-size: 14px; font-weight: bold; margin-top: 20px;
+            font-family: monospace; letter-spacing: 1px;
+        }
+        /* --- ANIMATED DOTS --- */
+        .loading-dots::after {
+            content: '';
+            animation: dot-steps 2s infinite steps(4);
+        }
+        @keyframes dot-steps {
+            0% { content: ""; }
+            25% { content: "."; }
+            50% { content: ".."; }
+            75% { content: "..."; }
+        }
     </style>
 
     <script type="module">
@@ -903,9 +929,9 @@ document.addEventListener('DOMContentLoaded', () => {
     function getEmptyStateHTML() {
         return `
             <div class="swipe-card" style=" display: flex; align-items: center; justify-content: center; background: #1a1a1a;">
-                <img src="nousericon.png" style="width: 90%; height: 90%; object-fit: cover; opacity: 0.5;">
-                <div class="card-header-overlay" style="justify-content:center;">
-                    <span class="card-alias" style="color:gray;">No Users Nearby</span>
+                <div style="display:flex; flex-direction:column; align-items:center; justify-content:center; height:90%; width:90%;">
+                    <img src="nousericon.png" class="empty-throb-img">
+                    <div class="empty-throb-text">waiting for new users<span class="loading-dots"></span></div>
                 </div>
             </div>
         `;
@@ -1016,8 +1042,9 @@ document.addEventListener('DOMContentLoaded', () => {
             if (activeDeck.length === 0) {
                 grid.style.display = 'grid'; 
                 grid.innerHTML = `
-                    <div class="grid-item" style="background:#000; border:2px solid gray; display:flex; align-items:center; justify-content:center;">
-                        <img src="nousericon.png" style="width:100%; height:100%; object-fit:cover;">
+                    <div class="grid-item" style="background:#000; display:flex; flex-direction:column; align-items:center; justify-content:center;">
+                        <img src="nousericon.png" class="empty-throb-img" style="width:80px; height:80px;">
+                        <div class="empty-throb-text" style="font-size:10px; margin-top:5px;">waiting for new users<span class="loading-dots"></span></div>
                     </div>
                     <div class="grid-item" style="background:#222;"></div>
                     <div class="grid-item" style="background:#222;"></div>
@@ -1026,7 +1053,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 grid.style.display = 'grid';
                 grid.innerHTML = activeDeck.map(u => `
                 <div class="grid-item" onclick="window.openUserProfile('${u.alias}', ${u.age}, '${u.img}', '${u.id}')">
-                    <img src="${u.img}" style="width:100%; height:100%; object-fit:cover;">
+                    <img src="${u.img}" style="width:90%; height:90%; object-fit:cover;">
                     <div class="grid-overlay"><span>${u.alias}</span><span>${u.age}</span></div>
                 </div>
                 `).join('');
