@@ -427,12 +427,14 @@
 
         
     </style>
-
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
         import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-        import { getFirestore, collection, doc, setDoc, getDocs, addDoc, query, orderBy, onSnapshot, limit, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js"; 
+        import { getFirestore, collection, doc, setDoc, getDocs, getDoc, updateDoc, addDoc, query, orderBy, onSnapshot, limit, serverTimestamp, where, increment, deleteDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js"; 
+        // FIX: Import Storage Functions
+        import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-storage.js";
 
+        // Firebase Configuration
         const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : {
             apiKey: "AIzaSyDFmhk3ybnsVsFenCE3xvdmy5y_4u9ss7o", 
             authDomain: "playgroundx-ca021.firebaseapp.com",
@@ -446,21 +448,30 @@
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
         const db = getFirestore(app); 
-        
-        // --- 1. STRICT PATH ID ---
-        // We use a global ID to scope the app data.
+        const storage = getStorage(app); // Initialize Storage
+
         const APP_ID = typeof __app_id !== 'undefined' ? __app_id : "playgroundX_Prod_v1";
 
-        // THIS IS THE KEY: We attach these to 'window' so script.js can see them
+        // Expose to window for global access
         window.db = db;
         window.auth = auth;
+        window.storage = storage; // FIX: Expose Storage globally
         window.APP_ID = APP_ID;
+        
+        // Helper object for easier access in other scripts
         window.fbase = {
-            collection, doc, setDoc, getDocs, addDoc, query, orderBy, onSnapshot, limit, serverTimestamp, signInAnonymously, onAuthStateChanged
+            collection, doc, setDoc, getDocs, getDoc, updateDoc, addDoc, query, orderBy, onSnapshot, limit, serverTimestamp, signInAnonymously, onAuthStateChanged, where, increment, deleteDoc,
+            ref, uploadBytes, getDownloadURL 
         }; 
 
-        console.log("Firebase Global Tools Loaded ✅");
+        console.log("Firebase Global Tools (Auth, DB, Storage) Loaded ✅");
     </script>
+
+
+
+
+
+    
     
 </head>
 <body>
@@ -1495,4 +1506,5 @@ document.addEventListener('DOMContentLoaded', () => {
 </script>
 </body>
 </html>
+
 
