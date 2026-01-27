@@ -358,7 +358,7 @@
         import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
         import { getFirestore, collection, doc, setDoc, getDocs, addDoc, query, orderBy, onSnapshot, limit, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js"; 
 
-        const firebaseConfig = {
+        const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : {
             apiKey: "AIzaSyDFmhk3ybnsVsFenCE3xvdmy5y_4u9ss7o", 
             authDomain: "playgroundx-ca021.firebaseapp.com",
             projectId: "playgroundx-ca021",
@@ -374,7 +374,7 @@
         
         // --- 1. STRICT PATH ID ---
         // We use a global ID to scope the app data.
-        const APP_ID = "playgroundX_Prod_v1";
+        const APP_ID = typeof __app_id !== 'undefined' ? __app_id : "playgroundX_Prod_v1";
 
         // THIS IS THE KEY: We attach these to 'window' so script.js can see them
         window.db = db;
@@ -828,17 +828,25 @@ document.addEventListener('DOMContentLoaded', () => {
             // 2. Check if Profile Exists in DB, if not create default
             await ensureUserProfile();
 
-            // 3. Start the app processes
+        } catch (error) {
+            console.warn("Auth Failed (Offline Mode Activated):", error);
+            // Fallback to local ID
+            currentUserUid = localStorage.getItem('pgX_myUid') || 'anon_offline_' + Date.now();
+            localStorage.setItem('pgX_myUid', currentUserUid);
+            
+            // Local fallback for profile defaults
+            if (!localStorage.getItem('pgX_alias')) {
+                 localStorage.setItem('pgX_alias', "Guest_" + Math.floor(Math.random()*1000));
+                 localStorage.setItem('my_profile_pic', "https://via.placeholder.com/120");
+            }
+        } finally {
+            // 3. Start the app processes regardless of Auth success
             renderDeck();
             initArcade();
             loadMyProfile(); // Pre-fill profile modal
 
             // Hide loading
             loading.style.display = 'none';
-
-        } catch (error) {
-            console.error("Auth Failed:", error);
-            loading.innerHTML = `<div style="color:red">Connection Failed.<br>Please refresh.</div>`;
         }
 
         // Setup Listeners
