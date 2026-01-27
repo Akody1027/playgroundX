@@ -348,7 +348,7 @@
         .spinner {
             width: 40px; height: 40px; border: 4px solid #333;
             border-top: 4px solid var(--accent); border-radius: 50%;
-            animation: spin 3s linear infinite; margin-bottom: 20px;
+            animation: spin 1s linear infinite; margin-bottom: 20px;
         }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
     </style>
@@ -784,10 +784,8 @@
 document.addEventListener('DOMContentLoaded', () => {
 
     // --- CONFIGURATION & GLOBAL STATE ---
-    const ALIAS_PRE = ['Jay', 'Cool', 'Wild', 'Soft', 'Dark', 'Light', 'Neo', 'Retro'];
-    const ALIAS_SUF = ['Rocker', 'Vibes', 'Soul', 'King', 'Queen', 'X', '99', 'Walker'];
-    const IMGS_F = ['https://images.unsplash.com/photo-1517841905240-472988babdf9?w=500', 'https://images.unsplash.com/photo-1524504388940-b1c1722653e1?w=500'];
-    const IMGS_M = ['https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=500', 'https://images.unsplash.com/photo-1480455624313-e29b44bbfde1?w=500'];
+    // MOCKS REMOVED HERE
+    
     const DATA_REL_TYPE = ['Marriage', 'Long-Term', 'Short-Term', 'Intimacy w/o Connection', 'Friends', 'FWB'];
 
     let activeDeck = [];
@@ -800,9 +798,9 @@ document.addEventListener('DOMContentLoaded', () => {
     // --- HELPER FOR EMPTY STATES ---
     function getEmptyStateHTML() {
         return `
-            <div class="empty-placeholder-container" style="text-align:center; padding-top:50px; color:#666;">
-                <div style="font-size:40px; margin-bottom:10px;">🔭</div>
-                <div class="empty-text">No users nearby</div>
+            <div class="empty-placeholder-container" style="display:flex; flex-direction:column; align-items:center; justify-content:center; height:100%; width:100%;">
+                <img src="nousericon.png" style="width:150px; height:150px; object-fit:contain; opacity:0.7;">
+                <div class="empty-text" style="color:#666; margin-top:10px;">No users nearby</div>
             </div>
         `;
     }
@@ -819,65 +817,58 @@ document.addEventListener('DOMContentLoaded', () => {
         
         try {
             // 1. Authenticate (Rule 3 Compliance: Auth BEFORE queries)
-            // Note: We use anonymous auth for this public playground
             const userCred = await window.fbase.signInAnonymously(window.auth);
             currentUserUid = userCred.user.uid;
             console.log("Authenticated as:", currentUserUid);
-            localStorage.setItem('pgX_myUid', currentUserUid); // Sync local storage for legacy checks
+            localStorage.setItem('pgX_myUid', currentUserUid); 
             
             // 2. Check if Profile Exists in DB, if not create default
             await ensureUserProfile();
+            
+            // 3. GET REAL GEOLOCATION
+            updateUserLocation();
 
         } catch (error) {
             console.warn("Auth Failed (Offline Mode Activated):", error);
-            // Fallback to local ID
             currentUserUid = localStorage.getItem('pgX_myUid') || 'anon_offline_' + Date.now();
             localStorage.setItem('pgX_myUid', currentUserUid);
             
-            // Local fallback for profile defaults
             if (!localStorage.getItem('pgX_alias')) {
                  localStorage.setItem('pgX_alias', "Guest_" + Math.floor(Math.random()*1000));
                  localStorage.setItem('my_profile_pic', "https://via.placeholder.com/120");
             }
         } finally {
-            // 3. Start the app processes regardless of Auth success
             renderDeck();
             initArcade();
-            loadMyProfile(); // Pre-fill profile modal
-
-            // Hide loading
+            loadMyProfile(); 
             loading.style.display = 'none';
         }
-
-        // Setup Listeners
-        const sendBtn = document.querySelector('.chat-input-area button');
-        if(sendBtn) sendBtn.onclick = sendMessage;
-
-        const chatInput = document.querySelector('.chat-input');
-        if(chatInput) {
-            chatInput.onkeypress = (e) => { if (e.key === 'Enter') sendMessage(); };
-        }
-
-        const profileBtn = document.getElementById('open-my-profile');
-        if(profileBtn) {
-            profileBtn.onclick = (e) => {
-                e.preventDefault(); 
-                window.loadMyProfile();
-            };
+    }
+    
+    function updateUserLocation() {
+        if (navigator.geolocation) {
+            navigator.geolocation.getCurrentPosition((position) => {
+                const lat = position.coords.latitude;
+                const lng = position.coords.longitude;
+                // Store locally for map update function to use
+                window.myLocation = { lat, lng };
+                
+                // If map is already initialized, update it
+                if (window.map) {
+                    window.map.setView([lat, lng], 13);
+                    // Update the "Me" marker logic in updateMapPins
+                    if(activeDeck) updateMapPins(activeDeck);
+                }
+            }, (err) => {
+                console.warn("Location permission denied or unavailable", err);
+            });
         }
     }
 
     async function ensureUserProfile() {
-        // We check if we have data in the PUBLIC collection for this user
-        // Path: artifacts/{appId}/public/data/users/{uid}
         const userRef = window.fbase.doc(window.db, 'artifacts', window.APP_ID, 'public', 'data', 'users', currentUserUid);
-        const snap = await window.fbase.getDocs(window.fbase.query(getPublicCollection('users'), window.fbase.limit(1)));
-        
-        // We'll trust localStorage for 'init' check to save a read, but 
-        // essentially we want to make sure the user exists in the public deck.
         const storedAlias = localStorage.getItem('pgX_alias');
         if (!storedAlias) {
-             // Create default profile
              const defaultAlias = "User_" + Math.floor(Math.random() * 1000);
              await window.fbase.setDoc(userRef, {
                  alias: defaultAlias,
@@ -887,7 +878,6 @@ document.addEventListener('DOMContentLoaded', () => {
                  joinedAt: window.fbase.serverTimestamp()
              }, { merge: true });
              
-             // Save local
              localStorage.setItem('pgX_alias', defaultAlias);
              localStorage.setItem('my_profile_pic', "https://via.placeholder.com/120");
         }
@@ -903,7 +893,6 @@ document.addEventListener('DOMContentLoaded', () => {
         
         // 1. DATA: Fetch Real People from Public Collection
         try {
-            // Rule 2: Simple query
             const snapshot = await window.fbase.getDocs(getPublicCollection("users"));
             snapshot.forEach(doc => {
                 if (doc.id !== currentUserUid) {
@@ -914,25 +903,11 @@ document.addEventListener('DOMContentLoaded', () => {
             console.error("DB Fetch Error:", e);
         }
 
-        // 2. LOGIC: Fallback to mocks if DB is empty (common in new app instances)
+        // 2. LOGIC: NO MOCKS
         if (realUsers.length > 0) {
             activeDeck = realUsers;
         } else {
-            // Generate temporary mocks so the app doesn't look broken
-            let mocks = [];
-            for (let i = 0; i < 10; i++) {
-                let isFem = Math.random() > 0.5;
-                mocks.push({
-                    id: 'mock_' + i, 
-                    alias: ALIAS_PRE[Math.floor(Math.random() * 8)] + "_" + ALIAS_SUF[Math.floor(Math.random() * 8)],
-                    age: Math.floor(Math.random() * 15) + 18,
-                    gender: isFem ? 'Woman' : 'Man',
-                    img: isFem ? IMGS_F[Math.floor(Math.random() * IMGS_F.length)] : IMGS_M[Math.floor(Math.random() * IMGS_M.length)],
-                    lat: 40.7128 + (Math.random() - 0.5) * 0.05,
-                    lng: -74.0060 + (Math.random() - 0.5) * 0.05,
-                });
-            }
-            activeDeck = mocks;
+            activeDeck = []; // Ensure empty
         }
         
         // 3. DRAWING: Render Swipe View
@@ -954,8 +929,14 @@ document.addEventListener('DOMContentLoaded', () => {
         // 4. DRAWING: Render Grid View
         if (grid) {
             if (activeDeck.length === 0) {
-                grid.style.display = 'flex';
-                grid.innerHTML = getEmptyStateHTML();
+                // User requested "first row in the grid". 
+                // We will display a single grid item with the no-user icon in the first slot
+                grid.style.display = 'grid'; // Ensure grid layout is active
+                grid.innerHTML = `
+                    <div class="grid-item" style="background:#000; border:1px solid #333; display:flex; align-items:center; justify-content:center;">
+                        <img src="nousericon.png" style="width:60%; height:60%; object-fit:contain; opacity:0.5;">
+                    </div>
+                `;
             } else {
                 grid.style.display = 'grid';
                 grid.innerHTML = activeDeck.map(u => `
@@ -1024,7 +1005,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 </div>`;
                 setTimeout(initSwipeHandlers, 50);
             } else {
-                // Fetch more? Or just show empty
+                // Show empty state
                 document.getElementById('swipe-zone').innerHTML = getEmptyStateHTML();
             }
         }, 300);
@@ -1036,11 +1017,12 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // --- 3. MAP ---
-    const map = L.map('map', {zoomControl: false}).setView([40.7128, -74.0060], 13);
-    L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png').addTo(map);
+    // Initialize map with a placeholder view, updated by geolocation later
+    window.map = L.map('map', {zoomControl: false}).setView([40.7128, -74.0060], 13);
+    L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png').addTo(window.map);
 
     window.updateMapPins = function(users) {
-        map.eachLayer((layer) => { if(layer instanceof L.Marker) map.removeLayer(layer); });
+        window.map.eachLayer((layer) => { if(layer instanceof L.Marker) window.map.removeLayer(layer); });
 
         users.forEach(u => {
             if(u.lat && u.lng) {
@@ -1049,12 +1031,21 @@ document.addEventListener('DOMContentLoaded', () => {
                     html: `<div class="user-dot-pin" style="width:12px; height:12px;"></div>`
                 });
                 L.marker([u.lat, u.lng], {icon: icon})
-                  .addTo(map)
+                  .addTo(window.map)
                   .bindPopup(`<b>${u.alias}</b><br>${u.age}`);
             }
         });
+        
+        // Use REAL location if available
+        let myLat = 40.7128;
+        let myLng = -74.0060;
+        if (window.myLocation) {
+            myLat = window.myLocation.lat;
+            myLng = window.myLocation.lng;
+        }
+        
         const myIcon = L.divIcon({ className: 'my-pin', html: `<div class="my-location-pin" style="width:20px; height:20px;"></div>` });
-        L.marker([40.7128, -74.0060], {icon: myIcon}).addTo(map);
+        L.marker([myLat, myLng], {icon: myIcon}).addTo(window.map);
     }
 
     // --- 4. REAL-TIME MESSAGING ---
@@ -1071,12 +1062,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (currentUserUid && targetUid) {
             // Composite ID for public chat collection
             const chatId = [currentUserUid, targetUid].sort().join('_');
-            
-            // NOTE: Using a sub-collection structure for messages inside a 'chats' document
-            // Path: artifacts/{appId}/public/data/chats/{chatId}_messages/{messageId}
-            // We flat-map it to a top level collection for Strict Path compliance
             const msgCollection = window.fbase.collection(window.db, 'artifacts', window.APP_ID, 'public', 'data', `chat_${chatId}`);
-
             const q = window.fbase.query(msgCollection, window.fbase.orderBy("createdAt"), window.fbase.limit(50));
             
             if(currentChatUnsubscribe) currentChatUnsubscribe(); 
@@ -1141,15 +1127,6 @@ document.addEventListener('DOMContentLoaded', () => {
         const file = event.target.files[0];
         if (!file) return;
         
-        // In a real production app, we would upload to Storage.
-        // Here, we can only use the blob URL locally, OR we can try to save a reference if it was external.
-        // For this demo, we will simulate a "Shared" video by saving metadata to Firestore.
-        // Since we can't upload binary to Firestore easily, we will use a placeholder or local URL just for the user,
-        // but to make it "Production Ready" regarding Code Structure, we push the metadata.
-        
-        // Note: Real persistence of video files requires Firebase Storage which isn't imported here.
-        // We will push a "Mock" entry that everyone can see to prove the DB connection works.
-        
         const videoCollection = getPublicCollection('videos');
         await window.fbase.addDoc(videoCollection, {
             user: localStorage.getItem('pgX_alias') || "Anon",
@@ -1207,7 +1184,7 @@ document.addEventListener('DOMContentLoaded', () => {
         document.querySelectorAll('.view-btn').forEach(b => b.classList.remove('active'));
         document.getElementById('view-' + viewId).classList.add('active');
         btn.classList.add('active');
-        if (viewId === 'map') setTimeout(() => map.invalidateSize(), 100);
+        if (viewId === 'map') setTimeout(() => window.map.invalidateSize(), 100);
     }
 
     window.openMsgModal = function() {
@@ -1298,7 +1275,6 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     window.loadMyProfile = function() {
-        // Load from local for speed, background sync handled in initBackend logic
         const storedAlias = localStorage.getItem('pgX_alias') || ""; 
         const storedBio = localStorage.getItem('pgX_bio') || "";
         const storedImg = localStorage.getItem('my_profile_pic') || "https://via.placeholder.com/120";
@@ -1316,7 +1292,8 @@ document.addEventListener('DOMContentLoaded', () => {
              if(galleryLabel) galleryLabel.style.display = 'none';
         }
         
-        // Show the modal only if triggered by user (this function is sometimes called by init just to populate vars)
+        document.getElementById('profile-modal').style.display = 'block';
+        document.getElementById('user-dropdown').style.display = 'none';
     }
 
     window.applyFilters = function() {
@@ -1416,10 +1393,18 @@ document.addEventListener('DOMContentLoaded', () => {
         window.closeConfirm();
     }
 
+    // --- FIX FOR PROFILE BUTTON: Attach listener immediately ---
+    const profileBtn = document.getElementById('open-my-profile');
+    if(profileBtn) {
+        profileBtn.onclick = (e) => {
+            e.preventDefault(); 
+            window.loadMyProfile();
+        };
+    }
+
     // START
     initBackend();
 });
 </script>
 </body>
 </html>
-
