@@ -1,583 +1,481 @@
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+import { getFirestore, collection, doc, setDoc, getDocs, addDoc, query, orderBy, onSnapshot, limit, serverTimestamp, updateDoc, increment, deleteDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js"; 
+import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-storage.js";
+
+// --- 1. FIREBASE CONFIGURATION ---
+const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : {
+    apiKey: "AIzaSyDFmhk3ybnsVsFenCE3xvdmy5y_4u9ss7o", 
+    authDomain: "playgroundx-ca021.firebaseapp.com",
+    projectId: "playgroundx-ca021",
+    storageBucket: "playgroundx-ca021.firebasestorage.app",
+    messagingSenderId: "427340828971",
+    appId: "1:427340828971:web:1d9e2dc22ecd69593eb56e"
+}; 
+
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db = getFirestore(app);
+const storage = getStorage(app); 
+const APP_ID = "playgroundX_MVP_v2";
+
+// Global Exports for HTML access
+window.db = db;
+window.auth = auth;
+window.storage = storage;
+window.APP_ID = APP_ID;
+window.fbase = {
+    collection, doc, setDoc, getDocs, addDoc, query, orderBy, onSnapshot, limit, serverTimestamp, updateDoc, increment, deleteDoc,
+    ref, uploadBytes, getDownloadURL, signInAnonymously
+}; 
+
+console.log("Firebase Tools Loaded ✅");
+
+// --- 2. MAIN APPLICATION LOGIC ---
 document.addEventListener('DOMContentLoaded', () => {
 
-    // --- CONFIGURATION & GLOBAL STATE ---
-    const ALIAS_PRE = ['Jay', 'Cool', 'Wild', 'Soft', 'Dark', 'Light', 'Neo', 'Retro'];
-    const ALIAS_SUF = ['Rocker', 'Vibes', 'Soul', 'King', 'Queen', 'X', '99', 'Walker'];
-    const IMGS_F = ['https://images.unsplash.com/photo-1517841905240-472988babdf9?w=500', 'https://images.unsplash.com/photo-1524504388940-b1c1722653e1?w=500'];
-    const IMGS_M = ['https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=500', 'https://images.unsplash.com/photo-1480455624313-e29b44bbfde1?w=500'];
-    const DATA_REL_TYPE = ['Marriage', 'Long-Term', 'Short-Term', 'Intimacy w/o Connection', 'Friends', 'FWB'];
-
+    /* --- STATE VARIABLES --- */
+    let currentUserUid = null;
+    let isAdmin = false;
+    let walletBalance = 0;
     let activeDeck = [];
-    let card, startX, currentX, btnLike, btnReject;
-    let currentChatUnsubscribe = null; 
-    let currentChatId = null; 
+    let nsfwModel = null;
+    let map = null;
 
-    // --- HELPER FOR EMPTY STATES ---
-    function getEmptyStateHTML() {
-        return `
-            <div class="empty-placeholder-container" style="text-align:center; padding-top:50px; color:#666;">
-                <div style="font-size:40px; margin-bottom:10px;">🔭</div>
-                <div class="empty-text">No users nearby</div>
-            </div>
-        `;
-    }
-
-    // --- 1. CORE BACKEND & INITIALIZATION ---
-
-    window.initBackend = function() {
-        // 1. Establish Identity (Hybrid: Local + potentially Firebase)
-        let myUid = localStorage.getItem('pgX_myUid');
-        if (!myUid) {
-            myUid = 'user_' + Date.now() + '_' + Math.floor(Math.random() * 1000);
-            localStorage.setItem('pgX_myUid', myUid);
-        }
-
-        // 2. Create mock users if we have absolutely no data locally
-        if (!localStorage.getItem('pgX_users')) {
-            let users = [];
-            for (let i = 0; i < 30; i++) {
-                let isFem = Math.random() > 0.5;
-                users.push({
-                    id: 'mock_' + i, 
-                    alias: ALIAS_PRE[Math.floor(Math.random() * 8)] + "_" + ALIAS_SUF[Math.floor(Math.random() * 8)],
-                    age: Math.floor(Math.random() * 15) + 18,
-                    gender: isFem ? 'Woman' : 'Man',
-                    img: isFem ? IMGS_F[Math.floor(Math.random() * IMGS_F.length)] : IMGS_M[Math.floor(Math.random() * IMGS_M.length)],
-                    lat: 40.7128 + (Math.random() - 0.5) * 0.05,
-                    lng: -74.0060 + (Math.random() - 0.5) * 0.05,
-                    relationship: DATA_REL_TYPE[Math.floor(Math.random() * DATA_REL_TYPE.length)],
-                    bio: "Just here for a good time. Love travel and photography.",
-                    seen: false,
-                    winkedAtMe: Math.random() < 0.2
-                });
-            }
-            localStorage.setItem('pgX_users', JSON.stringify(users));
-        }
-
-        // 3. Start the app processes
-        renderDeck();
-        initArcade();
-        
-        // 4. Load Saved Profile Picture into Header & Gallery
-        const savedImg = localStorage.getItem('my_profile_pic');
-        if (savedImg) {
-            const headerIcon = document.getElementById('user-icon-trigger');
-            if (headerIcon) {
-                headerIcon.innerHTML = `<img src="${savedImg}" style="width:100%; height:100%; border-radius:50%; object-fit:cover;">`;
-            }
-            const galleryImg = document.getElementById('g1-preview');
-            const galleryLabel = document.getElementById('g1-lbl');
-            if (galleryImg) {
-                galleryImg.src = savedImg;
-                galleryImg.style.display = 'block';
-                if(galleryLabel) galleryLabel.style.display = 'none';
-            }
-        }
-        
-        // 5. Setup Listeners
-        const sendBtn = document.querySelector('.chat-input-area button');
-        if(sendBtn) sendBtn.onclick = sendMessage;
-
-        const chatInput = document.querySelector('.chat-input');
-        if(chatInput) {
-            chatInput.onkeypress = (e) => { if (e.key === 'Enter') sendMessage(); };
-        }
-
-        const profileBtn = document.getElementById('open-my-profile');
-        if(profileBtn) {
-            profileBtn.onclick = (e) => {
-                e.preventDefault(); 
-                window.loadMyProfile();
-            };
-        }
-    }
-
-    // --- 2. DECK & SWIPE LOGIC ---
-
-    window.renderDeck = async function() {
-        const zone = document.getElementById('swipe-zone');
-        const grid = document.getElementById('grid-content');
-
-        let realUsers = [];
-        
-        // 1. DATA: Try to get Real People from Firebase
-        if (window.fbase && window.db) {
-            try {
-                const snapshot = await window.fbase.getDocs(window.fbase.collection(window.db, "users"));
-                snapshot.forEach(doc => {
-                    // Don't show myself
-                    if (doc.id !== localStorage.getItem('pgX_myUid')) {
-                        realUsers.push({ id: doc.id, ...doc.data() });
-                    }
-                });
-            } catch (e) {
-                console.log("Offline or DB error, using mocks");
-            }
-        }
-
-        // 2. LOGIC: Decide Real or Mock?
-        if (realUsers.length > 0) {
-            activeDeck = realUsers;
-        } else {
-            // Fallback to local mocks
-            activeDeck = JSON.parse(localStorage.getItem('pgX_users')) || [];
-            activeDeck = activeDeck.filter(u => !u.seen);
-        }
-        
-        // 3. DRAWING: Render Swipe View
-        if (activeDeck.length > 0) {
-            const u = activeDeck[0];
-            zone.innerHTML = `
-            <div class="swipe-card" id="active-card" onclick="window.openUserProfile('${u.alias}', ${u.age}, '${u.img}', '${u.id}')">
-                <img src="${u.img}">
-                <div class="card-header-overlay">
-                    <span class="card-alias">${u.alias}</span>
-                    <span class="card-age">${u.age}</span>
-                </div>
-            </div>`;
-            setTimeout(initSwipeHandlers, 50);
-        } else {
-            zone.innerHTML = getEmptyStateHTML();
-        }
-
-        // 4. DRAWING: Render Grid View
-        if (grid) {
-            if (activeDeck.length === 0) {
-                grid.style.display = 'flex';
-                grid.innerHTML = getEmptyStateHTML();
+    /* --- AI MODEL INITIALIZATION --- */
+    async function loadAI() {
+        try {
+            if(typeof nsfwjs !== 'undefined') {
+                nsfwModel = await nsfwjs.load();
+                console.log("NSFW Model Loaded Successfully");
             } else {
-                grid.style.display = 'grid';
-                grid.innerHTML = activeDeck.map(u => `
-                <div class="grid-item" onclick="window.openUserProfile('${u.alias}', ${u.age}, '${u.img}', '${u.id}')">
-                    <img src="${u.img}" style="width:100%; height:100%; object-fit:cover;">
-                    <div class="grid-overlay"><span>${u.alias}</span><span>${u.age}</span></div>
-                </div>
-                `).join('');
+                console.warn("NSFWJS library not found. AI scanning disabled.");
             }
-        }
+        } catch(e) { console.warn("AI Load Failed", e); }
+    }
+    loadAI();
+
+    /* --- AUTH & GATES --- */
+    window.handleAge = async function(isAdult) {
+        const pass = document.getElementById('age-pass').value;
         
-        // 5. DRAWING: Update Map
-        if(window.updateMapPins) window.updateMapPins(activeDeck);
-    }
-
-    function initSwipeHandlers() {
-        card = document.getElementById('active-card');
-        btnReject = document.getElementById('btn-reject');
-        btnLike = document.getElementById('btn-like');
-        if (!card) return;
-
-        card.addEventListener('touchstart', (e) => { startX = e.touches[0].clientX; card.style.transition = 'none'; });
-        card.addEventListener('touchmove', (e) => {
-            currentX = e.touches[0].clientX - startX;
-            card.style.transform = `translateX(${currentX}px) rotate(${currentX / 15}deg)`;
-            if (currentX > 0) { btnLike.style.background = 'var(--accent)'; } 
-            else { btnReject.style.background = 'grey'; }
-        });
-        card.addEventListener('touchend', () => {
-            if (currentX > 100) window.userSwipe('right');
-            else if (currentX < -100) window.userSwipe('left');
-            else { card.style.transform = 'translateX(0)'; resetButtons(); }
-        });
-    }
-
-    window.userSwipe = function(dir) {
-        if (!card) return;
-        
-        // 1. Animate
-        card.style.transition = 'transform 0.5s ease-in';
-        card.style.transform = `translateX(${dir === 'right' ? 1000 : -1000}px)`;
-
-        // 2. Mark as Seen (Mock Logic)
-        let allUsers = JSON.parse(localStorage.getItem('pgX_users')) || [];
-        if (activeDeck.length > 0) {
-            let currentUserId = activeDeck[0].id;
-            let userIndex = allUsers.findIndex(u => u.id === currentUserId);
-            if (userIndex > -1) {
-                allUsers[userIndex].seen = true;
-                localStorage.setItem('pgX_users', JSON.stringify(allUsers));
-            }
-        }
-
-        // 3. Feedback
-        if (dir === 'right') {
-            document.getElementById('wink-txt').classList.add('show');
-            setTimeout(() => document.getElementById('wink-txt').classList.remove('show'), 1000);
-        }
-
-        // 4. Reload Deck
-        setTimeout(() => { 
-            resetButtons(); 
-            renderDeck(); 
-        }, 300);
-    }
-
-    function resetButtons() {
-        if (btnLike) btnLike.style.background = 'rgba(0,0,0,0.6)';
-        if (btnReject) btnReject.style.background = 'rgba(0,0,0,0.6)';
-    }
-
-    // --- 3. MAP ---
-    const map = L.map('map', {zoomControl: false}).setView([40.7128, -74.0060], 13);
-    L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png').addTo(map);
-
-    window.updateMapPins = function(users) {
-        map.eachLayer((layer) => { if(layer instanceof L.Marker) map.removeLayer(layer); });
-
-        users.forEach(u => {
-            if(u.lat && u.lng) {
-                const icon = L.divIcon({
-                    className: 'custom-pin',
-                    html: `<div class="user-dot-pin" style="width:12px; height:12px;"></div>`
-                });
-                L.marker([u.lat, u.lng], {icon: icon})
-                 .addTo(map)
-                 .bindPopup(`<b>${u.alias}</b><br>${u.age}`);
-            }
-        });
-        const myIcon = L.divIcon({ className: 'my-pin', html: `<div class="my-location-pin" style="width:20px; height:20px;"></div>` });
-        L.marker([40.7128, -74.0060], {icon: myIcon}).addTo(map);
-    }
-
-    // --- 4. REAL-TIME MESSAGING ---
-
-    window.openChat = function(name, targetUid) {
-        document.getElementById('msg-list-view').style.display = 'none';
-        document.getElementById('chat-view').style.display = 'flex';
-        document.getElementById('chat-target-name').innerText = name;
-        
-        const chatBody = document.getElementById('chat-body');
-        chatBody.innerHTML = ''; 
-        currentChatId = targetUid; 
-
-        if (window.fbase && window.db && targetUid) {
-            const { collection, query, orderBy, onSnapshot, limit } = window.fbase;
-            let myUid = localStorage.getItem('pgX_myUid') || 'anon';
-            const chatId = [myUid, targetUid].sort().join('_');
-            
-            const q = query(collection(window.db, "chats", chatId, "messages"), orderBy("createdAt"), limit(50));
-            if(currentChatUnsubscribe) currentChatUnsubscribe(); 
-
-            currentChatUnsubscribe = onSnapshot(q, (snapshot) => {
-                chatBody.innerHTML = ''; 
-                snapshot.forEach((doc) => {
-                    const msg = doc.data();
-                    const isMe = msg.senderId === myUid;
-                    const bubble = document.createElement('div');
-                    bubble.className = `chat-bubble ${isMe ? 'me' : 'them'}`;
-                    bubble.innerText = msg.text;
-                    chatBody.appendChild(bubble);
-                });
-                chatBody.scrollTop = chatBody.scrollHeight;
-            });
-        }
-    }
-
-    async function sendMessage() {
-        const input = document.querySelector('.chat-input');
-        const text = input.value.trim();
-        if (!text) return;
-
-        if (window.fbase && window.db && currentChatId) {
-            const { collection, addDoc, serverTimestamp } = window.fbase;
-            let myUid = localStorage.getItem('pgX_myUid') || 'anon';
-            const chatId = [myUid, currentChatId].sort().join('_');
-
-            await addDoc(collection(window.db, "chats", chatId, "messages"), {
-                text: text,
-                senderId: myUid,
-                createdAt: serverTimestamp()
-            });
-        } else {
-            // Local fallback
-            const chatBody = document.getElementById('chat-body');
-            const bubble = document.createElement('div');
-            bubble.className = 'chat-bubble me';
-            bubble.innerText = text;
-            chatBody.appendChild(bubble);
-        }
-        input.value = '';
-    }
-
-    // --- 5. UI CONTROLS ---
-
-
-
-    let currentVideoView = 'swipe';
-
-    window.openVideoFeed = function() {
-        document.getElementById('video-modal').style.display = 'block';
-        window.renderVideoFeed();
-    }
-
-    window.setVideoMode = function(mode) {
-        currentVideoView = mode;
-        window.renderVideoFeed();
-    }
-
-    window.handleVideoUpload = function(event) {
-        const file = event.target.files[0];
-        if (!file) return;
-        const videoUrl = URL.createObjectURL(file);
-        
-        let allVideos = JSON.parse(localStorage.getItem('pgX_videos')) || [];
-        allVideos.unshift({
-            url: videoUrl,
-            user: localStorage.getItem('pgX_alias') || "Me",
-            timestamp: new Date().toLocaleTimeString()
-        });
-        localStorage.setItem('pgX_videos', JSON.stringify(allVideos));
-        window.renderVideoFeed();
-    }
-
-    window.renderVideoFeed = function() {
-        const container = document.getElementById('video-feed-content');
-        const allVideos = JSON.parse(localStorage.getItem('pgX_videos')) || [];
-
-        container.className = ''; 
-        if (currentVideoView === 'grid') container.classList.add('feed-layout-grid');
-        else container.classList.add('feed-layout-swipe');
-
-        if (allVideos.length === 0) {
-            container.innerHTML = `<div style="text-align:center; color:#666; margin-top:50px;">No videos yet.<br>Be the first!</div>`;
+        // Admin God Mode Check
+        if (pass === 'admin123') {
+            isAdmin = true;
+            document.body.classList.add('is-admin');
+            document.getElementById('admin-floater').style.display = 'block';
+            document.getElementById('age-gate').style.display = 'none';
+            // Skip location gate for Admin
+            initBackend(); 
             return;
         }
 
-        container.innerHTML = allVideos.map(vid => `
-            <div class="video-item">
-                <video src="${vid.url}" controls playsinline loop></video>
-                <div class="vid-details" style="padding: 10px;">
-                    <span style="color: white; font-weight: bold;">${vid.user}</span>
-                </div>
-            </div>
-        `).join('');
+        if (isAdult) {
+            document.getElementById('age-gate').style.display = 'none';
+            document.getElementById('location-gate').style.display = 'flex';
+        } else {
+            window.location.href = "https://google.com";
+        }
     }
 
+    /* --- BACKEND INIT & LISTENERS --- */
+    window.initBackend = async function() {
+        document.getElementById('loading-overlay').style.display = 'flex';
+        
+        // Connectivity Status Listener
+        window.addEventListener('online', updateConn);
+        window.addEventListener('offline', updateConn);
+        updateConn();
 
+        try {
+            // Anonymous Auth
+            const userCred = await signInAnonymously(auth);
+            currentUserUid = userCred.user.uid;
+            console.log("Logged in as:", currentUserUid);
 
+            // Ensure Profile Exists
+            await checkUserProfile();
+            
+            // Start Real-time Listeners
+            setupListeners();
+            
+            // Render Initial Views
+            renderDeck();
+        } catch(e) { 
+            console.error("Auth Error", e); 
+            alert("Connection Failed. Refreshing...");
+        }
+        
+        // Hide Loader
+        setTimeout(() => document.getElementById('loading-overlay').style.display='none', 2000);
+    }
 
+    function updateConn() {
+        const dot = document.getElementById('conn-dot');
+        const txt = document.getElementById('conn-txt');
+        if(navigator.onLine) { 
+            dot.classList.remove('offline'); 
+            txt.innerText="Active"; 
+        } else { 
+            dot.classList.add('offline'); 
+            txt.innerText="Offline"; 
+        }
+    }
 
+    async function checkUserProfile() {
+        // Just a read to warm up the connection, logic handled in saveProfile if needed
+        const ref = doc(db, 'artifacts', APP_ID, 'public', 'data', 'users', currentUserUid);
+    }
 
+    function setupListeners() {
+        // 1. Wallet Balance Listener
+        const userRef = doc(db, 'artifacts', APP_ID, 'public', 'data', 'users', currentUserUid);
+        onSnapshot(userRef, (docSnap) => {
+            if(docSnap.exists()) {
+                walletBalance = docSnap.data().walletBalance || 0;
+                const balDisplay = document.getElementById('wallet-bal');
+                if(balDisplay) balDisplay.innerText = walletBalance;
+            }
+        });
+
+        // 2. Chat/Wink Badge Listener
+        const chatQ = query(
+            collection(db, 'artifacts', APP_ID, 'public', 'data', 'chats'),
+            window.fbase.where('receiverId', '==', currentUserUid),
+            window.fbase.where('read', '==', false)
+        );
+        onSnapshot(chatQ, (snap) => {
+            const count = snap.size;
+            const badge = document.getElementById('msg-badge');
+            if(count > 0) { 
+                badge.style.display='flex'; 
+                badge.innerText=count; 
+            } else { 
+                badge.style.display='none'; 
+            }
+        });
+    }
+
+    /* --- UPLOAD HANDLING & AI SCANNING --- */
     
-    window.toggleUserMenu = function() {
-        const menu = document.getElementById('user-dropdown');
-        menu.style.display = (menu.style.display === 'block') ? 'none' : 'block';
+    // Helper: Scan Single Image
+    async function scanImageFile(file) {
+        if(!nsfwModel) return false;
+        return new Promise((resolve) => {
+            const img = document.createElement('img');
+            img.src = URL.createObjectURL(file);
+            img.onload = async () => {
+                const predictions = await nsfwModel.classify(img);
+                // Flag if 'Porn' or 'Sexy' > 60%
+                const isExplicit = predictions.some(p => (p.className === 'Porn' || p.className === 'Sexy') && p.probability > 0.6);
+                resolve(isExplicit);
+            };
+        });
     }
 
-    const userTrigger = document.getElementById('user-icon-trigger');
-    if(userTrigger) userTrigger.onclick = (e) => { e.stopPropagation(); window.toggleUserMenu(); };
+    // Helper: Scan Video (3-Point Spot Check)
+    async function scanVideoFile(file) {
+        if(!nsfwModel) return false;
+        const video = document.getElementById('ai-scan-video');
+        video.src = URL.createObjectURL(file);
+        
+        return new Promise((resolve) => {
+            video.onloadeddata = async () => {
+                const duration = video.duration;
+                // Check Start (20%), Middle (50%), End (80%)
+                const points = [0.2, 0.5, 0.8]; 
+                let detected = false;
 
+                for (let p of points) {
+                    video.currentTime = duration * p;
+                    await new Promise(r => video.onseeked = r);
+                    const predictions = await nsfwModel.classify(video);
+                    if (predictions.some(pred => (pred.className === 'Porn' || pred.className === 'Sexy') && pred.probability > 0.6)) {
+                        detected = true;
+                        break;
+                    }
+                }
+                resolve(detected);
+            };
+        });
+    }
+
+    // Main Video Upload Handler (Non-Blocking)
+    window.handleVideoUpload = async function(event) {
+        const file = event.target.files[0];
+        if(!file) return;
+
+        // 1. Close Modal Immediately (UX)
+        document.getElementById('video-modal').style.display='none';
+        
+        // 2. Show Background Spinner
+        const status = document.getElementById('upload-status');
+        status.style.display = 'flex';
+        status.innerHTML = '<div class="mini-spinner"></div> Processing...';
+
+        try {
+            // 3. Run AI Scan in Background
+            const isExplicit = await scanVideoFile(file);
+            
+            // 4. Upload to Storage
+            const storageRef = ref(storage, `videos/${Date.now()}_${file.name}`);
+            await uploadBytes(storageRef, file);
+            const url = await getDownloadURL(storageRef);
+
+            // 5. Save Metadata to DB
+            await addDoc(collection(db, 'artifacts', APP_ID, 'public', 'data', 'videos'), {
+                url: url,
+                userId: currentUserUid,
+                isExplicit: isExplicit,
+                reportCount: 0,
+                timestamp: serverTimestamp()
+            });
+
+            // 6. Success Notification
+            status.innerHTML = '✅ Upload Complete';
+            if(isExplicit) alert("Note: Your video was marked 18+ by the automated content scanner.");
+
+        } catch(e) {
+            console.error(e);
+            status.innerHTML = '❌ Error';
+        }
+        
+        // Clear status after 5 seconds
+        setTimeout(() => status.style.display='none', 5000);
+    }
+
+    /* --- PROFILE SAVING & GALLERY --- */
+    window.saveProfile = async function() {
+        const alias = document.getElementById('p-alias').value;
+        const bio = document.getElementById('p-bio').value;
+        const showExplicit = document.getElementById('p-show-explicit').checked;
+        
+        // Collect Multi-Select Attributes
+        const attrs = [];
+        document.querySelectorAll('.attr-chk:checked').forEach(cb => attrs.push(cb.value));
+
+        // 1. Upload Main Profile Image
+        const mainInput = document.getElementById('main-up');
+        let mainUrl = document.getElementById('my-main-preview').src;
+        if(mainInput.files[0]) {
+             const imgRef = ref(storage, `users/${currentUserUid}/main.jpg`);
+             await uploadBytes(imgRef, mainInput.files[0]);
+             mainUrl = await getDownloadURL(imgRef);
+        }
+
+        // 2. Upload Gallery Images (Loop 1-4)
+        const galleryUrls = [];
+        for(let i=1; i<=4; i++) {
+            const input = document.getElementById('g'+i);
+            if(input.files[0]) {
+                const galRef = ref(storage, `users/${currentUserUid}/g${i}.jpg`);
+                await uploadBytes(galRef, input.files[0]);
+                const url = await getDownloadURL(galRef);
+                galleryUrls.push(url);
+            }
+        }
+
+        // 3. Save Data
+        await setDoc(doc(db, 'artifacts', APP_ID, 'public', 'data', 'users', currentUserUid), {
+            alias, bio, img: mainUrl, gallery: galleryUrls, attributes: attrs, 
+            showExplicit, lastSeen: serverTimestamp()
+        }, { merge: true });
+
+        document.getElementById('profile-modal').style.display='none';
+        alert("Profile Saved!");
+    }
+
+    // Helper: Immediate Preview for Main Image
+    window.previewMain = (e) => {
+        if(e.target.files[0]) document.getElementById('my-main-preview').src = URL.createObjectURL(e.target.files[0]);
+    }
+
+    /* --- WALLET & ECONOMY --- */
+    window.buyCoins = async function(amount) {
+        if(confirm(`Confirm purchase of ${amount} coins? (Simulated)`)) {
+            const userRef = doc(db, 'artifacts', APP_ID, 'public', 'data', 'users', currentUserUid);
+            // Atomically increment balance
+            await updateDoc(userRef, { walletBalance: increment(amount) });
+            alert("Coins Added!");
+        }
+    }
+
+    window.sendTip = async function(amount) {
+        if(walletBalance < amount) return alert("Not enough coins! Go to Wallet to top up.");
+        
+        // 1. Deduct from Sender
+        const myRef = doc(db, 'artifacts', APP_ID, 'public', 'data', 'users', currentUserUid);
+        await updateDoc(myRef, { walletBalance: increment(-amount) });
+        
+        // 2. Add to Receiver (For MVP, we just alert. Real app needs transaction)
+        alert(`Sent ${amount} coins!`);
+    }
+
+    /* --- LIVE STUDIO --- */
+    window.toggleLive = async function(isLive) {
+        const ref = doc(db, 'artifacts', APP_ID, 'public', 'data', 'users', currentUserUid);
+        await updateDoc(ref, { isLive: isLive });
+        
+        const vid = document.getElementById('my-local-video');
+        const container = document.getElementById('my-cam-container');
+        
+        if(isLive) {
+            container.style.display = 'block';
+            // Access Camera
+            navigator.mediaDevices.getUserMedia({ video: true, audio: false })
+                .then(stream => vid.srcObject = stream)
+                .catch(e => alert("Camera access denied"));
+        } else {
+            container.style.display = 'none';
+            // Stop Camera
+            if(vid.srcObject) vid.srcObject.getTracks().forEach(t => t.stop());
+        }
+    }
+
+    /* --- ADMIN ACTIONS --- */
+    window.createFakeUser = async function() {
+        const alias = document.getElementById('fake-alias').value;
+        const age = document.getElementById('fake-age').value;
+        const img = document.getElementById('fake-img').value;
+        
+        await addDoc(collection(db, 'artifacts', APP_ID, 'public', 'data', 'users'), {
+            alias, age, img, 
+            lat: 40.7 + (Math.random()/100), // Random jitter near NYC
+            lng: -74.0 + (Math.random()/100),
+            reportCount: 0
+        });
+        alert("Fake User Injected");
+        document.getElementById('admin-modal').style.display='none';
+    }
+
+    window.forceDelete = async function() {
+        alert("Content Deleted via God Mode (Simulation)");
+        // In real app: deleteDoc(docRef);
+    }
+
+    /* --- VIEW RENDERING & DECK --- */
+    window.renderDeck = async function() {
+        const zone = document.getElementById('swipe-zone');
+        
+        // Query users, filter out high report counts
+        const q = query(collection(db, 'artifacts', APP_ID, 'public', 'data', 'users'), limit(10));
+        const snap = await getDocs(q);
+        
+        activeDeck = [];
+        snap.forEach(d => {
+            const u = d.data();
+            // Filter: Not me AND Report Count < 3
+            if(d.id !== currentUserUid && (!u.reportCount || u.reportCount < 3)) {
+                activeDeck.push({...u, id: d.id});
+            }
+        });
+
+        if(activeDeck.length === 0) {
+            // Empty State (using App Icon SVG)
+            zone.innerHTML = `
+                <div class="swipe-card" style="display:flex; justify-content:center; align-items:center; background:#111;">
+                    <div style="text-align:center;">
+                        <div style="width:100px; height:100px; border-radius:50%; background:#222; margin:0 auto; display:flex; align-items:center; justify-content:center;">
+                           <svg width="50" height="50" viewBox="0 0 24 24" fill="none" stroke="#666" stroke-width="2"><circle cx="12" cy="8" r="4"></circle><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path></svg>
+                        </div>
+                        <div class="empty-throb-text" style="margin-top:20px; color:#666;">waiting for users...</div>
+                    </div>
+                </div>`;
+        } else {
+            // Render Top Card
+            const u = activeDeck[0];
+            zone.innerHTML = `
+                <div class="swipe-card" id="active-card" onclick="window.viewUser('${u.id}')">
+                    <img src="${u.img}">
+                    <div class="card-header-overlay"><span class="card-alias">${u.alias}</span><span class="card-age">${u.age || 21}</span></div>
+                </div>`;
+            // Note: Swipe gesture listeners would be re-attached here
+        }
+    }
+
+    window.viewUser = async function(id) {
+        const modal = document.getElementById('view-user-modal');
+        const u = activeDeck.find(x => x.id === id);
+        if(!u) return;
+        
+        document.getElementById('vu-img').src = u.img;
+        document.getElementById('vu-name').innerText = u.alias;
+        document.getElementById('vu-bio').innerText = u.bio || "No bio available.";
+        
+        // Render Gallery Grid
+        const gGrid = document.getElementById('vu-gallery');
+        gGrid.innerHTML = '';
+        if(u.gallery) {
+            u.gallery.forEach(img => {
+                gGrid.innerHTML += `<div class="gallery-slot"><img src="${img}"></div>`;
+            });
+        }
+        
+        modal.style.display = 'block';
+    }
+
+    window.reportUser = async function() {
+        // Increment Report Count logic
+        alert("User Reported. Content will be hidden after review.");
+    }
+
+    // --- UI HELPERS ---
+    window.openTab = function(id, btn) {
+        document.querySelectorAll('.tab-pane').forEach(t => t.style.display='none');
+        document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+        document.getElementById(id).style.display='block';
+        btn.classList.add('active');
+    }
+
+    window.loadMyProfile = function() {
+        document.getElementById('profile-modal').style.display = 'block';
+        document.getElementById('user-dropdown').style.display = 'none';
+    }
+
+    window.openVideoFeed = async function() {
+        document.getElementById('video-modal').style.display='block';
+        const con = document.getElementById('video-feed-content');
+        con.innerHTML = '';
+        
+        const q = query(collection(db, 'artifacts', APP_ID, 'public', 'data', 'videos'), orderBy('timestamp', 'desc'), limit(20));
+        const snap = await getDocs(q);
+        
+        snap.forEach(d => {
+            const v = d.data();
+            // Explicit Content Filter Logic
+            // In real app: check if currentUser.showExplicit is true
+            if(v.isExplicit) return; // Hide explicit by default for now
+
+            const div = document.createElement('div');
+            div.className = 'video-item';
+            div.innerHTML = `<video src="${v.url}" controls playsinline></video>`;
+            con.appendChild(div);
+        });
+    }
+
+    window.toggleUserMenu = () => {
+        const m = document.getElementById('user-dropdown');
+        m.style.display = m.style.display==='block' ? 'none' : 'block';
+    }
+
+    window.requestLocation = () => {
+        // Transition from Location Gate to App
+        document.getElementById('location-gate').style.display='none';
+        initBackend();
+    }
+    
+    // View Switcher (Swipe/Grid/Map)
     window.switchView = function(viewId, btn) {
         document.querySelectorAll('.app-view').forEach(v => v.classList.remove('active'));
         document.querySelectorAll('.view-btn').forEach(b => b.classList.remove('active'));
         document.getElementById('view-' + viewId).classList.add('active');
         btn.classList.add('active');
-        if (viewId === 'map') setTimeout(() => map.invalidateSize(), 100);
+        if (viewId === 'map' && map) setTimeout(() => map.invalidateSize(), 100);
     }
 
-    window.openMsgModal = function() {
-        document.getElementById('msg-modal').style.display = 'block';
+    // --- MAP INITIALIZATION ---
+    if(document.getElementById('map')) {
+        map = L.map('map', {zoomControl: false}).setView([40.7128, -74.0060], 13);
+        L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png').addTo(map);
     }
-
-    window.closeChat = function() {
-        document.getElementById('msg-modal').style.display = 'none';
-        document.getElementById('msg-list-view').style.display = 'block';
-        document.getElementById('chat-view').style.display = 'none';
-    }
-
-    window.openTab = function(tabId, btn) {
-        document.querySelectorAll('.tab-pane').forEach(t => t.style.display = 'none');
-        document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-        document.getElementById(tabId).style.display = 'block';
-        btn.classList.add('active');
-    }
-
-    window.toggleAccordion = function(id, isChecked) {
-        const el = document.getElementById(id);
-        if(el) el.style.display = isChecked ? 'block' : 'none';
-    }
-
-    window.toggleProfileAcc = function(id) {
-        const el = document.getElementById(id);
-        if(el.style.display === 'block') el.style.display = 'none';
-        else el.style.display = 'block';
-    }
-    
-    window.selectProfileOption = function(displayId, value, accId) {
-        document.getElementById(displayId).innerText = value;
-        document.getElementById(accId).style.display = 'none';
-    }
-
-    window.previewMainAndGallery = function(event) {
-        const file = event.target.files[0];
-        if (file) {
-            const reader = new FileReader();
-            reader.onload = function(e) {
-                const imgUrl = e.target.result;
-                // Update Main
-                document.getElementById('my-main-preview').src = imgUrl;
-                // Update Gallery #1
-                const galleryImg = document.getElementById('g1-preview');
-                galleryImg.src = imgUrl;
-                galleryImg.style.display = 'block';
-                const galleryLabel = document.getElementById('g1-lbl');
-                if(galleryLabel) galleryLabel.style.display = 'none';
-                // Update Header
-                const headerIcon = document.getElementById('user-icon-trigger');
-                headerIcon.innerHTML = `<img src="${imgUrl}" style="width:100%; height:100%; border-radius:50%; object-fit:cover;">`;
-            }
-            reader.readAsDataURL(file);
-        }
-    }
-    
-    window.previewVideo = function(event) {
-        alert("Video selected!");
-    }
-
-    window.saveProfile = async function() {
-        const alias = document.getElementById('p-alias').value;
-        const bio = document.getElementById('p-bio').value;
-        const imgVal = document.getElementById('my-main-preview').src;
-
-        // 1. Save Local
-        localStorage.setItem('pgX_alias', alias);
-        localStorage.setItem('pgX_bio', bio);
-        localStorage.setItem('my_profile_pic', imgVal);
-
-        // 2. Save to Firebase (Hybrid)
-        if (window.fbase && window.db) {
-            const myUid = localStorage.getItem('pgX_myUid');
-            try {
-                await window.fbase.setDoc(window.fbase.doc(window.db, "users", myUid), {
-                    alias: alias,
-                    bio: bio,
-                    lastSeen: window.fbase.serverTimestamp()
-                }, { merge: true });
-            } catch (e) { console.error("Sync failed", e); }
-        }
-
-        document.getElementById('profile-modal').style.display = 'none';
-    }
-
-    window.loadMyProfile = function() {
-        const storedAlias = localStorage.getItem('pgX_alias') || ""; 
-        const storedBio = localStorage.getItem('pgX_bio') || "";
-        const storedImg = localStorage.getItem('my_profile_pic') || "https://via.placeholder.com/120";
-
-        document.getElementById('p-alias').value = storedAlias;
-        document.getElementById('p-bio').value = storedBio;
-        document.getElementById('my-main-preview').src = storedImg;
-        
-        const galleryImg = document.getElementById('g1-preview');
-        const galleryLabel = document.getElementById('g1-lbl');
-        
-        if (storedImg.includes('data:image') || storedImg.includes('http')) {
-             galleryImg.src = storedImg;
-             galleryImg.style.display = 'block';
-             if(galleryLabel) galleryLabel.style.display = 'none';
-        }
-
-        document.getElementById('profile-modal').style.display = 'block';
-        document.getElementById('user-dropdown').style.display = 'none';
-    }
-
-    window.applyFilters = function() {
-        document.getElementById('filter-modal').style.display = 'none';
-        renderDeck();
-    }
-
-    window.openUserProfile = function(alias, age, img, id) {
-        const modal = document.getElementById('view-user-modal');
-        document.getElementById('view-user-img').src = img;
-        document.getElementById('view-user-img-small').src = img;
-        document.getElementById('view-user-name').innerText = alias + ", " + age;
-        document.getElementById('view-user-bio').innerText = `${alias} is a ${age} year old member.`;
-        
-        const chipsContainer = document.getElementById('view-user-chips');
-        chipsContainer.innerHTML = `<span class="stat-chip love">Words of Affirmation</span><span class="stat-chip">Non-Smoker</span>`;
-        
-        modal.style.display = 'block';
-    }
-
-    window.toggleReportMenu = function() {
-        const menu = document.getElementById('report-menu');
-        menu.style.display = (menu.style.display === 'block') ? 'none' : 'block';
-    }
-
-    // --- 6. ARCADE ---
-    const games = [
-        { name: "Simple Pong", file: "Simplepong.html", thumb: "https://via.placeholder.com/150/000000/FFFFFF/?text=Pong" },
-        { name: "Speed Jump", file: "Speedjump.html", thumb: "https://via.placeholder.com/150/000000/FFFFFF/?text=Jump" },
-        { name: "Ghost Poke", file: "Ghostpoke.html", thumb: "https://via.placeholder.com/150/000000/FFFFFF/?text=Ghost" },
-        { name: "Caos Racer", file: "caosracer.html", thumb: "https://via.placeholder.com/150/000000/FFFFFF/?text=Racer" },
-        { name: "Big Shot", file: "bigshot.html", thumb: "https://via.placeholder.com/150/000000/FFFFFF/?text=Shot" },
-        { name: "Flap Dodge", file: "flapdodge.html", thumb: "https://via.placeholder.com/150/000000/FFFFFF/?text=Flap" }
-    ];
-
-    function initArcade() {
-        const grid = document.getElementById('arcade-grid');
-        if (!grid) return;
-        grid.innerHTML = ''; 
-
-        games.forEach(game => {
-            const card = document.createElement('div');
-            card.className = 'game-card'; 
-            card.style = "position:relative; background:#222; border-radius:12px; overflow:hidden; aspect-ratio:1/1; border:1px solid #333;";
-            card.innerHTML = `
-                <img src="${game.thumb}" style="width:100%; height:100%; object-fit:cover;">
-                <div class="game-overlay" onclick="window.revealPlay(this)" style="position:absolute; inset:0; background:rgba(0,0,0,0); display:flex; align-items:center; justify-content:center; cursor:pointer; transition:0.3s;">
-                    <button onclick="window.launchGame('${game.file}', event)" class="play-btn" style="background:var(--accent); color:white; border:none; padding:10px 20px; border-radius:20px; font-weight:bold; transform: scale(0.8); opacity:0; transition:0.2s; pointer-events:none;">PLAY</button>
-                </div>
-                <div style="position:absolute; bottom:0; left:0; right:0; padding:8px; background:linear-gradient(transparent, rgba(0,0,0,0.8)); color:white; font-size:12px; font-weight:600; pointer-events:none;">${game.name}</div>
-            `;
-            grid.appendChild(card);
-        });
-    }
-
-    window.revealPlay = function(overlay) {
-        document.querySelectorAll('.game-overlay').forEach(el => {
-            el.style.background = "rgba(0,0,0,0)";
-            const btn = el.querySelector('.play-btn');
-            btn.style.opacity = "0";
-            btn.style.transform = "scale(0.8)";
-            btn.style.pointerEvents = "none";
-        });
-        overlay.style.background = "rgba(0,0,0,0.7)";
-        const activeBtn = overlay.querySelector('.play-btn');
-        activeBtn.style.opacity = "1";
-        activeBtn.style.transform = "scale(1)";
-        activeBtn.style.pointerEvents = "auto";
-    };
-
-    window.launchGame = function(file, event) {
-        if (event) event.stopPropagation();
-        const player = document.getElementById('game-player');
-        const frame = document.getElementById('game-frame');
-        // frame.src = file; // Enable this when you have real game files
-        frame.src = "about:blank"; 
-        player.style.display = 'block';
-    };
-
-    window.closeGame = function() {
-        const player = document.getElementById('game-player');
-        const frame = document.getElementById('game-frame');
-        frame.src = ''; 
-        player.style.display = 'none';
-    };
-
-    window.closeArcade = function() {
-        window.closeGame();
-        document.getElementById('game-modal').style.display = 'none';
-    };
-    
-    window.closeConfirm = function() {
-        document.getElementById('confirm-modal').style.display = 'none';
-    }
-    window.confirmYes = function() {
-        alert("Item deleted");
-        window.closeConfirm();
-    }
-
-    // START
-    initBackend();
 });
-
