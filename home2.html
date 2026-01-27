@@ -355,12 +355,12 @@
         /* --- THROB ANIMATION FOR EMPTY STATE --- */
         @keyframes throb {
             0% { transform: scale(1); opacity: 0.5; }
-            50% { transform: scale(1.08); opacity: 0.8; }
+            50% { transform: scale(1.01); opacity: 0.8; }
             100% { transform: scale(1); opacity: 0.5; }
         }
         .empty-throb-img {
             width: 150px; height: 150px; object-fit: contain;
-            animation: throb 2s infinite ease-in-out;
+            animation: throb 5s infinite ease-in-out;
         }
         .empty-throb-text {
             color: gray; font-size: 14px; font-weight: bold; margin-top: 20px;
@@ -369,7 +369,7 @@
         /* --- ANIMATED DOTS --- */
         .loading-dots::after {
             content: '';
-            animation: dot-steps 2s infinite steps(4);
+            animation: dot-steps 5s infinite steps(4);
         }
         @keyframes dot-steps {
             0% { content: ""; }
@@ -1446,3 +1446,4 @@ document.addEventListener('DOMContentLoaded', () => {
 </script>
 </body>
 </html>
+
