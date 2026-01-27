@@ -503,53 +503,62 @@
     <div style="color: #666; font-size: 14px; font-weight: bold;">INITIALIZING SECURE CONNECTION...</div>
 </div>
 
+
 <div id="header">
-    <div style="display: flex; align-items: center;" onclick="location.reload()">
-        <div style="background: var(--accent); color: white; width: 35px; height: 35px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 20px; margin-right: 10px;">X</div>
-        <h1 style="color: white; margin: 0; font-size: 20px;">playground<span style="color: var(--accent);">X</span></h1>
-    </div>
-
-    <div class="header-icons" style="display: flex; align-items: center; gap: 15px;">
-
-        <button class="icon-btn" onclick="window.openVideoFeed()" style="background: none; border: none; padding: 0; cursor: pointer;">
-            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <rect x="2" y="2" width="20" height="20" rx="5" ry="5"></rect>
-                <polygon points="10 8 16 12 10 16 10 8" fill="white" stroke="none"></polygon>
-            </svg>
-        </button>
-        
-        <button class="icon-btn" onclick="document.getElementById('camera-modal').style.display='block'" style="background: none; border: none; padding: 0; cursor: pointer;">
-            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M23 7l-7 5 7 5V7z"></path>
-                <rect x="1" y="5" width="15" height="14" rx="2" ry="2"></rect>
-            </svg>
-        </button>
-
-        <button class="icon-btn" onclick="document.getElementById('game-modal').style.display='block'" style="background: none; border: none; padding: 0; cursor: pointer;">
-            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <line x1="6" y1="12" x2="10" y2="12"></line>
-                <line x1="8" y1="10" x2="8" y2="14"></line>
-                <line x1="15" y1="13" x2="15.01" y2="13"></line>
-                <line x1="18" y1="11" x2="18.01" y2="11"></line>
-                <rect x="2" y="6" width="20" height="12" rx="4"></rect>
-            </svg>
-        </button>
-
-        <div class="msg-icon-wrapper" onclick="window.openMsgModal()">
-            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"></path></svg>
-            <span class="badge" id="msg-badge" style="display:none">0</span>
+        <div class="header-left">
+            <div id="connection-dot" class="connection-dot online" title="Online"></div>
+            <div style="font-weight: 900; font-size: 20px; letter-spacing: -1px; color: var(--accent);">
+                playground<span style="color:white">X</span>
+            </div>
         </div>
 
-        <div id="user-icon-trigger" onclick="window.toggleUserMenu()" style="width: 40px; height: 40px; background: #222; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; border: 1px solid #444;">
-            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+        <div style="display: flex; align-items: center; gap: 15px;">
+            <div id="global-upload-status" class="upload-status">
+                <div class="upload-spinner"></div>
+                <span id="upload-text">Processing...</span>
+            </div>
+
+            <div class="header-icons">
+                <div class="msg-icon-wrapper" onclick="openModal('modal-chats')">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
+                    <div id="msg-badge" class="badge" style="display: none;">0</div>
+                </div>
+                <div onclick="toggleUserDropdown()" style="cursor: pointer;">
+                    <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <button id="admin-panel-btn" onclick="document.getElementById('admin-panel').style.display='block'">GOD</button>
+
+    <div id="admin-panel">
+        <div class="admin-header">
+            <h2>Admin God Mode</h2>
+            <button onclick="document.getElementById('admin-panel').style.display='none'" style="background:none; border:none; color:white; font-size:24px;">×</button>
         </div>
 
+        <div class="admin-section">
+            <h3 style="margin-top:0">Create Fake User</h3>
+            <input type="text" id="admin-fake-alias" class="admin-input" placeholder="Alias (e.g. Sarah)">
+            <input type="number" id="admin-fake-age" class="admin-input" placeholder="Age">
+            <input type="text" id="admin-fake-img" class="admin-input" placeholder="Image URL">
+            <button class="admin-btn" onclick="adminCreateUser()" style="background: var(--accent)">Inject User</button>
+        </div>
+
+        <div class="admin-section">
+            <h3>System Status</h3>
+            <p id="admin-stats">Checking Firestore...</p>
+            <button class="admin-btn" onclick="location.reload()">Emergency Refresh</button>
+        </div>
+    </div>
+    
+<div id="user-dropdown">
+        <a href="#" onclick="openModal('modal-my-profile'); toggleUserDropdown();">My Profile</a>
+        <a href="#" onclick="openModal('modal-studio'); toggleUserDropdown();">Studio (Go Live)</a>
+        <a href="#" onclick="logout();">Logout</a>
     </div>
 
-    <div id="user-dropdown">
-        <a href="#" id="open-my-profile">My Profile</a>
-        <a href="#" style="color: var(--accent);" onclick="location.reload()">Log Out</a>
-    </div>
 </div>
 
 <div class="toolbar">
@@ -591,13 +600,118 @@
 </div>
 
 <div id="profile-modal" class="modal">
-    <div class="modal-header">
-        <button class="back-arrow-btn" onclick="document.getElementById('profile-modal').style.display='none'">
-            <svg viewBox="0 0 24 24" fill="none" stroke-width="2"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
-        </button>
-        <h2 style="font-size: 18px; margin: 0; color: white;">Edit Profile</h2>
-        <button onclick="window.saveProfile()" style="background: none; border: none; color: var(--accent); font-weight: bold;">Save</button>
-    </div>
+<div class="modal-header">
+            <button class="back-arrow-btn" onclick="closeModal('modal-my-profile')">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+            </button>
+            <h2 style="color:white; margin:0; font-size:18px;">Edit Profile</h2>
+            <button onclick="saveProfile()" style="background:var(--accent); color:white; border:none; padding:8px 15px; border-radius:15px; font-weight:bold;">Save</button>
+        </div>
+
+        <div style="padding:20px;">
+            <div style="display:flex; gap:20px; border-bottom:1px solid #222; margin-bottom:20px;">
+                <button onclick="switchProfileTab('edit')" id="tab-btn-edit" style="background:none; border:none; color:var(--accent); padding-bottom:10px; border-bottom:2px solid var(--accent); font-weight:bold;">Profile</button>
+                <button onclick="switchProfileTab('wallet')" id="tab-btn-wallet" style="background:none; border:none; color:#888; padding-bottom:10px; font-weight:bold;">Wallet</button>
+            </div>
+
+            <div id="profile-tab-edit">
+                <div class="filter-label">GALLERY (P1 is Main, G2-G4 are extra)</div>
+                <div class="gallery-grid">
+                    <div class="gallery-slot" onclick="document.getElementById('p1-input').click()">
+                        <input type="file" id="p1-input" hidden accept="image/*">
+                        <img id="p1-preview" src="nousericon.png">
+                    </div>
+                    <div class="gallery-slot" onclick="document.getElementById('g2-input').click()">
+                        <input type="file" id="g2-input" hidden accept="image/*">
+                        <img id="g2-preview" src="nousericon.png">
+                    </div>
+                    <div class="gallery-slot" onclick="document.getElementById('g3-input').click()">
+                        <input type="file" id="g3-input" hidden accept="image/*">
+                        <img id="g3-preview" src="nousericon.png">
+                    </div>
+                    <div class="gallery-slot" onclick="document.getElementById('g4-input').click()">
+                        <input type="file" id="g4-input" hidden accept="image/*">
+                        <img id="g4-preview" src="nousericon.png">
+                    </div>
+                </div>
+
+                <div style="display:flex; gap:10px; margin-bottom:15px;">
+                    <div style="flex:2">
+                        <div class="filter-label">ALIAS</div>
+                        <input type="text" id="my-alias" class="style-input" placeholder="Display Name">
+                    </div>
+                    <div style="flex:1">
+                        <div class="filter-label">AGE</div>
+                        <input type="number" id="my-age" class="style-input" placeholder="18">
+                    </div>
+                </div>
+
+                <div class="filter-label">BIO</div>
+                <textarea id="my-bio" class="style-input" style="height:80px; margin-bottom:15px;" placeholder="Tell them about yourself..."></textarea>
+
+                <div class="toggle-row">
+                    <span>Mark Profile as Explicit (18+)</span>
+                    <label class="toggle-switch">
+                        <input type="checkbox" id="my-explicit" class="toggle-checkbox">
+                        <span class="toggle-switch"></span>
+                    </label>
+                </div>
+                
+                <div class="toggle-row">
+                    <span>Show Explicit Content in Feed</span>
+                    <label class="toggle-switch">
+                        <input type="checkbox" id="pref-show-explicit" class="toggle-checkbox">
+                        <span class="toggle-switch"></span>
+                    </label>
+                </div>
+
+                <div class="filter-label">VICES (Multi-Select)</div>
+                <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px; background:#111; padding:10px; border-radius:10px;">
+                    <label><input type="checkbox" name="vices" value="Drinking"> Drinking</label>
+                    <label><input type="checkbox" name="vices" value="Smoking"> Smoking</label>
+                    <label><input type="checkbox" name="vices" value="420"> 420 Friendly</label>
+                    <label><input type="checkbox" name="vices" value="Party"> Party Life</label>
+                </div>
+
+                <div class="filter-label">CHILDREN STATUS</div>
+                <select id="my-children" class="style-input">
+                    <option value="No preference">Select Status</option>
+                    <option value="No kids">No kids</option>
+                    <option value="Have kids">Have kids</option>
+                    <option value="Want kids">Want kids</option>
+                </select>
+            </div>
+
+            <div id="profile-tab-wallet" style="display:none;">
+                <div class="coin-balance">
+                    <span id="wallet-balance">0</span> <span style="font-size:14px; color:#888;">COINS</span>
+                </div>
+
+                <div class="filter-label">BUY COIN BUNDLES</div>
+                <div class="coin-bundle">
+                    <span>100 Coins</span>
+                    <button class="buy-btn" onclick="buyTokens(100, 14.99)">$14.99</button>
+                </div>
+                <div class="coin-bundle">
+                    <span>500 Coins</span>
+                    <button class="buy-btn" onclick="buyTokens(500, 64.99)">$64.99</button>
+                </div>
+                <div class="coin-bundle">
+                    <span>1000 Coins</span>
+                    <button class="buy-btn" onclick="buyTokens(1000, 99.99)">$99.99</button>
+                </div>
+
+                <div class="filter-label" style="margin-top:30px;">PAYMENT METHOD</div>
+                <div style="background:#111; padding:15px; border-radius:12px; border:1px solid #333;">
+                    <input type="text" class="style-input" style="margin-bottom:10px;" placeholder="Card Number">
+                    <div style="display:flex; gap:10px;">
+                        <input type="text" class="style-input" placeholder="MM/YY">
+                        <input type="text" class="style-input" placeholder="CVV">
+                    </div>
+                    <button class="admin-btn" style="background:#444; margin-top:15px; cursor:default;">Save Card (Demo Only)</button>
+                </div>
+            </div>
+        </div>
     <div style="padding: 20px; max-width: 500px; margin: 0 auto;">
         
         <div><label class="filter-label" style="margin-top:0;">DISPLAY NAME (ALIAS)</label><input type="text" id="p-alias" class="style-input" placeholder="e.g. Jay_Rocker"></div>
@@ -827,12 +941,54 @@
 
 
     <div id="camera-modal" class="modal">
-    <div class="modal-header">
-        <button class="back-arrow-btn" onclick="document.getElementById('camera-modal').style.display='none'">
-            <svg viewBox="0 0 24 24" fill="none" stroke-width="2"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
-        </button>
-        <h2 style="font-size: 18px; margin: 0; color: white;">Studio</h2>
-        <div style="width: 24px;"></div> </div>
+<div class="modal-header">
+            <button class="back-arrow-btn" onclick="closeModal('modal-studio')">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+            </button>
+            <h2 style="color:white; margin:0; font-size:18px;">Studio & Live</h2>
+            <div style="display:flex; align-items:center; gap:10px;">
+                <span style="font-size:12px; color:#888;">GO LIVE</span>
+                <label class="toggle-switch">
+                    <input type="checkbox" id="live-toggle" class="toggle-checkbox" onchange="toggleLiveStream()">
+                    <span class="toggle-switch"></span>
+                </label>
+            </div>
+        </div>
+
+        <div style="padding:20px;">
+            <div id="live-preview-container" style="display:none; margin-bottom:20px; position:relative;">
+                <video id="local-video" autoplay muted playsinline style="width:100%; border-radius:15px; background:#111; aspect-ratio:9/16; object-fit:cover;"></video>
+                <div style="position:absolute; top:10px; left:10px; background:red; color:white; padding:2px 8px; border-radius:4px; font-size:10px; font-weight:bold; animation: pulse 1s infinite;">LIVE</div>
+            </div>
+
+            <div class="filter-label">LIVE NOW</div>
+            <div id="live-grid" class="grid-container">
+                </div>
+
+            <hr style="border:0; border-top:1px solid #222; margin:30px 0;">
+
+            <div class="filter-label">UPLOAD NEW VIDEO</div>
+            <div style="background:#111; padding:20px; border-radius:15px; border:1px dashed #444; text-align:center;">
+                <input type="file" id="video-upload-input" accept="video/*" hidden onchange="handleVideoUpload(this)">
+                <button onclick="document.getElementById('video-upload-input').click()" style="background:var(--accent); color:white; border:none; padding:12px 25px; border-radius:25px; font-weight:bold; cursor:pointer;">
+                    Select Video File
+                </button>
+                <p style="font-size:11px; color:#666; margin-top:10px;">Max size 50MB. MP4/MOV supported.</p>
+                
+                <div class="toggle-row" style="margin-top:20px; text-align:left;">
+                    <span>Contains Explicit Content</span>
+                    <label class="toggle-switch">
+                        <input type="checkbox" id="video-explicit" class="toggle-checkbox">
+                        <span class="toggle-switch"></span>
+                    </label>
+                </div>
+            </div>
+        </div>
+
+
+
+
+        
     <div style="padding: 20px; text-align: center; color: #666; margin-top: 50px;">
         <svg width="60" height="60" viewBox="0 0 24 24" fill="none" stroke="#444" stroke-width="1.5" style="margin-bottom:20px;">
              <path d="M23 7l-7 5 7 5V7z"></path><rect x="1" y="5" width="15" height="14" rx="2" ry="2"></rect>
@@ -843,23 +999,7 @@
 </div>
 
 
-<div id="game-modal" class="modal">
-    <div class="modal-header">
-        <button class="back-arrow-btn" onclick="window.closeArcade()">
-            <svg viewBox="0 0 24 24" fill="none" stroke-width="2"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
-        </button>
-        <h2 style="font-size: 18px; margin: 0; color: white;">Arcade</h2>
-        <div style="width: 24px;"></div> 
-    </div>
 
-    <div id="arcade-grid" class="grid-container" style="padding: 15px; display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
-        </div>
-
-    <div id="game-player" style="display:none; position: absolute; inset: 60px 0 0 0; background: #000; z-index: 10;">
-        <iframe id="game-frame" src="" style="width:100%; height:100%; border:none;"></iframe>
-        <button onclick="window.closeGame()" style="position:absolute; top: 10px; right: 10px; background: rgba(0,0,0,0.6); color:white; border:none; border-radius:50%; width:40px; height:40px; font-weight:bold;">✕</button>
-    </div>
-</div>
 
 <div id="video-modal" class="modal">
     <div class="modal-header">
@@ -1506,5 +1646,6 @@ document.addEventListener('DOMContentLoaded', () => {
 </script>
 </body>
 </html>
+
 
 
