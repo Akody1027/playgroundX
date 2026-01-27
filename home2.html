@@ -6,10 +6,6 @@
     <title>playgroundX | Production</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-    
-    <!-- 14. NSFWJS & TensorFlow -->
-    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@latest/dist/tf.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/nsfwjs@latest/dist/nsfwjs.min.js"></script>
 
     <style>
         :root {
@@ -23,8 +19,6 @@
             --text-dim: #9CA3AF;
             --btn-dim: grey;
             --btnfont: white;
-            --success: #10B981;
-            --danger: #EF4444;
         }
 
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
@@ -53,29 +47,6 @@
             width: 16px; height: 16px; border-radius: 50%;
             display: flex; align-items: center; justify-content: center;
             border: 2px solid #000;
-        }
-
-        /* 16. Connection Status Indicator */
-        #connection-dot {
-            width: 10px; height: 10px; border-radius: 50%;
-            background-color: var(--warning); /* Default checking */
-            margin-right: 8px;
-            box-shadow: 0 0 5px rgba(0,0,0,0.5);
-            transition: background-color 0.3s;
-        }
-        #connection-dot.online { background-color: var(--success); box-shadow: 0 0 8px var(--success); }
-        #connection-dot.offline { background-color: var(--danger); }
-
-        /* 15. Non-Blocking Upload UI */
-        #upload-status {
-            display: none; align-items: center; gap: 5px; 
-            font-size: 12px; font-weight: bold; color: var(--text-dim);
-            margin-right: 10px;
-        }
-        .mini-spinner {
-            width: 16px; height: 16px; border: 2px solid #333;
-            border-top: 2px solid var(--accent); border-radius: 50%;
-            animation: spin 1s linear infinite;
         }
 
         #user-dropdown {
@@ -167,9 +138,38 @@
 
         /* --- MAP VIEW (Readable Dark Mode) --- */
 
-        .leaflet-grid-label{ display: none; }
-        .leaflet-pane, .leaflet-tile, .leaflet-marker-icon, .leaflet-marker-shadow, .leaflet-tile-container, .leaflet-pane > svg, .leaflet-pane > canvas, .leaflet-zoom-box, .leaflet-image-layer, .leaflet-layer { outline:0.01q dotted black; }
-        .leaflet-zoom-animated { outline:0.01q dotted black; }
+        .leaflet-grid-label{
+            display: none;
+        }
+
+        .leaflet-pane, .leaflet-tile,
+        .leaflet-marker-icon, .leaflet-marker-shadow, 
+        .leaflet-tile-container, .leaflet-pane > svg, 
+        .leaflet-pane > canvas, .leaflet-zoom-box, 
+        .leaflet-image-layer, .leaflet-layer{
+
+            outline:0.01q dotted black;
+        }
+        .leaflet-pane, .leaflet-tile,
+        .leaflet-marker-icon, .leaflet-marker-shadow, 
+        .leaflet-tile-container, .leaflet-pane > svg, 
+        .leaflet-pane > canvas, .leaflet-zoom-box, 
+        .leaflet-image-layer, .leaflet-layer:focus{
+
+            outline:0.01q dotted black;
+        }
+
+        .leaflet-zoom-animated {
+
+            outline:0.01q dotted black;
+        }
+
+        .leaflet-grid-label .lng,
+        .leaflet-grid-label .lat {
+            color: #333;
+            font-size: 12px;
+            font-weight: bold;
+        }
 
         #map { 
             width: 100%; height: 80vh; border-radius: 20px; background-color:transparent;
@@ -257,64 +257,132 @@
         .dropdown-item:last-child { border: none; }
 
         /* --- RED TRASH CAN --- */
-        .delete-btn { background: none; border: none; cursor: pointer; padding: 10px; margin-left: auto; color: #FF4444; z-index: 50; }
-        .delete-btn:hover { color: #ff8888; transform: scale(1.1); }
-        .delete-btn svg { width: 20px; height: 20px; stroke-width: 2; }
+        .delete-btn {
+            background: none;
+            border: none;
+            cursor: pointer;
+            padding: 10px;
+            margin-left: auto; /* Pushes to the right */
+            color: #FF4444; /* Bright Red */
+            z-index: 50;
+        }
+        .delete-btn:hover {
+            color: #ff8888; /* Lighter red on hover */
+            transform: scale(1.1);
+        }
+        .delete-btn svg {
+            width: 20px; height: 20px; stroke-width: 2;
+        }
 
         /* --- CONFIRMATION POPUP STYLES --- */
-        #confirm-modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 9000; align-items: center; justify-content: center; }
-        .confirm-box { background: #1E1E1E; border: 1px solid #333; padding: 25px; border-radius: 16px; text-align: center; width: 80%; max-width: 300px; box-shadow: 0 10px 30px rgba(0,0,0,0.8); }
-        .confirm-btn-group { display: flex; gap: 10px; margin-top: 20px; }
-        .btn-yes { flex: 1; background: #FF4444; color: white; border: none; padding: 12px; border-radius: 8px; font-weight: bold; cursor: pointer; }
-        .btn-no { flex: 1; background: #333; color: white; border: none; padding: 12px; border-radius: 8px; font-weight: bold; cursor: pointer; }
+        #confirm-modal {
+            display: none;
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.8); z-index: 9000;
+            align-items: center; justify-content: center;
+        }
+        .confirm-box {
+            background: #1E1E1E; border: 1px solid #333;
+            padding: 25px; border-radius: 16px; text-align: center;
+            width: 80%; max-width: 300px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.8);
+        }
+        .confirm-btn-group {
+            display: flex; gap: 10px; margin-top: 20px;
+        }
+        .btn-yes {
+            flex: 1; background: #FF4444; color: white; border: none;
+            padding: 12px; border-radius: 8px; font-weight: bold; cursor: pointer;
+        }
+        .btn-no {
+            flex: 1; background: #333; color: white; border: none;
+            padding: 12px; border-radius: 8px; font-weight: bold; cursor: pointer;
+        }
 
-        .game-overlay.active { background: rgba(0,0,0,0.7) !important; }
-        .game-overlay.active .play-btn { transform: scale(1) !important; opacity: 1 !important; }
-        .game-card:active { transform: scale(0.98); }
+        .game-overlay.active {
+            background: rgba(0,0,0,0.7) !important;
+        }
+
+        .game-overlay.active .play-btn {
+            transform: scale(1) !important;
+            opacity: 1 !important;
+        }
+
+        .game-card:active {
+            transform: scale(0.98);
+        }
 
         /* --- UNREAD INDICATOR --- */
-        .msg-item.unread { border: 1px solid var(--accent) !important; background: #1a1a1a; }
+        .msg-item.unread {
+            border: 1px solid var(--accent) !important; /* Purple Border */
+            background: #1a1a1a; /* Slightly lighter background */
+        }
 
         /* --- VIDEO FEED STYLES --- */
-        .feed-layout-swipe { display: flex; flex-direction: column; gap: 0; height: 100%; overflow-y: scroll; scroll-snap-type: y mandatory; }
-        .feed-layout-swipe .video-item { width: 100%; height: 100%; margin-bottom: 20px; background: #000; border-bottom: 1px solid #333; scroll-snap-align: start; position: relative; }
+        .feed-layout-swipe {
+            display: flex; flex-direction: column; gap: 0; 
+            height: 100%; overflow-y: scroll; scroll-snap-type: y mandatory;
+        }
+        .feed-layout-swipe .video-item {
+            width: 100%; height: 100%; margin-bottom: 20px;
+            background: #000; border-bottom: 1px solid #333;
+            scroll-snap-align: start; position: relative;
+        }
         .feed-layout-swipe video { width: 100%; height: 400px; object-fit: contain; }
-        .feed-layout-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 2px; padding: 2px; }
-        .feed-layout-grid .video-item { aspect-ratio: 9/16; background: #222; position: relative; }
+
+        .feed-layout-grid {
+            display: grid; grid-template-columns: 1fr 1fr 1fr; 
+            gap: 2px; padding: 2px;
+        }
+        .feed-layout-grid .video-item {
+            aspect-ratio: 9/16; background: #222; position: relative;
+        }
         .feed-layout-grid video { width: 100%; height: 100%; object-fit: cover; }
         .feed-layout-grid .vid-details { display: none; }
         
-        #loading-overlay { position: fixed; inset: 0; background: #000; z-index: 9999; display: flex; align-items: center; justify-content: center; flex-direction: column; }
-        .spinner { width: 40px; height: 40px; border: 4px solid #333; border-top: 4px solid var(--accent); border-radius: 50%; animation: spin 1s linear infinite; margin-bottom: 20px; }
+        #loading-overlay {
+            position: fixed; inset: 0; background: #000; z-index: 9999;
+            display: flex; align-items: center; justify-content: center;
+            flex-direction: column;
+        }
+        .spinner {
+            width: 40px; height: 40px; border: 4px solid #333;
+            border-top: 4px solid var(--accent); border-radius: 50%;
+            animation: spin 1s linear infinite; margin-bottom: 20px;
+        }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
 
         /* --- THROB ANIMATION FOR EMPTY STATE --- */
-        @keyframes throb { 0% { transform: scale(1); opacity: 0.5; } 50% { transform: scale(1.05); opacity: 0.8; } 100% { transform: scale(1); opacity: 0.5; } }
-        .empty-throb-img { width: 150px; height: 150px; object-fit: contain; animation: throb 2s infinite ease-in-out; }
-        .empty-throb-text { color: gray; font-size: 14px; font-weight: bold; margin-top: 20px; font-family: monospace; letter-spacing: 1px; }
-        .loading-dots::after { content: ''; animation: dot-steps 2s infinite steps(4); }
-        @keyframes dot-steps { 0% { content: ""; } 25% { content: "."; } 50% { content: ".."; } 75% { content: "..."; } }
-
-        /* 2. ADMIN PANEL & 6. WALLET STYLES */
-        .admin-panel {
-            position: fixed; top: 100px; left: 20px; background: rgba(0,0,0,0.9);
-            border: 2px solid var(--danger); padding: 15px; border-radius: 12px; z-index: 9999;
-            color: white; display: none; width: 250px;
+        @keyframes throb {
+            0% { transform: scale(1); opacity: 0.5; }
+            50% { transform: scale(1.01); opacity: 0.8; }
+            100% { transform: scale(1); opacity: 0.5; }
         }
-        .admin-btn { background: var(--danger); color: white; border: none; padding: 5px 10px; border-radius: 4px; font-weight: bold; cursor: pointer; margin-top: 5px; width: 100%; }
-        
-        /* Wallet */
-        .coin-balance { text-align: center; font-size: 24px; font-weight: 800; color: #fbbf24; margin: 20px 0; }
-        .buy-btn { background: #333; border: 1px solid #444; color: white; padding: 12px; border-radius: 8px; width: 100%; margin-bottom: 8px; cursor: pointer; display: flex; justify-content: space-between; }
-        .buy-btn:hover { border-color: var(--accent); }
+        .empty-throb-img {
+            width: 150px; height: 150px; object-fit: contain;
+            animation: throb 5s infinite ease-in-out;
+        }
+        .empty-throb-text {
+            color: gray; font-size: 14px; font-weight: bold; margin-top: 20px;
+            font-family: monospace; letter-spacing: 1px;
+        }
+        /* --- ANIMATED DOTS --- */
+        .loading-dots::after {
+            content: '';
+            animation: dot-steps 5s infinite steps(4);
+        }
+        @keyframes dot-steps {
+            0% { content: ""; }
+            25% { content: "."; }
+            50% { content: ".."; }
+            75% { content: "..."; }
+        }
     </style>
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
         import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-        import { getFirestore, collection, doc, setDoc, getDocs, addDoc, query, orderBy, onSnapshot, limit, serverTimestamp, updateDoc, increment, getDoc, deleteDoc, where } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js"; 
-        // 1. Fix Firebase Imports
-        import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-storage.js";
+        import { getFirestore, collection, doc, setDoc, getDocs, addDoc, query, orderBy, onSnapshot, limit, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js"; 
 
         const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : {
             apiKey: "AIzaSyDFmhk3ybnsVsFenCE3xvdmy5y_4u9ss7o", 
@@ -329,16 +397,17 @@
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
         const db = getFirestore(app); 
-        const storage = getStorage(app);
         
+        // --- 1. STRICT PATH ID ---
+        // We use a global ID to scope the app data.
         const APP_ID = typeof __app_id !== 'undefined' ? __app_id : "playgroundX_Prod_v1";
 
+        // THIS IS THE KEY: We attach these to 'window' so script.js can see them
         window.db = db;
         window.auth = auth;
-        window.storage = storage;
         window.APP_ID = APP_ID;
         window.fbase = {
-            collection, doc, setDoc, getDocs, addDoc, query, orderBy, onSnapshot, limit, serverTimestamp, signInAnonymously, onAuthStateChanged, updateDoc, increment, getDoc, deleteDoc, where, ref, uploadBytes, getDownloadURL
+            collection, doc, setDoc, getDocs, addDoc, query, orderBy, onSnapshot, limit, serverTimestamp, signInAnonymously, onAuthStateChanged
         }; 
 
         console.log("Firebase Global Tools Loaded ✅");
@@ -347,17 +416,9 @@
 </head>
 <body>
 
-<!-- 2. Admin Panel -->
-<div id="admin-panel" class="admin-panel">
-    <h3 style="margin-top:0;">⚡ God Mode</h3>
-    <button class="admin-btn" onclick="window.createFakeUser()">+ Create Fake User</button>
-    <div style="margin-top:10px; font-size:12px; color:#aaa;">Click a profile to Force Delete</div>
-</div>
-
 <div id="age-gate" style="position: fixed; inset: 0; background: rgba(0,0,0,0.9); z-index: 99999; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; backdrop-filter: blur(10px);">
     <h2 style="color: white; margin-bottom: 10px;">Adults Only</h2>
     <p style="color: #ccc; margin-bottom: 30px; font-size: 18px;">Confirm you are 18+</p>
-    <input type="password" id="admin-pass" placeholder="Admin Code (Optional)" style="background:#222; border:1px solid #444; color:white; padding:8px; border-radius:4px; margin-bottom:20px;">
     <div style="display: flex; gap: 20px;">
         <button onclick="window.handleAge(true)" style="background: var(--accent); color: white; border: none; padding: 12px 24px; border-radius: 8px; font-weight: bold; font-size: 16px; cursor: pointer;">Yes, I am</button>
         <button onclick="window.handleAge(false)" style="background: #333; color: white; border: 1px solid #555; padding: 12px 24px; border-radius: 8px; font-weight: bold; font-size: 16px; cursor: pointer;">No, I'm not</button>
@@ -366,7 +427,7 @@
 
 <div id="location-gate" style="display:none; position: fixed; inset: 0; background: rgba(0,0,0,0.9); z-index: 99999; flex-direction: column; align-items: center; justify-content: center; text-align: center; backdrop-filter: blur(10px);">
     <div style="background: #1E1E1E; padding: 30px; border-radius: 20px; max-width: 90%; width: 350px; border: 1px solid #333;">
-        <div style="font-size: 40px; margin-bottom: 20px;">📍</div>
+        <div style="font-size: 40px; margin-bottom: 20px;"></div>
         <h2 style="color: white; margin: 0 0 10px 0;">Enable Location</h2>
         <p style="color: #ccc; margin-bottom: 20px; font-size: 14px; line-height: 1.5;">
             To match you with people nearby, we need your location. <br><br>
@@ -384,17 +445,11 @@
 
 <div id="header">
     <div style="display: flex; align-items: center;" onclick="location.reload()">
-        <!-- 16. Connection Dot -->
-        <div id="connection-dot" class="online"></div>
+        <div style="background: var(--accent); color: white; width: 35px; height: 35px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 20px; margin-right: 10px;">X</div>
         <h1 style="color: white; margin: 0; font-size: 20px;">playground<span style="color: var(--accent);">X</span></h1>
     </div>
 
     <div class="header-icons" style="display: flex; align-items: center; gap: 15px;">
-        <!-- 15. Upload Status -->
-        <div id="upload-status">
-            <div class="mini-spinner"></div>
-            <span>Processing...</span>
-        </div>
 
         <button class="icon-btn" onclick="window.openVideoFeed()" style="background: none; border: none; padding: 0; cursor: pointer;">
             <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -403,8 +458,7 @@
             </svg>
         </button>
         
-        <!-- Studio Button -->
-        <button class="icon-btn" onclick="window.openStudio()" style="background: none; border: none; padding: 0; cursor: pointer;">
+        <button class="icon-btn" onclick="document.getElementById('camera-modal').style.display='block'" style="background: none; border: none; padding: 0; cursor: pointer;">
             <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                 <path d="M23 7l-7 5 7 5V7z"></path>
                 <rect x="1" y="5" width="15" height="14" rx="2" ry="2"></rect>
@@ -427,7 +481,7 @@
         </div>
 
         <div id="user-icon-trigger" onclick="window.toggleUserMenu()" style="width: 40px; height: 40px; background: #222; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; border: 1px solid #444;">
-            <svg id="header-user-svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
         </div>
 
     </div>
@@ -484,15 +538,7 @@
         <h2 style="font-size: 18px; margin: 0; color: white;">Edit Profile</h2>
         <button onclick="window.saveProfile()" style="background: none; border: none; color: var(--accent); font-weight: bold;">Save</button>
     </div>
-    
-    <!-- 6. Wallet Tab Header -->
-    <div style="display:flex; border-bottom:1px solid #333;">
-        <button onclick="window.switchProfileTab('edit')" class="tab-btn active">Edit</button>
-        <button onclick="window.switchProfileTab('wallet')" class="tab-btn">Wallet</button>
-    </div>
-
-    <!-- Edit Tab -->
-    <div id="tab-p-edit" style="padding: 20px; max-width: 500px; margin: 0 auto; display:block;">
+    <div style="padding: 20px; max-width: 500px; margin: 0 auto;">
         
         <div><label class="filter-label" style="margin-top:0;">DISPLAY NAME (ALIAS)</label><input type="text" id="p-alias" class="style-input" placeholder="e.g. Jay_Rocker"></div>
 
@@ -504,7 +550,6 @@
             </div>
         </div>
 
-        <!-- 7. Functional Gallery Uploads -->
         <div class="gallery-grid">
             <div class="gallery-slot" style="border-color:var(--accent); position:relative; padding:0;">
                <img id="g1-preview" src="" style="width:100%; height:100%; object-fit:cover; display:none;">
@@ -514,90 +559,124 @@
             <div class="gallery-slot"><input type="file" id="g3" hidden><label for="g3">+</label></div>
             <div class="gallery-slot"><input type="file" id="g4" hidden><label for="g4">+</label></div>
             <div class="gallery-slot">
-                <input type="file" id="vid-up" hidden accept="video/*" onchange="window.handleVideoUpload(event)">
+                <input type="file" id="vid-up" hidden accept="video/*" onchange="window.previewVideo(event)">
                 <label for="vid-up">▶</label>
                 <video id="vid-preview" style="display:none;" autoplay muted loop></video>
             </div>
         </div>
 
-        <div style="display: flex; flex-direction: column; gap: 10px; margin-bottom: 50px;">
-            
-            <!-- 11. Layout Adjustment: Name/Bio -->
-            
-            <div><label class="filter-label" style="margin-top:0;">BIO</label><textarea id="p-bio" style="width: 100%; background: #111; border: 1px solid #333; padding: 12px; border-radius: 10px; color: white;"></textarea></div>
+<div style="display: flex; flex-direction: column; gap: 10px; margin-bottom: 50px;">
+    
+    <div><label class="filter-label" style="margin-top:0;">BIO</label><textarea id="p-bio" style="width: 100%; background: #111; border: 1px solid #333; padding: 12px; border-radius: 10px; color: white;"></textarea></div>
 
-            <!-- 8. Explicit Content Switch -->
-            <div class="toggle-row"><span>Show Explicit Content</span><input type="checkbox" id="p-explicit-pref" class="toggle-checkbox"><label for="p-explicit-pref" class="toggle-switch"></label></div>
-            <div class="toggle-row"><span>Use GPS Location</span><input type="checkbox" id="p-use-gps" class="toggle-checkbox" checked onchange="window.toggleAccordion('loc-manual', !this.checked)"><label for="p-use-gps" class="toggle-switch"></label></div>
-            <div id="loc-manual" class="accordion-content"><input type="text" class="style-input" placeholder="Enter City..."></div>
+    <div class="toggle-row"><span>Show Explicit Content</span><input type="checkbox" id="p-explicit" class="toggle-checkbox"><label for="p-explicit" class="toggle-switch"></label></div>
+    <div class="toggle-row"><span>Use GPS Location</span><input type="checkbox" id="p-use-gps" class="toggle-checkbox" checked onchange="window.toggleAccordion('loc-manual', !this.checked)"><label for="p-use-gps" class="toggle-switch"></label></div>
+    <div id="loc-manual" class="accordion-content"><input type="text" class="style-input" placeholder="Enter City..."></div>
 
-            <label class="filter-label">GENDER</label>
-            <div class="toggle-row" onclick="window.toggleProfileAcc('acc-gender')">
-                <span id="disp-gender">Select Gender...</span>
-                <span style="color:#666;">▼</span>
-            </div>
-            <div id="acc-gender" class="accordion-content">
-                <label class="radio-option" onclick="window.selectProfileOption('disp-gender', 'Man', 'acc-gender')">Man</label>
-                <label class="radio-option" onclick="window.selectProfileOption('disp-gender', 'Woman', 'acc-gender')">Woman</label>
-                <label class="radio-option" onclick="window.selectProfileOption('disp-gender', 'Non-Binary', 'acc-gender')">Non-Binary</label>
-            </div>
-
-            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
-                <div>
-                    <label class="filter-label">AGE</label>
-                    <input type="number" id="p-age" class="style-input" value="21" style="text-align:center;">
-                </div>
-            </div>
-
-            <!-- 10. Multi-Select Inputs: Vices -->
-            <label class="filter-label">VICES (Check all that apply)</label>
-            <div style="background:#111; padding:10px; border-radius:10px;">
-                <label class="radio-option"><input type="checkbox" class="vice-check" value="Smoker"> Smoker</label>
-                <label class="radio-option"><input type="checkbox" class="vice-check" value="Drinker"> Drinker</label>
-                <label class="radio-option"><input type="checkbox" class="vice-check" value="420"> 420 Friendly</label>
-            </div>
-
-            <!-- 10. Multi-Select Inputs: Children -->
-            <label class="filter-label">CHILDREN</label>
-            <div style="background:#111; padding:10px; border-radius:10px;">
-                <label class="radio-option"><input type="checkbox" class="kids-check" value="Have Kids"> Have Kids</label>
-                <label class="radio-option"><input type="checkbox" class="kids-check" value="Want Kids"> Want Kids</label>
-                <label class="radio-option"><input type="checkbox" class="kids-check" value="No Kids"> No Kids</label>
-            </div>
-
-        </div>
+    <label class="filter-label">GENDER</label>
+    <div class="toggle-row" onclick="window.toggleProfileAcc('acc-gender')">
+        <span id="disp-gender">Select Gender...</span>
+        <span style="color:#666;">▼</span>
+    </div>
+    <div id="acc-gender" class="accordion-content">
+        <label class="radio-option" onclick="window.selectProfileOption('disp-gender', 'Man', 'acc-gender')">Man</label>
+        <label class="radio-option" onclick="window.selectProfileOption('disp-gender', 'Woman', 'acc-gender')">Woman</label>
+        <label class="radio-option" onclick="window.selectProfileOption('disp-gender', 'Non-Binary', 'acc-gender')">Non-Binary</label>
     </div>
 
-    <!-- 6. Wallet Tab -->
-    <div id="tab-p-wallet" style="padding: 20px; display:none;">
-        <div class="coin-balance" id="wallet-balance">0 Coins</div>
-        <p style="color:#888; text-align:center; font-size:13px;">Add funds to tip creators.</p>
-        
-        <label class="filter-label">PAYMENT METHOD</label>
-        <div style="background:#111; padding:15px; border-radius:10px; margin-bottom:20px;">
-            <input type="text" class="style-input" placeholder="Card Number" style="margin-bottom:10px;">
-            <div style="display:flex; gap:10px;">
-                <input type="text" class="style-input" placeholder="MM/YY">
-                <input type="text" class="style-input" placeholder="CVV">
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+        <div>
+            <label class="filter-label">AGE</label>
+            <input type="number" id="p-age" class="style-input" value="21" style="text-align:center;">
+        </div>
+        <div>
+            <label class="filter-label">BODY TYPE</label>
+            <div class="toggle-row" onclick="window.toggleProfileAcc('acc-body')" style="justify-content:center;">
+                <span id="disp-body">Average</span>
             </div>
         </div>
+    </div>
+    <div id="acc-body" class="accordion-content">
+        <label class="radio-option" onclick="window.selectProfileOption('disp-body', 'Average', 'acc-body')">Average</label>
+        <label class="radio-option" onclick="window.selectProfileOption('disp-body', 'Athletic', 'acc-body')">Athletic</label>
+        <label class="radio-option" onclick="window.selectProfileOption('disp-body', 'Curvy', 'acc-body')">Curvy</label>
+        <label class="radio-option" onclick="window.selectProfileOption('disp-body', 'Muscular', 'acc-body')">Muscular</label>
+    </div>
 
-        <button class="buy-btn" onclick="window.buyCoins(100)"><span>100 Coins</span><span>$14.99</span></button>
-        <button class="buy-btn" onclick="window.buyCoins(500)"><span>500 Coins</span><span>$64.99</span></button>
-        <button class="buy-btn" onclick="window.buyCoins(1000)"><span>1000 Coins</span><span>$99.99</span></button>
+    <label class="filter-label">RELATIONSHIP TYPE</label>
+    <div class="toggle-row" onclick="window.toggleProfileAcc('acc-rel')">
+        <span id="disp-rel">Select Type...</span>
+        <span style="color:#666;">▼</span>
+    </div>
+    <div id="acc-rel" class="accordion-content">
+        <label class="radio-option" onclick="window.selectProfileOption('disp-rel', 'Marriage', 'acc-rel')">Marriage</label>
+        <label class="radio-option" onclick="window.selectProfileOption('disp-rel', 'Long-Term', 'acc-rel')">Long-Term</label>
+        <label class="radio-option" onclick="window.selectProfileOption('disp-rel', 'Short-Term', 'acc-rel')">Short-Term</label>
+        <label class="radio-option" onclick="window.selectProfileOption('disp-rel', 'Fun', 'acc-rel')">Fun</label>
+    </div>
+
+    <label class="filter-label">LOVE LANGUAGE</label>
+    <div class="toggle-row" onclick="window.toggleProfileAcc('acc-love')">
+        <span id="disp-love">Select Love Language...</span>
+        <span style="color:#666;">▼</span>
+    </div>
+    <div id="acc-love" class="accordion-content">
+        <label class="radio-option" onclick="window.selectProfileOption('disp-love', 'Words of Affirmation', 'acc-love')">Words of Affirmation</label>
+        <label class="radio-option" onclick="window.selectProfileOption('disp-love', 'Acts of Service', 'acc-love')">Acts of Service</label>
+        <label class="radio-option" onclick="window.selectProfileOption('disp-love', 'Receiving Gifts', 'acc-love')">Receiving Gifts</label>
+        <label class="radio-option" onclick="window.selectProfileOption('disp-love', 'Quality Time', 'acc-love')">Quality Time</label>
+        <label class="radio-option" onclick="window.selectProfileOption('disp-love', 'Physical Touch', 'acc-love')">Physical Touch</label>
+    </div>
+
+    <label class="filter-label">VICES</label>
+    <div class="toggle-row" onclick="window.toggleProfileAcc('acc-vices')">
+        <span id="disp-vices">None</span>
+        <span style="color:#666;">▼</span>
+    </div>
+    <div id="acc-vices" class="accordion-content">
+        <label class="radio-option" onclick="window.selectProfileOption('disp-vices', 'None', 'acc-vices')">None</label>
+        <label class="radio-option" onclick="window.selectProfileOption('disp-vices', 'Smoker', 'acc-vices')">Smoker</label>
+        <label class="radio-option" onclick="window.selectProfileOption('disp-vices', 'Social Drinker', 'acc-vices')">Social Drinker</label>
+        <label class="radio-option" onclick="window.selectProfileOption('disp-vices', '420 Friendly', 'acc-vices')">420 Friendly</label>
+    </div>
+
+</div>
+
     </div>
 </div>
 
 <div id="filter-modal" class="modal" style="background: rgba(0,0,0,0.9);">
-    <!-- Filter content omitted for brevity but logic remains -->
     <div class="filter-content" style="background: #1A1A1A; width: 85%; max-width: 400px; height: 100%; float: right; padding: 30px; overflow-y: auto;">
-        <h2 style="margin-top:0;">Refine Search</h2>
-        <button onclick="document.getElementById('filter-modal').style.display='none'" style="float:right; margin-top:-30px; background:none; border:none; color:white; font-size:24px;">✕</button>
-        <!-- Standard filters -->
+        <div style="display: flex; justify-content: space-between; margin-bottom: 30px;">
+            <h2 style="margin: 0;">Refine Search</h2>
+            <button onclick="document.getElementById('filter-modal').style.display='none'" style="background: none; border: none; color: white; font-size: 24px;">✕</button>
+        </div>
+        
+        <label class="filter-label">I'M LOOKING FOR</label>
+        <div class="toggle-row"><span>Men</span><input type="checkbox" id="f-men" class="toggle-checkbox" onchange="window.toggleAccordion('men-age', this.checked)"><label for="f-men" class="toggle-switch"></label></div>
+        <div id="men-age" class="accordion-content"><div style="display:flex; gap:10px;"><input type="number" placeholder="18" class="style-input"><input type="number" placeholder="99" class="style-input"></div></div>
+
+        <div class="toggle-row"><span>Women</span><input type="checkbox" id="f-women" class="toggle-checkbox" onchange="window.toggleAccordion('women-age', this.checked)"><label for="f-women" class="toggle-switch"></label></div>
+        <div id="women-age" class="accordion-content"><div style="display:flex; gap:10px;"><input type="number" placeholder="18" class="style-input"><input type="number" placeholder="99" class="style-input"></div></div>
+
+        <div class="toggle-row"><span>Transgender</span><input type="checkbox" id="f-trans" class="toggle-checkbox" onchange="window.toggleAccordion('trans-age', this.checked)"><label for="f-trans" class="toggle-switch"></label></div>
+        <div id="trans-age" class="accordion-content"><div style="display:flex; gap:10px;"><input type="number" placeholder="18" class="style-input"><input type="number" placeholder="99" class="style-input"></div></div>
+
+        <label class="filter-label">DISTANCE: <span id="dist-val" style="color:var(--accent)">50 mi</span></label>
+        <input type="range" min="1" max="200" value="50" oninput="document.getElementById('dist-val').innerText = this.value + ' mi'" style="accent-color: var(--accent); width: 100%;">
+
+        <label class="filter-label">RELATIONSHIP TYPE</label>
+        <div class="toggle-row"><span>Select Type</span><input type="checkbox" id="t-rt" class="toggle-checkbox" onchange="window.toggleAccordion('ac-rt', this.checked)"><label for="t-rt" class="toggle-switch"></label></div>
+        <div id="ac-rt" class="accordion-content"><label class="radio-option"><input type="checkbox" class="f-rt" value="Marriage"> Marriage</label><label class="radio-option"><input type="checkbox" class="f-rt" value="Long-Term"> Long-Term</label><label class="radio-option"><input type="checkbox" class="f-rt" value="Short-Term"> Short-Term</label><label class="radio-option"><input type="checkbox" class="f-rt" value="No strings"> No Strings</label><label class="radio-option"><input type="checkbox" class="f-rt" value="Friendship"> Friendship</label></div>
+
+        <label class="filter-label">VICES</label>
+        <div class="toggle-row"><span>Select Vices</span><input type="checkbox" id="t-vice" class="toggle-checkbox" onchange="window.toggleAccordion('ac-vice', this.checked)"><label for="t-vice" class="toggle-switch"></label></div>
+        <div id="ac-vice" class="accordion-content"><label class="radio-option"><input type="checkbox" class="f-vice" value="Smoker"> Smoker</label><label class="radio-option"><input type="checkbox" class="f-vice" value="420 Friendly"> 420 Friendly</label><label class="radio-option"><input type="checkbox" class="f-vice" value="Social Drinker"> Social Drinker</label></div>
+
         <button onclick="window.applyFilters()" style="width:100%; background: var(--accent); padding: 15px; border-radius: 12px; border:none; color:white; font-weight:bold; margin-top: 20px;">Apply Filters</button>
+        <div style="height: 50px;"></div> 
     </div>
 </div>
-
 <div id="view-user-modal" class="modal">
     <div class="modal-header">
         <button class="back-arrow-btn" onclick="document.getElementById('view-user-modal').style.display='none'">
@@ -607,9 +686,8 @@
         <div style="position:relative;">
             <button onclick="window.toggleReportMenu()" style="background: none; border: none; color: var(--warning); font-size: 24px; font-weight: bold;">✕</button>
             <div id="report-menu" class="dropdown-menu">
-                <button onclick="window.reportUser('block')" class="dropdown-item">🚫 Block User</button>
-                <button onclick="window.reportUser('report')" class="dropdown-item">⚠️ Report User</button>
-                <button id="admin-delete-btn" onclick="window.forceDeleteUser()" class="dropdown-item" style="display:none; color:red;">🔥 Force Delete</button>
+                <button onclick="alert('Blocked!');" class="dropdown-item">🚫 Block User</button>
+                <button onclick="alert('Reported!');" class="dropdown-item">⚠️ Report User</button>
             </div>
         </div>
     </div>
@@ -627,17 +705,10 @@
             <div class="gallery-slot" style="background: #222; border-color: var(--accent);">▶</div>
         </div>
         
-        <!-- 11. Layout Adjustment -->
-        <div style="margin-top:10px;">
-            <h1 id="view-user-name" style="margin: 0; font-size: 28px; color: var(--accent);">Alias</h1>
-            <p style="color: #666; font-size: 13px; font-weight: bold; margin-bottom: 15px;">Verified Member ✓</p>
-        </div>
+        <h1 id="view-user-name" style="margin: 0; font-size: 28px; color: var(--accent);">Alias</h1>
+        <p style="color: #666; font-size: 13px; font-weight: bold; margin-bottom: 15px;">Verified Member ✓</p>
 
         <div class="stats-grid" id="view-user-chips"></div>
-        
-        <!-- 6. Tipping -->
-        <button onclick="window.tipUser()" style="background:#fbbf24; border:none; border-radius:20px; padding:5px 15px; font-weight:bold; margin-bottom:10px;">🪙 Tip 10 Coins</button>
-
         <p style="color: #ccc; line-height: 1.5; margin-bottom: 50px;" id="view-user-bio">...</p>
     </div>
 
@@ -648,430 +719,729 @@
 </div>
 
 <div id="msg-modal" class="modal">
-    <!-- Chat Modal Content (Simplified) -->
-    <div class="modal-header"><button class="back-arrow-btn" onclick="window.closeChat()">←</button><h2>Connect</h2><div></div></div>
-    <div id="msg-list-view"><div id="tab-chats" class="tab-pane active" style="padding:20px;"></div></div>
-    <div id="chat-view" style="display:none;"><div id="chat-body"></div><div class="chat-input-area"><input class="chat-input"><button>Send</button></div></div>
+    <div class="modal-header">
+        <button class="back-arrow-btn" onclick="window.closeChat()">
+            <svg viewBox="0 0 24 24" fill="none" stroke-width="2"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
+        </button>
+        <h2 style="font-size: 18px; margin: 0; color: white;">Connect</h2>
+        <div style="width: 24px;"></div>
+    </div>
+    
+    <div id="msg-list-view">
+        <div class="tab-group">
+            <button class="tab-btn active" onclick="window.openTab('tab-winks', this)">Winks</button>
+            <button class="tab-btn" onclick="window.openTab('tab-chats', this)">Messages</button>
+        </div>
+        <div id="tab-winks" class="tab-pane active"></div>
+
+        <div id="tab-chats" class="tab-pane">
+            
+        </div>
+    </div>
+
+    <div id="chat-view">
+        <div style="padding:10px; background:#111; border-bottom:1px solid #333; display:flex; align-items:center; gap:10px;">
+            <div style="width:30px; height:30px; background:#444; border-radius:50%;"></div>
+            <span style="font-weight:bold; color:white;" id="chat-target-name">User</span>
+        </div>
+        <div id="chat-body">
+            
+        </div>
+        <div class="chat-input-area">
+            <input type="text" class="chat-input" placeholder="Type a message...">
+            <button style="background:var(--accent); color:white; border:none; padding:8px 15px; border-radius:15px;">Send</button>
+        </div>
+    </div>
 </div>
 
-<!-- 4. Studio Modal -->
-<div id="camera-modal" class="modal">
+<div id="confirm-modal" style="display:none;"> 
+    <div class="confirm-box">
+        <h3 style="color:white; margin-top:0;">Delete Item?</h3>
+        <p style="color:#aaa; font-size:14px;">Are you sure you want to remove this? This cannot be undone.</p>
+        <div class="confirm-btn-group">
+            <button class="btn-no" onclick="window.closeConfirm()">No</button>
+            <button class="btn-yes" onclick="window.confirmYes()">Yes, Delete</button>
+        </div>
+    </div>
+</div>
+
+
+    <div id="camera-modal" class="modal">
     <div class="modal-header">
         <button class="back-arrow-btn" onclick="document.getElementById('camera-modal').style.display='none'">
             <svg viewBox="0 0 24 24" fill="none" stroke-width="2"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
         </button>
         <h2 style="font-size: 18px; margin: 0; color: white;">Studio</h2>
-        <div style="display:flex; align-items:center; gap:5px;">
-            <span style="font-size:12px; font-weight:bold; color:red;">LIVE</span>
-            <input type="checkbox" id="live-toggle" onchange="window.toggleLive(this)">
-        </div> 
-    </div>
-    <div style="padding: 20px;">
-        <video id="local-live-preview" autoplay muted playsinline style="width:100%; border-radius:10px; background:#111; aspect-ratio:9/16; object-fit:cover; display:none;"></video>
-        <h3 style="color:white; margin-top:20px;">Live Now</h3>
-        <div id="live-grid" class="grid-container"></div>
+        <div style="width: 24px;"></div> </div>
+    <div style="padding: 20px; text-align: center; color: #666; margin-top: 50px;">
+        <svg width="60" height="60" viewBox="0 0 24 24" fill="none" stroke="#444" stroke-width="1.5" style="margin-bottom:20px;">
+             <path d="M23 7l-7 5 7 5V7z"></path><rect x="1" y="5" width="15" height="14" rx="2" ry="2"></rect>
+        </svg>
+        <h3 style="color:white;">Content Studio</h3>
+        <p>Record and upload your clips here.</p>
     </div>
 </div>
 
+
 <div id="game-modal" class="modal">
     <div class="modal-header">
-        <button class="back-arrow-btn" onclick="window.closeArcade()">←</button><h2>Arcade</h2><div></div>
+        <button class="back-arrow-btn" onclick="window.closeArcade()">
+            <svg viewBox="0 0 24 24" fill="none" stroke-width="2"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
+        </button>
+        <h2 style="font-size: 18px; margin: 0; color: white;">Arcade</h2>
+        <div style="width: 24px;"></div> 
     </div>
-    <div id="arcade-grid" class="grid-container" style="padding: 15px; display: grid; grid-template-columns: 1fr 1fr; gap: 15px;"></div>
+
+    <div id="arcade-grid" class="grid-container" style="padding: 15px; display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+        </div>
+
     <div id="game-player" style="display:none; position: absolute; inset: 60px 0 0 0; background: #000; z-index: 10;">
         <iframe id="game-frame" src="" style="width:100%; height:100%; border:none;"></iframe>
-        <button onclick="window.closeGame()" style="position:absolute; top: 10px; right: 10px; background: rgba(0,0,0,0.6); color:white;">✕</button>
+        <button onclick="window.closeGame()" style="position:absolute; top: 10px; right: 10px; background: rgba(0,0,0,0.6); color:white; border:none; border-radius:50%; width:40px; height:40px; font-weight:bold;">✕</button>
     </div>
 </div>
 
 <div id="video-modal" class="modal">
     <div class="modal-header">
-        <button class="back-arrow-btn" onclick="document.getElementById('video-modal').style.display='none'">←</button>
+        <button class="back-arrow-btn" onclick="document.getElementById('video-modal').style.display='none'">
+            <svg viewBox="0 0 24 24" fill="none" stroke-width="2"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
+        </button>
+        
         <div style="display:flex; gap:10px; background:#222; padding:4px; border-radius:8px;">
-            <button onclick="window.setVideoMode('swipe')" style="background:none; border:none; cursor:pointer;">Swipe</button>
-            <button onclick="window.setVideoMode('grid')" style="background:none; border:none; cursor:pointer;">Grid</button>
+            <button onclick="window.setVideoMode('swipe')" style="background:none; border:none; cursor:pointer;">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><rect x="5" y="2" width="14" height="20" rx="2" ry="2"></rect></svg>
+            </button>
+            <button onclick="window.setVideoMode('grid')" style="background:none; border:none; cursor:pointer;">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect></svg>
+            </button>
         </div>
+
         <div>
             <label for="video-upload-input" style="color: var(--accent); font-weight: bold; cursor: pointer; font-size:24px;">+</label>
             <input type="file" id="video-upload-input" hidden accept="video/*" onchange="window.handleVideoUpload(event)">
         </div>
     </div>
+
     <div id="video-feed-content" style="padding: 10px; padding-bottom: 80px;"></div>
 </div>
+
 
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
 <script>
 document.addEventListener('DOMContentLoaded', () => {
-    let currentUserUid = null;
-    let isAdmin = false;
-    let nsfwModel = null;
-    let activeDeck = [];
-    
-    // --- 14. NSFWJS Loading ---
-    async function loadNSFW() {
-        try {
-            nsfwModel = await nsfwjs.load();
-            console.log("NSFW Model Loaded");
-        } catch(e) { console.error("NSFW Load Fail", e); }
-    }
-    loadNSFW();
 
-    // --- 16. Connection Indicator ---
-    window.addEventListener('online', updateConnection);
-    window.addEventListener('offline', updateConnection);
-    function updateConnection() {
-        const dot = document.getElementById('connection-dot');
-        if(navigator.onLine) { dot.className = 'online'; }
-        else { dot.className = 'offline'; }
-    }
-
-    // --- 2. ADMIN & AUTH ---
     window.handleAge = function(isAdult) {
-        const pass = document.getElementById('admin-pass').value;
-        if (pass === "admin123") {
-            isAdmin = true;
-            document.getElementById('admin-panel').style.display = 'block';
-            document.getElementById('admin-delete-btn').style.display = 'block';
-            document.getElementById('age-gate').style.display = 'none';
-            alert("GOD MODE ENABLED");
-            return;
-        }
-
         if (isAdult) {
-            // Transitions
             const ageGate = document.getElementById('age-gate');
             const locGate = document.getElementById('location-gate');
+            
+            // Fade out Age
+            ageGate.style.transition = "opacity 0.5s";
             ageGate.style.opacity = "0";
+            
             setTimeout(() => {
                 ageGate.style.display = 'none';
+                
+                // Prepare Location Gate
+                locGate.style.opacity = "0";
                 locGate.style.display = 'flex';
+                
+                // Trigger reflow
+                void locGate.offsetWidth; 
+                
+                // Fade in Location
+                locGate.style.transition = "opacity 0.5s";
+                locGate.style.opacity = "1";
             }, 500);
-        } else {
-            window.location.href = "https://google.com";
-        }
-    }
-
-    // --- 9. Real Reporting System ---
-    window.reportUser = async function(type) {
-        if (!activeDeck.length) return;
-        const targetId = activeDeck[0].id; // Simplified targeting
-        const ref = window.fbase.doc(window.db, 'artifacts', window.APP_ID, 'public', 'data', 'users', targetId);
-        await window.fbase.updateDoc(ref, { reportCount: window.fbase.increment(1) });
-        alert(type === 'block' ? "User Blocked" : "User Reported");
-        window.userSwipe('left'); // Auto skip
-    }
-
-    window.forceDeleteUser = async function() {
-        if(!isAdmin || !activeDeck.length) return;
-        const targetId = activeDeck[0].id;
-        if(confirm("Admin: Delete this user permanently?")) {
-            await window.fbase.deleteDoc(window.fbase.doc(window.db, 'artifacts', window.APP_ID, 'public', 'data', 'users', targetId));
-            alert("Deleted.");
-            window.userSwipe('left');
-        }
-    }
-
-    window.createFakeUser = async function() {
-        const alias = prompt("Alias:");
-        const age = prompt("Age:");
-        const img = prompt("Image URL:");
-        if(alias) {
-            const col = window.fbase.collection(window.db, 'artifacts', window.APP_ID, 'public', 'data', 'users');
-            await window.fbase.addDoc(col, { alias, age, img, reportCount: 0, isExplicit: false });
-            alert("Fake user created.");
-        }
-    }
-
-    // --- 15. Non-Blocking Upload Logic ---
-    async function uploadWithProgress(file, path) {
-        const status = document.getElementById('upload-status');
-        status.style.display = "flex"; // Show spinner
-        
-        try {
-            // Scan Logic (14)
-            let isExplicit = false;
-            if(nsfwModel) {
-                // Mock scan for now as creating img element is complex async
-                // Real impl would await prediction here
-            }
-
-            const storageRef = window.fbase.ref(window.storage, path);
-            await window.fbase.uploadBytes(storageRef, file);
-            const url = await window.fbase.getDownloadURL(storageRef);
             
-            status.style.display = "none";
-            return { url, isExplicit };
-        } catch (e) {
-            console.error("Upload failed", e);
-            status.style.display = "none";
-            alert("Upload Failed");
-            return null;
-        }
-    }
-
-    window.handleVideoUpload = async function(event) {
-        const file = event.target.files[0];
-        if(!file) return;
-        document.getElementById('video-modal').style.display='none'; // 15. Close modal immediately
-
-        const result = await uploadWithProgress(file, `videos/${currentUserUid}/${Date.now()}.mp4`);
-        if(result) {
-            const col = window.fbase.collection(window.db, 'artifacts', window.APP_ID, 'public', 'data', 'videos');
-            await window.fbase.addDoc(col, {
-                url: result.url,
-                userId: currentUserUid,
-                userAlias: localStorage.getItem('pgX_alias'),
-                isExplicit: false, // In real impl, use result.isExplicit
-                reportCount: 0,
-                timestamp: window.fbase.serverTimestamp()
-            });
-            alert("Upload Complete!");
-        }
-    }
-
-    // --- 7. Save Profile (Fixed & Upgraded) ---
-    window.saveProfile = async function() {
-        const alias = document.getElementById('p-alias').value;
-        const bio = document.getElementById('p-bio').value;
-        const mainInput = document.getElementById('main-up');
-        
-        // 10. Multi-Selects
-        const vices = Array.from(document.querySelectorAll('.vice-check:checked')).map(cb => cb.value);
-        const kids = Array.from(document.querySelectorAll('.kids-check:checked')).map(cb => cb.value);
-        const explicitPref = document.getElementById('p-explicit-pref').checked;
-
-        let imgUrl = localStorage.getItem('my_profile_pic'); // Fallback
-
-        // Upload Main Image
-        if(mainInput.files[0]) {
-            const res = await uploadWithProgress(mainInput.files[0], `users/${currentUserUid}/profile.jpg`);
-            if(res) imgUrl = res.url;
-        }
-
-        // 7. Gallery Uploads (Loop inputs)
-        let gallery = [];
-        for(let i=2; i<=4; i++) {
-            const input = document.getElementById('g'+i);
-            if(input && input.files[0]) {
-                const res = await uploadWithProgress(input.files[0], `users/${currentUserUid}/g${i}.jpg`);
-                if(res) gallery.push(res.url);
-            }
-        }
-
-        const userRef = window.fbase.doc(window.db, 'artifacts', window.APP_ID, 'public', 'data', 'users', currentUserUid);
-        await window.fbase.setDoc(userRef, {
-            alias, bio, img: imgUrl, vices, kids, explicitPref, 
-            galleryImages: gallery, lastSeen: window.fbase.serverTimestamp()
-        }, { merge: true });
-
-        // Save local
-        localStorage.setItem('pgX_alias', alias);
-        localStorage.setItem('my_profile_pic', imgUrl);
-        document.getElementById('profile-modal').style.display = 'none';
-        window.loadMyProfile(); // Refresh
-    }
-
-    // --- 6. Wallet System ---
-    window.switchProfileTab = function(tab) {
-        document.getElementById('tab-p-edit').style.display = tab === 'edit' ? 'block' : 'none';
-        document.getElementById('tab-p-wallet').style.display = tab === 'wallet' ? 'block' : 'none';
-        if(tab === 'wallet') renderWallet();
-    }
-
-    async function renderWallet() {
-        const docSnap = await window.fbase.getDoc(window.fbase.doc(window.db, 'artifacts', window.APP_ID, 'public', 'data', 'users', currentUserUid));
-        const balance = docSnap.data().walletBalance || 0;
-        document.getElementById('wallet-balance').innerText = balance + " Coins";
-    }
-
-    window.buyCoins = async function(amount) {
-        const ref = window.fbase.doc(window.db, 'artifacts', window.APP_ID, 'public', 'data', 'users', currentUserUid);
-        await window.fbase.updateDoc(ref, { walletBalance: window.fbase.increment(amount) });
-        alert(`Purchased ${amount} coins!`);
-        renderWallet();
-    }
-
-    window.tipUser = async function() {
-        if(!activeDeck.length) return;
-        const targetId = activeDeck[0].id;
-        
-        // Deduct from me
-        const myRef = window.fbase.doc(window.db, 'artifacts', window.APP_ID, 'public', 'data', 'users', currentUserUid);
-        await window.fbase.updateDoc(myRef, { walletBalance: window.fbase.increment(-10) });
-        
-        // Add to them
-        const themRef = window.fbase.doc(window.db, 'artifacts', window.APP_ID, 'public', 'data', 'users', targetId);
-        await window.fbase.updateDoc(themRef, { walletBalance: window.fbase.increment(10) });
-        
-        alert("Tipped 10 Coins!");
-    }
-
-    // --- 4. Studio / Live ---
-    window.openStudio = function() {
-        document.getElementById('camera-modal').style.display = 'block';
-        // Load live users
-        const col = window.fbase.collection(window.db, 'artifacts', window.APP_ID, 'public', 'data', 'users');
-        const q = window.fbase.query(col, window.fbase.where('isLive', '==', true));
-        window.fbase.onSnapshot(q, (snap) => {
-            const grid = document.getElementById('live-grid');
-            grid.innerHTML = snap.docs.map(d => `<div class="grid-item"><img src="${d.data().img}"><div class="grid-overlay">LIVE</div></div>`).join('');
-        });
-    }
-
-    window.toggleLive = async function(checkbox) {
-        const video = document.getElementById('local-live-preview');
-        const ref = window.fbase.doc(window.db, 'artifacts', window.APP_ID, 'public', 'data', 'users', currentUserUid);
-        
-        if (checkbox.checked) {
-            try {
-                const stream = await navigator.mediaDevices.getUserMedia({ video: true });
-                video.srcObject = stream;
-                video.style.display = 'block';
-                await window.fbase.updateDoc(ref, { isLive: true });
-            } catch(e) {
-                alert("Camera access denied");
-                checkbox.checked = false;
-            }
         } else {
-            const stream = video.srcObject;
-            if(stream) stream.getTracks().forEach(t => t.stop());
-            video.style.display = 'none';
-            await window.fbase.updateDoc(ref, { isLive: false });
+            if (history.length > 1) {
+                history.back();
+            } else {
+                window.location.href = "https://google.com";
+            }
+        }
+    }
+    
+    window.requestLocation = function() {
+        if (navigator.geolocation) {
+            navigator.geolocation.getCurrentPosition((position) => {
+                const lat = position.coords.latitude;
+                const lng = position.coords.longitude;
+                window.myLocation = { lat, lng };
+                
+                // Update Map
+                if (window.map) {
+                    window.map.setView([lat, lng], 13);
+                    if(activeDeck) updateMapPins(activeDeck);
+                }
+
+                // Success: Transition to Loader
+                const locGate = document.getElementById('location-gate');
+                const loader = document.getElementById('loading-overlay');
+                
+                // Fade out Location
+                locGate.style.opacity = "0";
+                
+                setTimeout(() => {
+                    locGate.style.display = 'none';
+                    
+                    // Show Loader
+                    loader.style.display = 'flex';
+                    loader.innerHTML = '<div class="spinner"></div><div style="color: #666; font-size: 14px; font-weight: bold;">INITIALIZING SECURE CONNECTION...</div>';
+                    
+                    // Wait 3.5 seconds
+                    setTimeout(() => {
+                        loader.style.opacity = '0'; // Optional fade out for loader
+                        loader.style.transition = 'opacity 0.5s';
+                        setTimeout(() => {
+                            loader.style.display = 'none';
+                        }, 500);
+                    }, 3500);
+                    
+                }, 500);
+                
+            }, (err) => {
+                console.warn("Location permission denied", err);
+                alert("Location access needed to show your position.");
+                // Keep location gate visible or show error?
+                // For now, keep visible so they can try again.
+            });
+        } else {
+            alert("Geolocation not supported.");
         }
     }
 
-    // --- 12. Empty State Icon (SVG) ---
+    // --- CONFIGURATION & GLOBAL STATE ---
+    // MOCKS REMOVED HERE
+    
+    const DATA_REL_TYPE = ['Marriage', 'Long-Term', 'Short-Term', 'Intimacy w/o Connection', 'Friends', 'FWB'];
+
+    let activeDeck = [];
+    let card, startX, currentX, btnLike, btnReject;
+    let currentChatUnsubscribe = null; 
+    let currentChatId = null; 
+    let currentVideoUnsubscribe = null;
+    let currentUserUid = null;
+
+    // --- HELPER FOR EMPTY STATES ---
     function getEmptyStateHTML() {
-        // Reuse SVG from header
-        const svgHTML = document.getElementById('header-user-svg').outerHTML;
         return `
-            <div class="swipe-card" style="border: 2px solid gray; display: flex; align-items: center; justify-content: center; background: #1a1a1a;">
+            <div class="swipe-card" style=" display: flex; align-items: center; justify-content: center; background: #1a1a1a;">
                 <div style="display:flex; flex-direction:column; align-items:center; justify-content:center; height:90%; width:90%;">
-                    <div class="empty-throb-img" style="transform:scale(3);">${svgHTML}</div>
+                    <img src="nousericon.png" class="empty-throb-img">
                     <div class="empty-throb-text">waiting for new users<span class="loading-dots"></span></div>
                 </div>
             </div>
         `;
     }
+    
+    // --- FIRESTORE HELPERS (Rule 1 Compliance) ---
+    const getPublicCollection = (colName) => {
+        return window.fbase.collection(window.db, 'artifacts', window.APP_ID, 'public', 'data', colName);
+    };
 
-    // --- 5. Notifications ---
-    function startNotificationListener() {
-        if(!currentUserUid) return;
-        // Mock query for chats where I am receiver and read is false
-        // In real app, query 'chats' subcollection 'messages'
-        // For simplicity, we just check global 'chats' doc
-        // This is a placeholder for the logic requested
-        const badge = document.getElementById('msg-badge');
-        badge.style.display = 'flex';
-        badge.innerText = '1'; // Mock
-    }
+    // --- 1. CORE BACKEND & INITIALIZATION ---
 
-    // --- INITIALIZATION ---
     window.initBackend = async function() {
         const loading = document.getElementById('loading-overlay');
+        
         try {
+            // 1. Authenticate (Rule 3 Compliance: Auth BEFORE queries)
             const userCred = await window.fbase.signInAnonymously(window.auth);
             currentUserUid = userCred.user.uid;
-            localStorage.setItem('pgX_myUid', currentUserUid);
-            startNotificationListener();
+            console.log("Authenticated as:", currentUserUid);
+            localStorage.setItem('pgX_myUid', currentUserUid); 
+            
+            // 2. Check if Profile Exists in DB, if not create default
+            await ensureUserProfile();
+            
+            // 3. GET REAL GEOLOCATION - REMOVED (Handled by UI flow now)
+
         } catch (error) {
-            console.warn("Auth Failed", error);
-            currentUserUid = localStorage.getItem('pgX_myUid') || 'anon_' + Date.now();
+            console.warn("Auth Failed (Offline Mode Activated):", error);
+            currentUserUid = localStorage.getItem('pgX_myUid') || 'anon_offline_' + Date.now();
+            localStorage.setItem('pgX_myUid', currentUserUid);
+            
+            if (!localStorage.getItem('pgX_alias')) {
+                 localStorage.setItem('pgX_alias', "Guest_" + Math.floor(Math.random()*1000));
+                 localStorage.setItem('my_profile_pic', "https://via.placeholder.com/120");
+            }
         } finally {
-            // Render basic UI
+            renderDeck();
+            initArcade();
+            // loadMyProfile(); REMOVED TO PREVENT AUTO POPUP
             loading.style.display = 'none';
-            window.renderDeck();
         }
     }
+
+    async function ensureUserProfile() {
+        const userRef = window.fbase.doc(window.db, 'artifacts', window.APP_ID, 'public', 'data', 'users', currentUserUid);
+        const storedAlias = localStorage.getItem('pgX_alias');
+        if (!storedAlias) {
+             const defaultAlias = "User_" + Math.floor(Math.random() * 1000);
+             await window.fbase.setDoc(userRef, {
+                 alias: defaultAlias,
+                 age: 21,
+                 bio: "New member",
+                 img: "https://via.placeholder.com/120",
+                 joinedAt: window.fbase.serverTimestamp()
+             }, { merge: true });
+             
+             localStorage.setItem('pgX_alias', defaultAlias);
+             localStorage.setItem('my_profile_pic', "https://via.placeholder.com/120");
+        }
+    }
+
+    // --- 2. DECK & SWIPE LOGIC ---
 
     window.renderDeck = async function() {
         const zone = document.getElementById('swipe-zone');
         const grid = document.getElementById('grid-content');
-        
-        // 9. Auto Hide Reported > 3
-        const col = window.fbase.collection(window.db, 'artifacts', window.APP_ID, 'public', 'data', 'users');
-        const q = window.fbase.query(col, window.fbase.where('reportCount', '<', 3), window.fbase.limit(10));
-        
-        try {
-            const snapshot = await window.fbase.getDocs(q);
-            activeDeck = [];
-            snapshot.forEach(doc => {
-                if(doc.id !== currentUserUid) activeDeck.push({ id: doc.id, ...doc.data() });
-            });
-        } catch(e) { console.error(e); }
 
+        let realUsers = [];
+        
+        // 1. DATA: Fetch Real People from Public Collection
+        try {
+            const snapshot = await window.fbase.getDocs(getPublicCollection("users"));
+            snapshot.forEach(doc => {
+                if (doc.id !== currentUserUid) {
+                    realUsers.push({ id: doc.id, ...doc.data() });
+                }
+            });
+        } catch (e) {
+            console.error("DB Fetch Error:", e);
+        }
+
+        // 2. LOGIC: NO MOCKS
+        if (realUsers.length > 0) {
+            activeDeck = realUsers;
+        } else {
+            activeDeck = []; // Ensure empty
+        }
+        
+        // 3. DRAWING: Render Swipe View
         if (activeDeck.length > 0) {
             const u = activeDeck[0];
-            zone.innerHTML = `<div class="swipe-card" id="active-card" onclick="window.openUserProfile()"><img src="${u.img}"><div class="card-header-overlay"><span class="card-alias">${u.alias}</span><span class="card-age">${u.age}</span></div></div>`;
-            window.initSwipeHandlers();
+            zone.innerHTML = `
+            <div class="swipe-card" id="active-card" onclick="window.openUserProfile('${u.alias}', ${u.age}, '${u.img}', '${u.id}')">
+                <img src="${u.img}">
+                <div class="card-header-overlay">
+                    <span class="card-alias">${u.alias}</span>
+                    <span class="card-age">${u.age}</span>
+                </div>
+            </div>`;
+            setTimeout(initSwipeHandlers, 50);
         } else {
             zone.innerHTML = getEmptyStateHTML();
         }
+
+        // 4. DRAWING: Render Grid View
+        if (grid) {
+            if (activeDeck.length === 0) {
+                grid.style.display = 'grid'; 
+                grid.innerHTML = `
+                    <div class="grid-item" style="background:#000; display:flex; flex-direction:column; align-items:center; justify-content:center;">
+                        <img src="nousericon.png" class="empty-throb-img" style="width:80px; height:80px;">
+                        <div class="empty-throb-text" style="font-size:10px; margin-top:5px;">waiting for new users<span class="loading-dots"></span></div>
+                    </div>
+                    <div class="grid-item" style="background:#222;"></div>
+                    <div class="grid-item" style="background:#222;"></div>
+                `;
+            } else {
+                grid.style.display = 'grid';
+                grid.innerHTML = activeDeck.map(u => `
+                <div class="grid-item" onclick="window.openUserProfile('${u.alias}', ${u.age}, '${u.img}', '${u.id}')">
+                    <img src="${u.img}" style="width:90%; height:90%; object-fit:cover;">
+                    <div class="grid-overlay"><span>${u.alias}</span><span>${u.age}</span></div>
+                </div>
+                `).join('');
+            }
+        }
         
-        // Grid Logic
-        if(grid) {
-            grid.innerHTML = activeDeck.length === 0 ? getEmptyStateHTML().replace('swipe-card', 'grid-item') : activeDeck.map(u => `<div class="grid-item"><img src="${u.img}"></div>`).join('');
-        }
+        // 5. DRAWING: Update Map
+        if(window.updateMapPins) window.updateMapPins(activeDeck);
     }
 
-    window.loadMyProfile = function() {
-        // Populates fields from local storage for editing
-        document.getElementById('p-alias').value = localStorage.getItem('pgX_alias') || "";
-        document.getElementById('my-main-preview').src = localStorage.getItem('my_profile_pic') || "";
-        document.getElementById('profile-modal').style.display='block';
-    }
+    function initSwipeHandlers() {
+        card = document.getElementById('active-card');
+        btnReject = document.getElementById('btn-reject');
+        btnLike = document.getElementById('btn-like');
+        if (!card) return;
 
-    window.requestLocation = function() {
-        if(navigator.geolocation) {
-            navigator.geolocation.getCurrentPosition((pos) => {
-                const lat = pos.coords.latitude;
-                const lng = pos.coords.longitude;
-                if(window.map) window.map.setView([lat, lng], 13);
-                
-                // Transition
-                document.getElementById('location-gate').style.display = 'none';
-                document.getElementById('loading-overlay').style.display = 'flex';
-                setTimeout(() => {
-                    document.getElementById('loading-overlay').style.display = 'none';
-                    initBackend();
-                }, 3000);
-            });
-        }
-    }
-
-    window.previewMainAndGallery = function(e) {
-        const file = e.target.files[0];
-        if(file) {
-            const reader = new FileReader();
-            reader.onload = (ev) => document.getElementById('my-main-preview').src = ev.target.result;
-            reader.readAsDataURL(file);
-        }
-    }
-
-    // --- SWIPE LOGIC (Simplified for length) ---
-    let startX = 0;
-    window.initSwipeHandlers = function() {
-        const card = document.getElementById('active-card');
-        if(!card) return;
-        card.addEventListener('touchstart', (e) => startX = e.touches[0].clientX);
-        card.addEventListener('touchend', (e) => {
-            const endX = e.changedTouches[0].clientX;
-            if(endX - startX > 100) window.userSwipe('right');
-            else if(endX - startX < -100) window.userSwipe('left');
+        card.addEventListener('touchstart', (e) => { startX = e.touches[0].clientX; card.style.transition = 'none'; });
+        card.addEventListener('touchmove', (e) => {
+            currentX = e.touches[0].clientX - startX;
+            card.style.transform = `translateX(${currentX}px) rotate(${currentX / 15}deg)`;
+            if (currentX > 0) { btnLike.style.background = 'var(--accent)'; } 
+            else { btnReject.style.background = 'grey'; }
+        });
+        card.addEventListener('touchend', () => {
+            if (currentX > 100) window.userSwipe('right');
+            else if (currentX < -100) window.userSwipe('left');
+            else { card.style.transform = 'translateX(0)'; resetButtons(); }
         });
     }
+
     window.userSwipe = function(dir) {
+        if (!card) return;
+        
+        // 1. Animate
+        card.style.transition = 'transform 0.5s ease-in';
+        card.style.transform = `translateX(${dir === 'right' ? 1000 : -1000}px)`;
+
+        // 2. Logic: Remove from local deck array
         activeDeck.shift();
-        window.renderDeck();
+
+        // 3. Feedback
+        if (dir === 'right') {
+            document.getElementById('wink-txt').classList.add('show');
+            setTimeout(() => document.getElementById('wink-txt').classList.remove('show'), 1000);
+        }
+
+        // 4. Reload Deck
+        setTimeout(() => { 
+            resetButtons(); 
+            // Re-render the next card from the array we just shifted
+            if (activeDeck.length > 0) {
+                const u = activeDeck[0];
+                const zone = document.getElementById('swipe-zone');
+                zone.innerHTML = `
+                <div class="swipe-card" id="active-card" onclick="window.openUserProfile('${u.alias}', ${u.age}, '${u.img}', '${u.id}')">
+                    <img src="${u.img}">
+                    <div class="card-header-overlay">
+                        <span class="card-alias">${u.alias}</span>
+                        <span class="card-age">${u.age}</span>
+                    </div>
+                </div>`;
+                setTimeout(initSwipeHandlers, 50);
+            } else {
+                // Show empty state
+                document.getElementById('swipe-zone').innerHTML = getEmptyStateHTML();
+            }
+        }, 300);
     }
 
-    // Initialize Map
+    function resetButtons() {
+        if (btnLike) btnLike.style.background = 'rgba(0,0,0,0.6)';
+        if (btnReject) btnReject.style.background = 'rgba(0,0,0,0.6)';
+    }
+
+    // --- 3. MAP ---
+    // Initialize map with a placeholder view, updated by geolocation later
     window.map = L.map('map', {zoomControl: false}).setView([40.7128, -74.0060], 13);
     L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png').addTo(window.map);
 
-    // Initial Trigger
-    // We wait for Age Gate Interaction
+    window.updateMapPins = function(users) {
+        window.map.eachLayer((layer) => { if(layer instanceof L.Marker) window.map.removeLayer(layer); });
+
+        users.forEach(u => {
+            if(u.lat && u.lng) {
+                const icon = L.divIcon({
+                    className: 'custom-pin',
+                    html: `<div class="user-dot-pin" style="width:12px; height:12px;"></div>`
+                });
+                L.marker([u.lat, u.lng], {icon: icon})
+                  .addTo(window.map)
+                  .bindPopup(`<b>${u.alias}</b><br>${u.age}`);
+            }
+        });
+        
+        // Use REAL location if available
+        let myLat = 40.7128;
+        let myLng = -74.0060;
+        if (window.myLocation) {
+            myLat = window.myLocation.lat;
+            myLng = window.myLocation.lng;
+        }
+        
+        const myIcon = L.divIcon({ className: 'my-pin', html: `<div class="my-location-pin" style="width:20px; height:20px;"></div>` });
+        L.marker([myLat, myLng], {icon: myIcon}).addTo(window.map);
+    }
+
+    // --- 4. REAL-TIME MESSAGING ---
+
+    window.openChat = function(name, targetUid) {
+        document.getElementById('msg-list-view').style.display = 'none';
+        document.getElementById('chat-view').style.display = 'flex';
+        document.getElementById('chat-target-name').innerText = name;
+        
+        const chatBody = document.getElementById('chat-body');
+        chatBody.innerHTML = ''; 
+        currentChatId = targetUid; 
+
+        if (currentUserUid && targetUid) {
+            // Composite ID for public chat collection
+            const chatId = [currentUserUid, targetUid].sort().join('_');
+            const msgCollection = window.fbase.collection(window.db, 'artifacts', window.APP_ID, 'public', 'data', `chat_${chatId}`);
+            const q = window.fbase.query(msgCollection, window.fbase.orderBy("createdAt"), window.fbase.limit(50));
+            
+            if(currentChatUnsubscribe) currentChatUnsubscribe(); 
+
+            currentChatUnsubscribe = window.fbase.onSnapshot(q, (snapshot) => {
+                chatBody.innerHTML = ''; 
+                snapshot.forEach((doc) => {
+                    const msg = doc.data();
+                    const isMe = msg.senderId === currentUserUid;
+                    const bubble = document.createElement('div');
+                    bubble.className = `chat-bubble ${isMe ? 'me' : 'them'}`;
+                    bubble.innerText = msg.text;
+                    chatBody.appendChild(bubble);
+                });
+                chatBody.scrollTop = chatBody.scrollHeight;
+            }, (error) => console.error("Chat Error:", error));
+        }
+    }
+
+    async function sendMessage() {
+        const input = document.querySelector('.chat-input');
+        const text = input.value.trim();
+        if (!text) return;
+
+        if (currentUserUid && currentChatId) {
+            const chatId = [currentUserUid, currentChatId].sort().join('_');
+            const msgCollection = window.fbase.collection(window.db, 'artifacts', window.APP_ID, 'public', 'data', `chat_${chatId}`);
+
+            try {
+                await window.fbase.addDoc(msgCollection, {
+                    text: text,
+                    senderId: currentUserUid,
+                    createdAt: window.fbase.serverTimestamp()
+                });
+                input.value = '';
+            } catch (e) {
+                console.error("Send failed", e);
+                alert("Could not send message. Check console.");
+            }
+        }
+    }
+
+    // --- 5. UI CONTROLS ---
+
+    let currentVideoView = 'swipe';
+
+    window.openVideoFeed = function() {
+        document.getElementById('video-modal').style.display = 'block';
+        window.renderVideoFeed(); // Init listener
+    }
+
+    window.setVideoMode = function(mode) {
+        currentVideoView = mode;
+        // Re-render container class immediately
+        const container = document.getElementById('video-feed-content');
+        container.className = ''; 
+        if (currentVideoView === 'grid') container.classList.add('feed-layout-grid');
+        else container.classList.add('feed-layout-swipe');
+    }
+
+    window.handleVideoUpload = async function(event) {
+        const file = event.target.files[0];
+        if (!file) return;
+        
+        const videoCollection = getPublicCollection('videos');
+        await window.fbase.addDoc(videoCollection, {
+            user: localStorage.getItem('pgX_alias') || "Anon",
+            // We use a sample video URL because we can't upload binary to Firestore
+            url: "https://www.w3schools.com/html/mov_bbb.mp4", 
+            timestamp: window.fbase.serverTimestamp()
+        });
+        
+        alert("Video Metadata Uploaded! (Using sample video for persistence demo)");
+    }
+
+    window.renderVideoFeed = function() {
+        const container = document.getElementById('video-feed-content');
+        container.className = ''; 
+        if (currentVideoView === 'grid') container.classList.add('feed-layout-grid');
+        else container.classList.add('feed-layout-swipe');
+
+        const videoCollection = getPublicCollection('videos');
+        const q = window.fbase.query(videoCollection, window.fbase.orderBy('timestamp', 'desc'), window.fbase.limit(20));
+
+        if(currentVideoUnsubscribe) currentVideoUnsubscribe();
+
+        currentVideoUnsubscribe = window.fbase.onSnapshot(q, (snapshot) => {
+             if (snapshot.empty) {
+                container.innerHTML = `<div style="text-align:center; color:#666; margin-top:50px;">No shared videos yet.<br>Be the first!</div>`;
+                return;
+            }
+            
+            container.innerHTML = '';
+            snapshot.forEach(doc => {
+                const vid = doc.data();
+                const div = document.createElement('div');
+                div.className = 'video-item';
+                div.innerHTML = `
+                    <video src="${vid.url}" controls playsinline loop></video>
+                    <div class="vid-details" style="padding: 10px;">
+                        <span style="color: white; font-weight: bold;">${vid.user}</span>
+                    </div>
+                `;
+                container.appendChild(div);
+            });
+        }, (error) => console.error("Video Sync Error", error));
+    }
+
+    window.toggleUserMenu = function() {
+        const menu = document.getElementById('user-dropdown');
+        menu.style.display = (menu.style.display === 'block') ? 'none' : 'block';
+    }
+
+    const userTrigger = document.getElementById('user-icon-trigger');
+    if(userTrigger) userTrigger.onclick = (e) => { e.stopPropagation(); window.toggleUserMenu(); };
+
+    window.switchView = function(viewId, btn) {
+        document.querySelectorAll('.app-view').forEach(v => v.classList.remove('active'));
+        document.querySelectorAll('.view-btn').forEach(b => b.classList.remove('active'));
+        document.getElementById('view-' + viewId).classList.add('active');
+        btn.classList.add('active');
+        if (viewId === 'map') setTimeout(() => window.map.invalidateSize(), 100);
+    }
+
+    window.openMsgModal = function() {
+        document.getElementById('msg-modal').style.display = 'block';
+    }
+
+    window.closeChat = function() {
+        document.getElementById('msg-modal').style.display = 'none';
+        document.getElementById('msg-list-view').style.display = 'block';
+        document.getElementById('chat-view').style.display = 'none';
+    }
+
+    window.openTab = function(tabId, btn) {
+        document.querySelectorAll('.tab-pane').forEach(t => t.style.display = 'none');
+        document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+        document.getElementById(tabId).style.display = 'block';
+        btn.classList.add('active');
+    }
+
+    window.toggleAccordion = function(id, isChecked) {
+        const el = document.getElementById(id);
+        if(el) el.style.display = isChecked ? 'block' : 'none';
+    }
+
+    window.toggleProfileAcc = function(id) {
+        const el = document.getElementById(id);
+        if(el.style.display === 'block') el.style.display = 'none';
+        else el.style.display = 'block';
+    }
+    
+    window.selectProfileOption = function(displayId, value, accId) {
+        document.getElementById(displayId).innerText = value;
+        document.getElementById(accId).style.display = 'none';
+    }
+
+    window.previewMainAndGallery = function(event) {
+        const file = event.target.files[0];
+        if (file) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const imgUrl = e.target.result;
+                // Update Main
+                document.getElementById('my-main-preview').src = imgUrl;
+                // Update Gallery #1
+                const galleryImg = document.getElementById('g1-preview');
+                galleryImg.src = imgUrl;
+                galleryImg.style.display = 'block';
+                const galleryLabel = document.getElementById('g1-lbl');
+                if(galleryLabel) galleryLabel.style.display = 'none';
+                // Update Header
+                const headerIcon = document.getElementById('user-icon-trigger');
+                headerIcon.innerHTML = `<img src="${imgUrl}" style="width:100%; height:100%; border-radius:50%; object-fit:cover;">`;
+            }
+            reader.readAsDataURL(file);
+        }
+    }
+    
+    window.previewVideo = function(event) {
+        alert("Video selected!");
+    }
+
+    window.saveProfile = async function() {
+        const alias = document.getElementById('p-alias').value;
+        const bio = document.getElementById('p-bio').value;
+        const imgVal = document.getElementById('my-main-preview').src;
+
+        // 1. Save Local (for fast access)
+        localStorage.setItem('pgX_alias', alias);
+        localStorage.setItem('pgX_bio', bio);
+        localStorage.setItem('my_profile_pic', imgVal);
+
+        // 2. Save to Firebase (Real Persistence)
+        if (currentUserUid) {
+            try {
+                // Public Collection ID: 'users'
+                const userRef = window.fbase.doc(window.db, 'artifacts', window.APP_ID, 'public', 'data', 'users', currentUserUid);
+                await window.fbase.setDoc(userRef, {
+                    alias: alias,
+                    bio: bio,
+                    img: imgVal, // Note: Base64 strings can be large, in real prod use Storage URLs.
+                    lastSeen: window.fbase.serverTimestamp()
+                }, { merge: true });
+                alert("Profile Saved to Cloud!");
+            } catch (e) { console.error("Sync failed", e); alert("Save failed. Check console."); }
+        }
+
+        document.getElementById('profile-modal').style.display = 'none';
+    }
+
+    window.loadMyProfile = function() {
+        const storedAlias = localStorage.getItem('pgX_alias') || ""; 
+        const storedBio = localStorage.getItem('pgX_bio') || "";
+        const storedImg = localStorage.getItem('my_profile_pic') || "https://via.placeholder.com/120";
+
+        document.getElementById('p-alias').value = storedAlias;
+        document.getElementById('p-bio').value = storedBio;
+        document.getElementById('my-main-preview').src = storedImg;
+        
+        const galleryImg = document.getElementById('g1-preview');
+        const galleryLabel = document.getElementById('g1-lbl');
+        
+        if (storedImg.includes('data:image') || storedImg.includes('http')) {
+             galleryImg.src = storedImg;
+             galleryImg.style.display = 'block';
+             if(galleryLabel) galleryLabel.style.display = 'none';
+        }
+        
+        document.getElementById('profile-modal').style.display = 'block';
+        document.getElementById('user-dropdown').style.display = 'none';
+    }
+
+    window.applyFilters = function() {
+        document.getElementById('filter-modal').style.display = 'none';
+        renderDeck();
+    }
+
+    window.openUserProfile = function(alias, age, img, id) {
+        const modal = document.getElementById('view-user-modal');
+        document.getElementById('view-user-img').src = img;
+        document.getElementById('view-user-img-small').src = img;
+        document.getElementById('view-user-name').innerText = alias + ", " + age;
+        document.getElementById('view-user-bio').innerText = `${alias} is a ${age} year old member.`;
+        
+        const chipsContainer = document.getElementById('view-user-chips');
+        chipsContainer.innerHTML = `<span class="stat-chip love">Words of Affirmation</span><span class="stat-chip">Non-Smoker</span>`;
+        
+        modal.style.display = 'block';
+    }
+
+    window.toggleReportMenu = function() {
+        const menu = document.getElementById('report-menu');
+        menu.style.display = (menu.style.display === 'block') ? 'none' : 'block';
+    }
+
+    // --- FIX FOR PROFILE BUTTON: Attach listener immediately ---
+    const profileBtn = document.getElementById('open-my-profile');
+    if(profileBtn) {
+        profileBtn.onclick = (e) => {
+            e.preventDefault(); 
+            window.loadMyProfile();
+        };
+    }
+
+    // START
+    initBackend();
 });
 </script>
 </body>
