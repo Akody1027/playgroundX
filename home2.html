@@ -6,7 +6,12 @@
     <title>playgroundX | Production</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@latest/dist/tf.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/nsfwjs@latest/dist/nsfwjs.min.js"></script>
 
+
+
+    
     <style>
         :root {
             --accent: #8B5CF6; /* Purple */
@@ -377,6 +382,50 @@
             50% { content: ".."; }
             75% { content: "..."; }
         }
+        /* --- NEW STYLES FOR PRODUCTION UPDATE --- */
+:root {
+    --accent: #8B5CF6; /* Purple */
+    --warning: #F97316;
+    --danger: #EF4444;
+}
+
+/* Header Updates */
+.connection-dot { width: 8px; height: 8px; border-radius: 50%; background: #666; transition: background 0.3s; display: inline-block; margin-right: 5px; }
+.connection-dot.online { background: #10B981; box-shadow: 0 0 5px #10B981; }
+.connection-dot.offline { background: #EF4444; }
+
+.upload-status { display: none; align-items: center; gap: 8px; background: #222; padding: 5px 10px; border-radius: 20px; font-size: 12px; font-weight: bold; border: 1px solid #333; margin-right: 10px; }
+.upload-spinner { width: 14px; height: 14px; border: 2px solid #555; border-top-color: var(--accent); border-radius: 50%; animation: spin 1s linear infinite; }
+
+.msg-icon-wrapper { position: relative; cursor: pointer; }
+.badge { position: absolute; top: -5px; right: -5px; background: var(--accent); color: white; font-size: 10px; font-weight: bold; width: 16px; height: 16px; border-radius: 50%; display: flex; align-items: center; justify-content: center; border: 2px solid #000; }
+
+/* Admin God Mode */
+#admin-panel-btn { display: none; position: fixed; bottom: 80px; right: 20px; background: var(--danger); color: white; border: none; width: 50px; height: 50px; border-radius: 50%; z-index: 9999; font-weight: bold; box-shadow: 0 0 15px var(--danger); cursor: pointer; }
+#admin-panel { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.95); z-index: 10000; padding: 20px; overflow-y: auto; }
+.admin-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-bottom: 1px solid #333; padding-bottom: 10px; color: white; }
+.admin-section { background: #222; padding: 15px; border-radius: 12px; margin-bottom: 15px; border: 1px solid #444; }
+.admin-input { width: 100%; padding: 10px; background: #111; border: 1px solid #555; color: white; margin-bottom: 10px; border-radius: 6px; }
+.admin-btn { width: 100%; padding: 10px; background: var(--danger); color: white; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; }
+
+/* Wallet Tab */
+.coin-balance { text-align: center; font-size: 24px; font-weight: 800; color: #FBBF24; margin: 20px 0; text-shadow: 0 0 10px rgba(251, 191, 36, 0.3); }
+.coin-bundle { display: flex; justify-content: space-between; align-items: center; background: #222; padding: 15px; border-radius: 12px; margin-bottom: 10px; border: 1px solid #333; }
+.buy-btn { background: #22C55E; color: black; border: none; padding: 8px 16px; border-radius: 20px; font-weight: bold; cursor: pointer; }
+.tip-btn { background: #FBBF24; color: black; font-size: 12px; font-weight: bold; padding: 5px 10px; border-radius: 15px; border: none; cursor: pointer; margin-left: 10px; }
+
+/* Toggles & Galleries */
+.toggle-row { display: flex; justify-content: space-between; align-items: center; background: #111; padding: 12px; border-radius: 10px; margin-bottom: 5px; border: 1px solid #333; }
+.toggle-switch { width: 40px; height: 20px; background: #333; border-radius: 20px; position: relative; cursor: pointer; }
+.toggle-switch::after { content: ''; position: absolute; top: 2px; left: 2px; width: 16px; height: 16px; background: white; border-radius: 50%; transition: 0.3s; }
+.toggle-checkbox:checked + .toggle-switch { background: var(--accent); }
+.toggle-checkbox:checked + .toggle-switch::after { transform: translateX(20px); }
+.toggle-checkbox { display: none; }
+
+
+
+
+        
     </style>
 
     <script type="module">
@@ -1446,3 +1495,4 @@ document.addEventListener('DOMContentLoaded', () => {
 </script>
 </body>
 </html>
+
