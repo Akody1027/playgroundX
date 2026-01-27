@@ -1,0 +1,1335 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>playgroundX | Production</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+
+    <style>
+        :root {
+            --accent: #8B5CF6; /* Purple */
+            --accent-dark: #7C3AED;
+            --accent-glow: rgba(139, 92, 246, 0.4);
+            --warning: #F97316; /* Orange X */
+            --bg-dark: #121212;
+            --card-dark: #1E1E1E;
+            --text-main: #E5E7EB;
+            --text-dim: #9CA3AF;
+            --btn-dim: grey;
+            --btnfont: white;
+        }
+
+        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg-dark);
+            color: var(--text-main);
+            margin: 0; padding: 0;
+            overflow-x: hidden; width: 100%; height: 100dvh;
+        }
+
+        /* --- HEADER --- */
+        #header {
+            background: #000; padding: 12px 20px;
+            display: flex; justify-content: space-between; align-items: center;
+            border-bottom: 1px solid #262626; position: sticky; top: 0; z-index: 1000;
+        }
+        .header-icons { display: flex; gap: 20px; align-items: center; }
+
+        .msg-icon-wrapper { position: relative; cursor: pointer; z-index: 1002; }
+        .badge {
+            position: absolute; top: -5px; right: -5px;
+            background: var(--accent); color: white;
+            font-size: 10px; font-weight: bold;
+            width: 16px; height: 16px; border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            border: 2px solid #000;
+        }
+
+        #user-dropdown {
+            display: none; position: absolute; top: 60px; right: 20px; 
+            background: #1A1A1A; border: 1px solid #333; border-radius: 12px; 
+            width: 180px; z-index: 8000; box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+        }
+        #user-dropdown a {
+            display: block; padding: 14px; color: white; text-decoration: none; 
+            border-bottom: 1px solid #333; font-size: 14px;
+        }
+
+        /* --- TOOLBAR --- */
+        .toolbar {
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 10px 20px; background: var(--bg-dark);
+        }
+        .view-group { display: flex; gap: 10px; }
+        .view-btn {
+            background: none; border: none; cursor: pointer; padding: 10px;
+            border-radius: 10px; stroke: var(--text-dim); transition: 0.2s;
+            display: flex; align-items: center; justify-content: center;
+        }
+        .view-btn.active { background: rgba(139, 92, 246, 0.1); stroke: var(--accent); }
+
+        .filter-btn {
+            background: #1A1A1A; border: 1px solid #333; color: var(--text-dim);
+            width: 44px; height: 44px; border-radius: 12px; cursor: pointer;
+            display: flex; align-items: center; justify-content: center;
+        }
+
+        /* --- SWIPE VIEW (Fixed Click Shield) --- */
+        #view-swipe { position: relative; height: 85vh; overflow: hidden; }
+
+        #swipe-zone {
+            display: flex; justify-content: center; align-items: center;
+            height: 100%; position: relative; perspective: 1000px;
+        }
+        .swipe-card {
+            width: 95%; max-width: 400px; height: 90%; 
+            background: var(--card-dark); border-radius: 24px;
+            border: 1px solid #333; position: absolute; top: 1px;
+            cursor: grab; touch-action: none; user-select: none;
+            overflow: hidden; transition: transform 0.1s ease-out; z-index: 10;
+        }
+        .swipe-card img { width: 100%; height: 100%; object-fit: cover; pointer-events: none; }
+
+        /* Top Overlay Text */
+        .card-header-overlay {
+            position: absolute; top: 0; width: 100%; padding: 20px;
+            background: linear-gradient(to bottom, rgba(0,0,0,0.6), transparent);
+            display: flex; justify-content: space-between; pointer-events: none;
+        }
+        .card-alias { color: var(--accent); font-size: 24px; font-weight: 700; text-shadow: 0 2px 4px black; }
+        .card-age { color: white; font-size: 24px; font-weight: 700; text-shadow: 0 2px 4px black; }
+
+        /* Fixed Action Buttons (CRITICAL FIX: pointer-events) */
+        .fixed-actions {
+            position: absolute; bottom: 30px; left: 0; width: 100%;
+            display: flex; justify-content: space-evenly; align-items: center; 
+            z-index: 20; 
+            pointer-events: none; /* Allows clicks to pass through empty space to the card */
+        }
+        .swipe-btn {
+            width: 65px; height: 65px; border-radius: 50%; 
+            background: rgba(0,0,0,0.6); border: 2px solid white; 
+            color: white; font-size: 24px; transition: 0.2s; backdrop-filter: blur(5px);
+            display: flex; align-items: center; justify-content: center; cursor: pointer;
+            pointer-events: auto; /* Re-enable clicks for buttons only */
+        }
+
+        .wink-feedback {
+            position: absolute; bottom: 85px; right: 18%;
+            color: var(--accent); font-weight: bold; font-size: 14px;
+            background: rgba(0,0,0,0.8); padding: 5px 10px; border-radius: 12px;
+            opacity: 0; transition: opacity 0.5s, transform 0.5s; pointer-events: none;
+        }
+        .wink-feedback.show { opacity: 1; transform: translateY(-10px); }
+
+        /* --- GRID VIEW --- */
+        .grid-container { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+        .grid-item { aspect-ratio: 1/1; background: #333; border-radius: 8px; overflow: hidden; position: relative; }
+        .grid-overlay {
+            position: absolute; bottom: 0; width: 100%; padding: 8px 5px;
+            background: linear-gradient(to top, rgba(0,0,0,0.9), transparent);
+            display: flex; justify-content: space-between;
+            color: var(--accent); font-size: 12px; font-weight: bold;
+        }
+
+        /* --- MAP VIEW (Readable Dark Mode) --- */
+
+        .leaflet-grid-label{
+            display: none;
+        }
+
+        .leaflet-pane, .leaflet-tile,
+        .leaflet-marker-icon, .leaflet-marker-shadow, 
+        .leaflet-tile-container, .leaflet-pane > svg, 
+        .leaflet-pane > canvas, .leaflet-zoom-box, 
+        .leaflet-image-layer, .leaflet-layer{
+
+            outline:0.01q dotted black;
+        }
+        .leaflet-pane, .leaflet-tile,
+        .leaflet-marker-icon, .leaflet-marker-shadow, 
+        .leaflet-tile-container, .leaflet-pane > svg, 
+        .leaflet-pane > canvas, .leaflet-zoom-box, 
+        .leaflet-image-layer, .leaflet-layer:focus{
+
+            outline:0.01q dotted black;
+        }
+
+        .leaflet-zoom-animated {
+
+            outline:0.01q dotted black;
+        }
+
+        .leaflet-grid-label .lng,
+        .leaflet-grid-label .lat {
+            color: #333;
+            font-size: 12px;
+            font-weight: bold;
+        }
+
+        #map { 
+            width: 100%; height: 80vh; border-radius: 20px; background-color:transparent;
+            filter: brightness(3.5) contrast(1.0);/* Pop the text/roads */
+        }
+        .my-location-pin {
+            background: transparent; border: 3px solid var(--accent);
+            border-radius: 50%; box-shadow: 0 0 10px var(--accent-glow); cursor: move;
+        }
+        .user-dot-pin {
+            background: var(--accent); border: 2px solid white;
+            border-radius: 50%; box-shadow: 0 2px 5px black;
+        }
+
+        .app-view { display: none; padding: 0 15px 20px 15px; }
+        .app-view.active { display: block; }
+
+        /* --- MODALS --- */
+        .modal {
+            display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: #000; z-index: 6000; overflow-y: auto; padding-bottom: 80px;
+        }
+        .modal-header {
+            padding: 20px; border-bottom: 1px solid #222; display: flex; 
+            justify-content: space-between; align-items: center; position: sticky; top: 0; background: #000; z-index: 6010;
+        }
+        .back-arrow-btn { background: none; border: none; cursor: pointer; padding: 5px; }
+        .back-arrow-btn svg { stroke: var(--accent); width: 28px; height: 28px; }
+
+        /* --- STICKY ACTIONS (Fixed Z-Index) --- */
+        .sticky-actions {
+            position: fixed; bottom: 0; left: 0; width: 100%;
+            background: #111; border-top: 1px solid #333; padding: 15px 20px;
+            display: flex; gap: 15px; z-index: 7001; /* Ensure above modal */
+        }
+        .action-btn-main {
+            flex: 1; padding: 14px; border-radius: 12px; border: none; font-weight: bold; font-size: 16px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px;
+        }
+
+        /* --- MESSAGING & CHAT --- */
+        .tab-group { display: flex; width: 100%; border-bottom: 1px solid #333; }
+        .tab-btn { flex: 1; background: none; border: none; padding: 15px; color: #888; font-weight: bold; cursor: pointer; border-bottom: 2px solid transparent; }
+        .tab-btn.active { color: var(--accent); border-bottom: 2px solid var(--accent); }
+        .tab-pane { display: none; padding: 20px; }
+        .tab-pane.active { display: block; }
+
+        .msg-item { display: flex; gap: 15px; padding: 15px; background: #111; border-radius: 12px; align-items: center; border: 1px solid #222; margin-bottom: 10px; cursor: pointer; }
+        .msg-avatar { width: 50px; height: 50px; border-radius: 50%; background: #333; overflow: hidden; object-fit: cover; }
+
+        #chat-view { display: none; height: calc(100% - 60px); display: flex; flex-direction: column; }
+        #chat-body { flex: 1; overflow-y: auto; padding: 20px; display: flex; flex-direction: column; gap: 15px; }
+        .chat-bubble { padding: 10px 15px; border-radius: 18px; max-width: 80%; font-size: 14px; line-height: 1.4; }
+        .chat-bubble.them { background: #222; color: white; align-self: flex-start; border-bottom-left-radius: 4px; }
+        .chat-bubble.me { background: var(--accent); color: white; align-self: flex-end; border-bottom-right-radius: 4px; }
+        .chat-input-area { padding: 15px; border-top: 1px solid #333; display: flex; gap: 10px; align-items: center; background: #000; }
+        .chat-input { flex: 1; background: #111; border: 1px solid #333; color: white; padding: 10px; border-radius: 20px; }
+
+        /* --- STATS & GALLERY --- */
+        .stats-grid { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 20px; }
+        .stat-chip { background: #1A1A1A; border: 1px solid #333; color: #ccc; padding: 6px 12px; border-radius: 20px; font-size: 12px; }
+        .stat-chip.love { border-color: var(--accent); color: var(--accent); }
+
+        .gallery-grid { display: flex; justify-content: space-between; gap: 4px; margin-bottom: 20px; width: 100%; }
+        .gallery-slot { width: 19%; aspect-ratio: 1/1; background: #111; border: 1px dashed #444; border-radius: 8px; position: relative; overflow: hidden; display: flex; align-items: center; justify-content: center; }
+        .gallery-slot label { color: var(--accent); font-size: 20px; cursor: pointer; width:100%; height:100%; display:flex; align-items:center; justify-content:center; }
+        .gallery-slot img { width: 100%; height: 100%; object-fit: cover; }
+        .gallery-slot video { width: 100%; height: 100%; object-fit: cover; }
+
+        /* --- ACCORDIONS --- */
+        .toggle-row { display: flex; justify-content: space-between; align-items: center; background: #111; padding: 12px; border-radius: 10px; margin-bottom: 5px; border: 1px solid #333; }
+        .accordion-content { display: none; padding: 15px; background: #000; border-left: 2px solid var(--accent); margin-bottom: 15px; margin-left: 10px; }
+        .toggle-switch { width: 40px; height: 20px; background: #333; border-radius: 20px; position: relative; cursor: pointer; }
+        .toggle-switch::after { content: ''; position: absolute; top: 2px; left: 2px; width: 16px;           height: 16px;         background: white; border-radius: 50%; transition: 0.3s; }
+        .toggle-checkbox:checked + .toggle-switch { background: var(--accent); }
+        .toggle-checkbox:checked + .toggle-switch::after { transform: translateX(20px); }
+        .toggle-checkbox { display: none; }
+        .radio-option { display: block; padding: 8px 0; color: #888; cursor: pointer; }
+        .radio-option input { margin-right: 10px; accent-color: var(--accent); }
+        .style-input { width: 100%; background: #000; border: 1px solid #333; color: white; padding: 12px; border-radius: 10px; }
+        .filter-label { color:#888; font-size:11px; font-weight:bold; margin-bottom: 5px; display: block; margin-top: 15px;}
+
+        /* Dropdown Menu (Report/Block) */
+        .dropdown-menu { display: none; position: absolute; top: 60px; right: 20px; background: #222; border: 1px solid #444; border-radius: 8px; z-index: 8000; padding: 10px; width: 160px; }
+        .dropdown-item { display: block; width: 100%; padding: 10px; color: white; text-align: left; background: none; border: none; border-bottom: 1px solid #333; }
+        .dropdown-item:last-child { border: none; }
+
+        /* --- RED TRASH CAN --- */
+        .delete-btn {
+            background: none;
+            border: none;
+            cursor: pointer;
+            padding: 10px;
+            margin-left: auto; /* Pushes to the right */
+            color: #FF4444; /* Bright Red */
+            z-index: 50;
+        }
+        .delete-btn:hover {
+            color: #ff8888; /* Lighter red on hover */
+            transform: scale(1.1);
+        }
+        .delete-btn svg {
+            width: 20px; height: 20px; stroke-width: 2;
+        }
+
+        /* --- CONFIRMATION POPUP STYLES --- */
+        #confirm-modal {
+            display: none;
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.8); z-index: 9000;
+            align-items: center; justify-content: center;
+        }
+        .confirm-box {
+            background: #1E1E1E; border: 1px solid #333;
+            padding: 25px; border-radius: 16px; text-align: center;
+            width: 80%; max-width: 300px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.8);
+        }
+        .confirm-btn-group {
+            display: flex; gap: 10px; margin-top: 20px;
+        }
+        .btn-yes {
+            flex: 1; background: #FF4444; color: white; border: none;
+            padding: 12px; border-radius: 8px; font-weight: bold; cursor: pointer;
+        }
+        .btn-no {
+            flex: 1; background: #333; color: white; border: none;
+            padding: 12px; border-radius: 8px; font-weight: bold; cursor: pointer;
+        }
+
+        .game-overlay.active {
+            background: rgba(0,0,0,0.7) !important;
+        }
+
+        .game-overlay.active .play-btn {
+            transform: scale(1) !important;
+            opacity: 1 !important;
+        }
+
+        .game-card:active {
+            transform: scale(0.98);
+        }
+
+        /* --- UNREAD INDICATOR --- */
+        .msg-item.unread {
+            border: 1px solid var(--accent) !important; /* Purple Border */
+            background: #1a1a1a; /* Slightly lighter background */
+        }
+
+        /* --- VIDEO FEED STYLES --- */
+        .feed-layout-swipe {
+            display: flex; flex-direction: column; gap: 0; 
+            height: 100%; overflow-y: scroll; scroll-snap-type: y mandatory;
+        }
+        .feed-layout-swipe .video-item {
+            width: 100%; height: 100%; margin-bottom: 20px;
+            background: #000; border-bottom: 1px solid #333;
+            scroll-snap-align: start; position: relative;
+        }
+        .feed-layout-swipe video { width: 100%; height: 400px; object-fit: contain; }
+
+        .feed-layout-grid {
+            display: grid; grid-template-columns: 1fr 1fr 1fr; 
+            gap: 2px; padding: 2px;
+        }
+        .feed-layout-grid .video-item {
+            aspect-ratio: 9/16; background: #222; position: relative;
+        }
+        .feed-layout-grid video { width: 100%; height: 100%; object-fit: cover; }
+        .feed-layout-grid .vid-details { display: none; }
+    </style>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+        import { getFirestore, collection, doc, setDoc, getDocs, addDoc, query, orderBy, onSnapshot, limit, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js"; 
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyDFmhk3ybnsVsFenCE3xvdmy5y_4u9ss7o", 
+            authDomain: "playgroundx-ca021.firebaseapp.com",
+            projectId: "playgroundx-ca021",
+            storageBucket: "playgroundx-ca021.firebasestorage.app",
+            messagingSenderId: "427340828971",
+            appId: "1:427340828971:web:1d9e2dc22ecd69593eb56e",
+            measurementId: "G-NEV8FYG0WK"
+        }; 
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app); 
+
+        // THIS IS THE KEY: We attach these to 'window' so script.js can see them
+        window.db = db;
+        window.fbase = {
+            collection, doc, setDoc, getDocs, addDoc, query, orderBy, onSnapshot, limit, serverTimestamp
+        }; 
+
+        console.log("Firebase Global Tools Loaded ✅");
+    </script>
+    
+</head>
+<body>
+
+<div id="header">
+    <div style="display: flex; align-items: center;" onclick="location.reload()">
+        <div style="background: var(--accent); color: white; width: 35px; height: 35px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 20px; margin-right: 10px;">X</div>
+        <h1 style="color: white; margin: 0; font-size: 20px;">playground<span style="color: var(--accent);">X</span></h1>
+    </div>
+
+    <div class="header-icons" style="display: flex; align-items: center; gap: 15px;">
+
+        <button class="icon-btn" onclick="window.openVideoFeed()" style="background: none; border: none; padding: 0; cursor: pointer;">
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="2" y="2" width="20" height="20" rx="5" ry="5"></rect>
+                <polygon points="10 8 16 12 10 16 10 8" fill="white" stroke="none"></polygon>
+            </svg>
+        </button>
+        
+        <button class="icon-btn" onclick="document.getElementById('camera-modal').style.display='block'" style="background: none; border: none; padding: 0; cursor: pointer;">
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M23 7l-7 5 7 5V7z"></path>
+                <rect x="1" y="5" width="15" height="14" rx="2" ry="2"></rect>
+            </svg>
+        </button>
+
+        <button class="icon-btn" onclick="document.getElementById('game-modal').style.display='block'" style="background: none; border: none; padding: 0; cursor: pointer;">
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <line x1="6" y1="12" x2="10" y2="12"></line>
+                <line x1="8" y1="10" x2="8" y2="14"></line>
+                <line x1="15" y1="13" x2="15.01" y2="13"></line>
+                <line x1="18" y1="11" x2="18.01" y2="11"></line>
+                <rect x="2" y="6" width="20" height="12" rx="4"></rect>
+            </svg>
+        </button>
+
+        <div class="msg-icon-wrapper" onclick="window.openMsgModal()">
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"></path></svg>
+            <span class="badge" id="msg-badge" style="display:none">0</span>
+        </div>
+
+        <div id="user-icon-trigger" onclick="window.toggleUserMenu()" style="width: 40px; height: 40px; background: #222; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; border: 1px solid #444;">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+        </div>
+
+    </div>
+
+    <div id="user-dropdown">
+        <a href="#" id="open-my-profile">My Profile</a>
+        <a href="#" style="color: var(--accent);" onclick="location.reload()">Log Out</a>
+    </div>
+</div>
+
+<div class="toolbar">
+    <div class="view-group">
+        <button class="view-btn active" onclick="window.switchView('swipe', this)"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><line x1="3" y1="9" x2="21" y2="9"></line></svg></button>
+        <button class="view-btn" onclick="window.switchView('grid', this)"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke-width="2"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect></svg></button>
+        <button class="view-btn" onclick="window.switchView('map', this)"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg></button>
+    </div>
+    <button class="filter-btn" onclick="document.getElementById('filter-modal').style.display='block'">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="4" y1="21" x2="4" y2="14"></line><line x1="4" y1="10" x2="4" y2="3"></line><line x1="12" y1="21" x2="12" y2="12"></line><line x1="12" y1="8" x2="12" y2="3"></line><line x1="20" y1="21" x2="20" 
+        y2="16"></line><line x1="20" y1="12" x2="20" y2="3"></line><line x1="1" y1="14" x2="7" y2="14"></line><line x1="9" y1="8" x2="15" y2="8"></line><line x1="17" y1="16" x2="23" y2="16"></line></svg>
+    </button>
+</div>
+
+<div id="view-swipe" class="app-view active">
+    <div id="swipe-zone"></div>
+    <div class="fixed-actions">
+        <button id="btn-reject" class="swipe-btn" onclick="window.userSwipe('left')">✘</button>
+        <div style="position:relative">
+            <span class="wink-feedback" id="wink-txt">Wink sent!</span>
+            <button id="btn-like" class="swipe-btn" style="border-color:var(--accent);color:var(--btnfont)" onclick="window.userSwipe('right')">
+    <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="12" cy="12" r="10"></circle>
+        <path d="M8 15a6 6 0 0 0 8 0"></path>
+        <line x1="9" y1="9" x2="9.01" y2="9" stroke-width="3"></line>
+        <path d="M15 9h2"></path>
+    </svg>
+            </button>
+        </div>
+    </div>
+</div>
+
+<div id="view-grid" class="app-view">
+    <div class="grid-container" id="grid-content"></div>
+</div>
+
+<div id="view-map" class="app-view">
+    <div id="map"></div>
+</div>
+
+<div id="profile-modal" class="modal">
+    <div class="modal-header">
+        <button class="back-arrow-btn" onclick="document.getElementById('profile-modal').style.display='none'">
+            <svg viewBox="0 0 24 24" fill="none" stroke-width="2"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
+        </button>
+        <h2 style="font-size: 18px; margin: 0; color: white;">Edit Profile</h2>
+        <button onclick="window.saveProfile()" style="background: none; border: none; color: var(--accent); font-weight: bold;">Save</button>
+    </div>
+    <div style="padding: 20px; max-width: 500px; margin: 0 auto;">
+        
+        <div><label class="filter-label" style="margin-top:0;">DISPLAY NAME (ALIAS)</label><input type="text" id="p-alias" class="style-input" placeholder="e.g. Jay_Rocker"></div>
+
+        <div style="text-align: center; margin: 20px 0;">
+            <div style="position: relative; width: 120px; height: 120px; margin: 0 auto;">
+                <img id="my-main-preview" src="https://via.placeholder.com/120" style="width: 100%; height: 100%; border-radius: 50%; object-fit: cover; border: 3px solid var(--accent);">
+                <label for="main-up" style="position: absolute; bottom: 0; right: 0; background: var(--accent); width: 35px; height: 35px; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; border: 3px solid #000; color: white; font-size: 22px; font-weight: bold;">+</label>
+                <input type="file" id="main-up" hidden onchange="window.previewMainAndGallery(event)">
+            </div>
+        </div>
+
+        <div class="gallery-grid">
+            <div class="gallery-slot" style="border-color:var(--accent); position:relative; padding:0;">
+               <img id="g1-preview" src="" style="width:100%; height:100%; object-fit:cover; display:none;">
+               <label id="g1-lbl" style="position:absolute; inset:0; display:flex; align-items:center; justify-content:center; width:100%; height:100%;">★</label>
+            </div>
+            <div class="gallery-slot"><input type="file" id="g2" hidden><label for="g2">+</label></div>
+            <div class="gallery-slot"><input type="file" id="g3" hidden><label for="g3">+</label></div>
+            <div class="gallery-slot"><input type="file" id="g4" hidden><label for="g4">+</label></div>
+            <div class="gallery-slot">
+                <input type="file" id="vid-up" hidden accept="video/*" onchange="window.previewVideo(event)">
+                <label for="vid-up">▶</label>
+                <video id="vid-preview" style="display:none;" autoplay muted loop></video>
+            </div>
+        </div>
+
+<div style="display: flex; flex-direction: column; gap: 10px; margin-bottom: 50px;">
+    
+    <div><label class="filter-label" style="margin-top:0;">BIO</label><textarea id="p-bio" style="width: 100%; background: #111; border: 1px solid #333; padding: 12px; border-radius: 10px; color: white;"></textarea></div>
+
+    <div class="toggle-row"><span>Show Explicit Content</span><input type="checkbox" id="p-explicit" class="toggle-checkbox"><label for="p-explicit" class="toggle-switch"></label></div>
+    <div class="toggle-row"><span>Use GPS Location</span><input type="checkbox" id="p-use-gps" class="toggle-checkbox" checked onchange="window.toggleAccordion('loc-manual', !this.checked)"><label for="p-use-gps" class="toggle-switch"></label></div>
+    <div id="loc-manual" class="accordion-content"><input type="text" class="style-input" placeholder="Enter City..."></div>
+
+    <label class="filter-label">GENDER</label>
+    <div class="toggle-row" onclick="window.toggleProfileAcc('acc-gender')">
+        <span id="disp-gender">Select Gender...</span>
+        <span style="color:#666;">▼</span>
+    </div>
+    <div id="acc-gender" class="accordion-content">
+        <label class="radio-option" onclick="window.selectProfileOption('disp-gender', 'Man', 'acc-gender')">Man</label>
+        <label class="radio-option" onclick="window.selectProfileOption('disp-gender', 'Woman', 'acc-gender')">Woman</label>
+        <label class="radio-option" onclick="window.selectProfileOption('disp-gender', 'Non-Binary', 'acc-gender')">Non-Binary</label>
+    </div>
+
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+        <div>
+            <label class="filter-label">AGE</label>
+            <input type="number" id="p-age" class="style-input" value="21" style="text-align:center;">
+        </div>
+        <div>
+            <label class="filter-label">BODY TYPE</label>
+            <div class="toggle-row" onclick="window.toggleProfileAcc('acc-body')" style="justify-content:center;">
+                <span id="disp-body">Average</span>
+            </div>
+        </div>
+    </div>
+    <div id="acc-body" class="accordion-content">
+        <label class="radio-option" onclick="window.selectProfileOption('disp-body', 'Average', 'acc-body')">Average</label>
+        <label class="radio-option" onclick="window.selectProfileOption('disp-body', 'Athletic', 'acc-body')">Athletic</label>
+        <label class="radio-option" onclick="window.selectProfileOption('disp-body', 'Curvy', 'acc-body')">Curvy</label>
+        <label class="radio-option" onclick="window.selectProfileOption('disp-body', 'Muscular', 'acc-body')">Muscular</label>
+    </div>
+
+    <label class="filter-label">RELATIONSHIP TYPE</label>
+    <div class="toggle-row" onclick="window.toggleProfileAcc('acc-rel')">
+        <span id="disp-rel">Select Type...</span>
+        <span style="color:#666;">▼</span>
+    </div>
+    <div id="acc-rel" class="accordion-content">
+        <label class="radio-option" onclick="window.selectProfileOption('disp-rel', 'Marriage', 'acc-rel')">Marriage</label>
+        <label class="radio-option" onclick="window.selectProfileOption('disp-rel', 'Long-Term', 'acc-rel')">Long-Term</label>
+        <label class="radio-option" onclick="window.selectProfileOption('disp-rel', 'Short-Term', 'acc-rel')">Short-Term</label>
+        <label class="radio-option" onclick="window.selectProfileOption('disp-rel', 'Fun', 'acc-rel')">Fun</label>
+    </div>
+
+    <label class="filter-label">LOVE LANGUAGE</label>
+    <div class="toggle-row" onclick="window.toggleProfileAcc('acc-love')">
+        <span id="disp-love">Select Love Language...</span>
+        <span style="color:#666;">▼</span>
+    </div>
+    <div id="acc-love" class="accordion-content">
+        <label class="radio-option" onclick="window.selectProfileOption('disp-love', 'Words of Affirmation', 'acc-love')">Words of Affirmation</label>
+        <label class="radio-option" onclick="window.selectProfileOption('disp-love', 'Acts of Service', 'acc-love')">Acts of Service</label>
+        <label class="radio-option" onclick="window.selectProfileOption('disp-love', 'Receiving Gifts', 'acc-love')">Receiving Gifts</label>
+        <label class="radio-option" onclick="window.selectProfileOption('disp-love', 'Quality Time', 'acc-love')">Quality Time</label>
+        <label class="radio-option" onclick="window.selectProfileOption('disp-love', 'Physical Touch', 'acc-love')">Physical Touch</label>
+    </div>
+
+    <label class="filter-label">VICES</label>
+    <div class="toggle-row" onclick="window.toggleProfileAcc('acc-vices')">
+        <span id="disp-vices">None</span>
+        <span style="color:#666;">▼</span>
+    </div>
+    <div id="acc-vices" class="accordion-content">
+        <label class="radio-option" onclick="window.selectProfileOption('disp-vices', 'None', 'acc-vices')">None</label>
+        <label class="radio-option" onclick="window.selectProfileOption('disp-vices', 'Smoker', 'acc-vices')">Smoker</label>
+        <label class="radio-option" onclick="window.selectProfileOption('disp-vices', 'Social Drinker', 'acc-vices')">Social Drinker</label>
+        <label class="radio-option" onclick="window.selectProfileOption('disp-vices', '420 Friendly', 'acc-vices')">420 Friendly</label>
+    </div>
+
+</div>
+
+    </div>
+</div>
+
+<div id="filter-modal" class="modal" style="background: rgba(0,0,0,0.9);">
+    <div class="filter-content" style="background: #1A1A1A; width: 85%; max-width: 400px; height: 100%; float: right; padding: 30px; overflow-y: auto;">
+        <div style="display: flex; justify-content: space-between; margin-bottom: 30px;">
+            <h2 style="margin: 0;">Refine Search</h2>
+            <button onclick="document.getElementById('filter-modal').style.display='none'" style="background: none; border: none; color: white; font-size: 24px;">✕</button>
+        </div>
+        
+        <label class="filter-label">I'M LOOKING FOR</label>
+        <div class="toggle-row"><span>Men</span><input type="checkbox" id="f-men" class="toggle-checkbox" onchange="window.toggleAccordion('men-age', this.checked)"><label for="f-men" class="toggle-switch"></label></div>
+        <div id="men-age" class="accordion-content"><div style="display:flex; gap:10px;"><input type="number" placeholder="18" class="style-input"><input type="number" placeholder="99" class="style-input"></div></div>
+
+        <div class="toggle-row"><span>Women</span><input type="checkbox" id="f-women" class="toggle-checkbox" onchange="window.toggleAccordion('women-age', this.checked)"><label for="f-women" class="toggle-switch"></label></div>
+        <div id="women-age" class="accordion-content"><div style="display:flex; gap:10px;"><input type="number" placeholder="18" class="style-input"><input type="number" placeholder="99" class="style-input"></div></div>
+
+        <div class="toggle-row"><span>Transgender</span><input type="checkbox" id="f-trans" class="toggle-checkbox" onchange="window.toggleAccordion('trans-age', this.checked)"><label for="f-trans" class="toggle-switch"></label></div>
+        <div id="trans-age" class="accordion-content"><div style="display:flex; gap:10px;"><input type="number" placeholder="18" class="style-input"><input type="number" placeholder="99" class="style-input"></div></div>
+
+        <label class="filter-label">DISTANCE: <span id="dist-val" style="color:var(--accent)">50 mi</span></label>
+        <input type="range" min="1" max="200" value="50" oninput="document.getElementById('dist-val').innerText = this.value + ' mi'" style="accent-color: var(--accent); width: 100%;">
+
+        <label class="filter-label">RELATIONSHIP TYPE</label>
+        <div class="toggle-row"><span>Select Type</span><input type="checkbox" id="t-rt" class="toggle-checkbox" onchange="window.toggleAccordion('ac-rt', this.checked)"><label for="t-rt" class="toggle-switch"></label></div>
+        <div id="ac-rt" class="accordion-content"><label class="radio-option"><input type="checkbox" class="f-rt" value="Marriage"> Marriage</label><label class="radio-option"><input type="checkbox" class="f-rt" value="Long-Term"> Long-Term</label><label class="radio-option"><input type="checkbox" class="f-rt" value="Short-Term"> Short-Term</label><label class="radio-option"><input type="checkbox" class="f-rt" value="No strings"> No Strings</label><label class="radio-option"><input type="checkbox" class="f-rt" value="Friendship"> Friendship</label></div>
+
+        <label class="filter-label">VICES</label>
+        <div class="toggle-row"><span>Select Vices</span><input type="checkbox" id="t-vice" class="toggle-checkbox" onchange="window.toggleAccordion('ac-vice', this.checked)"><label for="t-vice" class="toggle-switch"></label></div>
+        <div id="ac-vice" class="accordion-content"><label class="radio-option"><input type="checkbox" class="f-vice" value="Smoker"> Smoker</label><label class="radio-option"><input type="checkbox" class="f-vice" value="420 Friendly"> 420 Friendly</label><label class="radio-option"><input type="checkbox" class="f-vice" value="Social Drinker"> Social Drinker</label></div>
+
+        <button onclick="window.applyFilters()" style="width:100%; background: var(--accent); padding: 15px; border-radius: 12px; border:none; color:white; font-weight:bold; margin-top: 20px;">Apply Filters</button>
+        <div style="height: 50px;"></div> 
+    </div>
+</div>
+<div id="view-user-modal" class="modal">
+    <div class="modal-header">
+        <button class="back-arrow-btn" onclick="document.getElementById('view-user-modal').style.display='none'">
+            <svg viewBox="0 0 24 24" fill="none" stroke-width="2"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
+        </button>
+        <h2 style="font-size: 18px; margin: 0; color: white;">User Profile</h2>
+        <div style="position:relative;">
+            <button onclick="window.toggleReportMenu()" style="background: none; border: none; color: var(--warning); font-size: 24px; font-weight: bold;">✕</button>
+            <div id="report-menu" class="dropdown-menu">
+                <button onclick="alert('Blocked!');" class="dropdown-item">🚫 Block User</button>
+                <button onclick="alert('Reported!');" class="dropdown-item">⚠️ Report User</button>
+            </div>
+        </div>
+    </div>
+    
+    <div style="padding: 20px; max-width: 500px; margin: 0 auto; padding-bottom: 20px;">
+        <div style="width: 100%; height: 350px; background: #333; border-radius: 20px; overflow: hidden; margin-bottom: 20px;">
+            <img id="view-user-img" src="" style="width: 100%; height: 100%; object-fit: cover;">
+        </div>
+
+        <div class="gallery-grid">
+            <div class="gallery-slot" style="border-color:var(--accent);"><img id="view-user-img-small" src="" style="width:100%;height:100%;object-fit:cover;"></div>
+            <div class="gallery-slot" style="background: #222;"></div>
+            <div class="gallery-slot" style="background: #222;"></div>
+            <div class="gallery-slot" style="background: #222;"></div>
+            <div class="gallery-slot" style="background: #222; border-color: var(--accent);">▶</div>
+        </div>
+        
+        <h1 id="view-user-name" style="margin: 0; font-size: 28px; color: var(--accent);">Alias</h1>
+        <p style="color: #666; font-size: 13px; font-weight: bold; margin-bottom: 15px;">Verified Member ✓</p>
+
+        <div class="stats-grid" id="view-user-chips"></div>
+        <p style="color: #ccc; line-height: 1.5; margin-bottom: 50px;" id="view-user-bio">...</p>
+    </div>
+
+    <div class="sticky-actions">
+        <button class="action-btn-main" style="background: #222; color: white; border: 1px solid #444;" onclick="alert('Wink Sent! 😉')">😉 Wink</button>
+        <button class="action-btn-main" style="background: var(--accent); color: white;" onclick="alert('Opening Chat... 💬')">Message</button>
+    </div>
+</div>
+
+<div id="msg-modal" class="modal">
+    <div class="modal-header">
+        <button class="back-arrow-btn" onclick="window.closeChat()">
+            <svg viewBox="0 0 24 24" fill="none" stroke-width="2"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
+        </button>
+        <h2 style="font-size: 18px; margin: 0; color: white;">Connect</h2>
+        <div style="width: 24px;"></div>
+    </div>
+    
+    <div id="msg-list-view">
+        <div class="tab-group">
+            <button class="tab-btn active" onclick="window.openTab('tab-winks', this)">Winks</button>
+            <button class="tab-btn" onclick="window.openTab('tab-chats', this)">Messages</button>
+        </div>
+        <div id="tab-winks" class="tab-pane active"></div>
+
+        <div id="tab-chats" class="tab-pane">
+            
+        </div>
+    </div>
+
+    <div id="chat-view">
+        <div style="padding:10px; background:#111; border-bottom:1px solid #333; display:flex; align-items:center; gap:10px;">
+            <div style="width:30px; height:30px; background:#444; border-radius:50%;"></div>
+            <span style="font-weight:bold; color:white;" id="chat-target-name">User</span>
+        </div>
+        <div id="chat-body">
+            
+        </div>
+        <div class="chat-input-area">
+            <input type="text" class="chat-input" placeholder="Type a message...">
+            <button style="background:var(--accent); color:white; border:none; padding:8px 15px; border-radius:15px;">Send</button>
+        </div>
+    </div>
+</div>
+
+<div id="confirm-modal" style="display:none;"> 
+    <div class="confirm-box">
+        <h3 style="color:white; margin-top:0;">Delete Item?</h3>
+        <p style="color:#aaa; font-size:14px;">Are you sure you want to remove this? This cannot be undone.</p>
+        <div class="confirm-btn-group">
+            <button class="btn-no" onclick="window.closeConfirm()">No</button>
+            <button class="btn-yes" onclick="window.confirmYes()">Yes, Delete</button>
+        </div>
+    </div>
+</div>
+
+
+    <div id="camera-modal" class="modal">
+    <div class="modal-header">
+        <button class="back-arrow-btn" onclick="document.getElementById('camera-modal').style.display='none'">
+            <svg viewBox="0 0 24 24" fill="none" stroke-width="2"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
+        </button>
+        <h2 style="font-size: 18px; margin: 0; color: white;">Studio</h2>
+        <div style="width: 24px;"></div> </div>
+    <div style="padding: 20px; text-align: center; color: #666; margin-top: 50px;">
+        <svg width="60" height="60" viewBox="0 0 24 24" fill="none" stroke="#444" stroke-width="1.5" style="margin-bottom:20px;">
+             <path d="M23 7l-7 5 7 5V7z"></path><rect x="1" y="5" width="15" height="14" rx="2" ry="2"></rect>
+        </svg>
+        <h3 style="color:white;">Content Studio</h3>
+        <p>Record and upload your clips here.</p>
+    </div>
+</div>
+
+
+<div id="game-modal" class="modal">
+    <div class="modal-header">
+        <button class="back-arrow-btn" onclick="window.closeArcade()">
+            <svg viewBox="0 0 24 24" fill="none" stroke-width="2"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
+        </button>
+        <h2 style="font-size: 18px; margin: 0; color: white;">Arcade</h2>
+        <div style="width: 24px;"></div> 
+    </div>
+
+    <div id="arcade-grid" class="grid-container" style="padding: 15px; display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+        </div>
+
+    <div id="game-player" style="display:none; position: absolute; inset: 60px 0 0 0; background: #000; z-index: 10;">
+        <iframe id="game-frame" src="" style="width:100%; height:100%; border:none;"></iframe>
+        <button onclick="window.closeGame()" style="position:absolute; top: 10px; right: 10px; background: rgba(0,0,0,0.6); color:white; border:none; border-radius:50%; width:40px; height:40px; font-weight:bold;">✕</button>
+    </div>
+</div>
+
+<div id="video-modal" class="modal">
+    <div class="modal-header">
+        <button class="back-arrow-btn" onclick="document.getElementById('video-modal').style.display='none'">
+            <svg viewBox="0 0 24 24" fill="none" stroke-width="2"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
+        </button>
+        
+        <div style="display:flex; gap:10px; background:#222; padding:4px; border-radius:8px;">
+            <button onclick="window.setVideoMode('swipe')" style="background:none; border:none; cursor:pointer;">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><rect x="5" y="2" width="14" height="20" rx="2" ry="2"></rect></svg>
+            </button>
+            <button onclick="window.setVideoMode('grid')" style="background:none; border:none; cursor:pointer;">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect></svg>
+            </button>
+        </div>
+
+        <div>
+            <label for="video-upload-input" style="color: var(--accent); font-weight: bold; cursor: pointer; font-size:24px;">+</label>
+            <input type="file" id="video-upload-input" hidden accept="video/*" onchange="window.handleVideoUpload(event)">
+        </div>
+    </div>
+
+    <div id="video-feed-content" style="padding: 10px; padding-bottom: 80px;"></div>
+</div>
+
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+
+    // --- CONFIGURATION & GLOBAL STATE ---
+    const ALIAS_PRE = ['Jay', 'Cool', 'Wild', 'Soft', 'Dark', 'Light', 'Neo', 'Retro'];
+    const ALIAS_SUF = ['Rocker', 'Vibes', 'Soul', 'King', 'Queen', 'X', '99', 'Walker'];
+    const IMGS_F = ['https://images.unsplash.com/photo-1517841905240-472988babdf9?w=500', 'https://images.unsplash.com/photo-1524504388940-b1c1722653e1?w=500'];
+    const IMGS_M = ['https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=500', 'https://images.unsplash.com/photo-1480455624313-e29b44bbfde1?w=500'];
+    const DATA_REL_TYPE = ['Marriage', 'Long-Term', 'Short-Term', 'Intimacy w/o Connection', 'Friends', 'FWB'];
+
+    let activeDeck = [];
+    let card, startX, currentX, btnLike, btnReject;
+    let currentChatUnsubscribe = null; 
+    let currentChatId = null; 
+
+    // --- HELPER FOR EMPTY STATES ---
+    function getEmptyStateHTML() {
+        return `
+            <div class="empty-placeholder-container" style="text-align:center; padding-top:50px; color:#666;">
+                <div style="font-size:40px; margin-bottom:10px;">🔭</div>
+                <div class="empty-text">No users nearby</div>
+            </div>
+        `;
+    }
+
+    // --- 1. CORE BACKEND & INITIALIZATION ---
+
+    window.initBackend = function() {
+        // 1. Establish Identity (Hybrid: Local + potentially Firebase)
+        let myUid = localStorage.getItem('pgX_myUid');
+        if (!myUid) {
+            myUid = 'user_' + Date.now() + '_' + Math.floor(Math.random() * 1000);
+            localStorage.setItem('pgX_myUid', myUid);
+        }
+
+        // 2. Create mock users if we have absolutely no data locally
+        if (!localStorage.getItem('pgX_users')) {
+            let users = [];
+            for (let i = 0; i < 30; i++) {
+                let isFem = Math.random() > 0.5;
+                users.push({
+                    id: 'mock_' + i, 
+                    alias: ALIAS_PRE[Math.floor(Math.random() * 8)] + "_" + ALIAS_SUF[Math.floor(Math.random() * 8)],
+                    age: Math.floor(Math.random() * 15) + 18,
+                    gender: isFem ? 'Woman' : 'Man',
+                    img: isFem ? IMGS_F[Math.floor(Math.random() * IMGS_F.length)] : IMGS_M[Math.floor(Math.random() * IMGS_M.length)],
+                    lat: 40.7128 + (Math.random() - 0.5) * 0.05,
+                    lng: -74.0060 + (Math.random() - 0.5) * 0.05,
+                    relationship: DATA_REL_TYPE[Math.floor(Math.random() * DATA_REL_TYPE.length)],
+                    bio: "Just here for a good time. Love travel and photography.",
+                    seen: false,
+                    winkedAtMe: Math.random() < 0.2
+                });
+            }
+            localStorage.setItem('pgX_users', JSON.stringify(users));
+        }
+
+        // 3. Start the app processes
+        renderDeck();
+        initArcade();
+        
+        // 4. Load Saved Profile Picture into Header & Gallery
+        const savedImg = localStorage.getItem('my_profile_pic');
+        if (savedImg) {
+            const headerIcon = document.getElementById('user-icon-trigger');
+            if (headerIcon) {
+                headerIcon.innerHTML = `<img src="${savedImg}" style="width:100%; height:100%; border-radius:50%; object-fit:cover;">`;
+            }
+            const galleryImg = document.getElementById('g1-preview');
+            const galleryLabel = document.getElementById('g1-lbl');
+            if (galleryImg) {
+                galleryImg.src = savedImg;
+                galleryImg.style.display = 'block';
+                if(galleryLabel) galleryLabel.style.display = 'none';
+            }
+        }
+        
+        // 5. Setup Listeners
+        const sendBtn = document.querySelector('.chat-input-area button');
+        if(sendBtn) sendBtn.onclick = sendMessage;
+
+        const chatInput = document.querySelector('.chat-input');
+        if(chatInput) {
+            chatInput.onkeypress = (e) => { if (e.key === 'Enter') sendMessage(); };
+        }
+
+        const profileBtn = document.getElementById('open-my-profile');
+        if(profileBtn) {
+            profileBtn.onclick = (e) => {
+                e.preventDefault(); 
+                window.loadMyProfile();
+            };
+        }
+    }
+
+    // --- 2. DECK & SWIPE LOGIC ---
+
+    window.renderDeck = async function() {
+        const zone = document.getElementById('swipe-zone');
+        const grid = document.getElementById('grid-content');
+
+        let realUsers = [];
+        
+        // 1. DATA: Try to get Real People from Firebase
+        if (window.fbase && window.db) {
+            try {
+                const snapshot = await window.fbase.getDocs(window.fbase.collection(window.db, "users"));
+                snapshot.forEach(doc => {
+                    // Don't show myself
+                    if (doc.id !== localStorage.getItem('pgX_myUid')) {
+                        realUsers.push({ id: doc.id, ...doc.data() });
+                    }
+                });
+            } catch (e) {
+                console.log("Offline or DB error, using mocks");
+            }
+        }
+
+        // 2. LOGIC: Decide Real or Mock?
+        if (realUsers.length > 0) {
+            activeDeck = realUsers;
+        } else {
+            // Fallback to local mocks
+            activeDeck = JSON.parse(localStorage.getItem('pgX_users')) || [];
+            activeDeck = activeDeck.filter(u => !u.seen);
+        }
+        
+        // 3. DRAWING: Render Swipe View
+        if (activeDeck.length > 0) {
+            const u = activeDeck[0];
+            zone.innerHTML = `
+            <div class="swipe-card" id="active-card" onclick="window.openUserProfile('${u.alias}', ${u.age}, '${u.img}', '${u.id}')">
+                <img src="${u.img}">
+                <div class="card-header-overlay">
+                    <span class="card-alias">${u.alias}</span>
+                    <span class="card-age">${u.age}</span>
+                </div>
+            </div>`;
+            setTimeout(initSwipeHandlers, 50);
+        } else {
+            zone.innerHTML = getEmptyStateHTML();
+        }
+
+        // 4. DRAWING: Render Grid View
+        if (grid) {
+            if (activeDeck.length === 0) {
+                grid.style.display = 'flex';
+                grid.innerHTML = getEmptyStateHTML();
+            } else {
+                grid.style.display = 'grid';
+                grid.innerHTML = activeDeck.map(u => `
+                <div class="grid-item" onclick="window.openUserProfile('${u.alias}', ${u.age}, '${u.img}', '${u.id}')">
+                    <img src="${u.img}" style="width:100%; height:100%; object-fit:cover;">
+                    <div class="grid-overlay"><span>${u.alias}</span><span>${u.age}</span></div>
+                </div>
+                `).join('');
+            }
+        }
+        
+        // 5. DRAWING: Update Map
+        if(window.updateMapPins) window.updateMapPins(activeDeck);
+    }
+
+    function initSwipeHandlers() {
+        card = document.getElementById('active-card');
+        btnReject = document.getElementById('btn-reject');
+        btnLike = document.getElementById('btn-like');
+        if (!card) return;
+
+        card.addEventListener('touchstart', (e) => { startX = e.touches[0].clientX; card.style.transition = 'none'; });
+        card.addEventListener('touchmove', (e) => {
+            currentX = e.touches[0].clientX - startX;
+            card.style.transform = `translateX(${currentX}px) rotate(${currentX / 15}deg)`;
+            if (currentX > 0) { btnLike.style.background = 'var(--accent)'; } 
+            else { btnReject.style.background = 'grey'; }
+        });
+        card.addEventListener('touchend', () => {
+            if (currentX > 100) window.userSwipe('right');
+            else if (currentX < -100) window.userSwipe('left');
+            else { card.style.transform = 'translateX(0)'; resetButtons(); }
+        });
+    }
+
+    window.userSwipe = function(dir) {
+        if (!card) return;
+        
+        // 1. Animate
+        card.style.transition = 'transform 0.5s ease-in';
+        card.style.transform = `translateX(${dir === 'right' ? 1000 : -1000}px)`;
+
+        // 2. Mark as Seen (Mock Logic)
+        let allUsers = JSON.parse(localStorage.getItem('pgX_users')) || [];
+        if (activeDeck.length > 0) {
+            let currentUserId = activeDeck[0].id;
+            let userIndex = allUsers.findIndex(u => u.id === currentUserId);
+            if (userIndex > -1) {
+                allUsers[userIndex].seen = true;
+                localStorage.setItem('pgX_users', JSON.stringify(allUsers));
+            }
+        }
+
+        // 3. Feedback
+        if (dir === 'right') {
+            document.getElementById('wink-txt').classList.add('show');
+            setTimeout(() => document.getElementById('wink-txt').classList.remove('show'), 1000);
+        }
+
+        // 4. Reload Deck
+        setTimeout(() => { 
+            resetButtons(); 
+            renderDeck(); 
+        }, 300);
+    }
+
+    function resetButtons() {
+        if (btnLike) btnLike.style.background = 'rgba(0,0,0,0.6)';
+        if (btnReject) btnReject.style.background = 'rgba(0,0,0,0.6)';
+    }
+
+    // --- 3. MAP ---
+    const map = L.map('map', {zoomControl: false}).setView([40.7128, -74.0060], 13);
+    L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png').addTo(map);
+
+    window.updateMapPins = function(users) {
+        map.eachLayer((layer) => { if(layer instanceof L.Marker) map.removeLayer(layer); });
+
+        users.forEach(u => {
+            if(u.lat && u.lng) {
+                const icon = L.divIcon({
+                    className: 'custom-pin',
+                    html: `<div class="user-dot-pin" style="width:12px; height:12px;"></div>`
+                });
+                L.marker([u.lat, u.lng], {icon: icon})
+                  .addTo(map)
+                  .bindPopup(`<b>${u.alias}</b><br>${u.age}`);
+            }
+        });
+        const myIcon = L.divIcon({ className: 'my-pin', html: `<div class="my-location-pin" style="width:20px; height:20px;"></div>` });
+        L.marker([40.7128, -74.0060], {icon: myIcon}).addTo(map);
+    }
+
+    // --- 4. REAL-TIME MESSAGING ---
+
+    window.openChat = function(name, targetUid) {
+        document.getElementById('msg-list-view').style.display = 'none';
+        document.getElementById('chat-view').style.display = 'flex';
+        document.getElementById('chat-target-name').innerText = name;
+        
+        const chatBody = document.getElementById('chat-body');
+        chatBody.innerHTML = ''; 
+        currentChatId = targetUid; 
+
+        if (window.fbase && window.db && targetUid) {
+            const { collection, query, orderBy, onSnapshot, limit } = window.fbase;
+            let myUid = localStorage.getItem('pgX_myUid') || 'anon';
+            const chatId = [myUid, targetUid].sort().join('_');
+            
+            const q = query(collection(window.db, "chats", chatId, "messages"), orderBy("createdAt"), limit(50));
+            if(currentChatUnsubscribe) currentChatUnsubscribe(); 
+
+            currentChatUnsubscribe = onSnapshot(q, (snapshot) => {
+                chatBody.innerHTML = ''; 
+                snapshot.forEach((doc) => {
+                    const msg = doc.data();
+                    const isMe = msg.senderId === myUid;
+                    const bubble = document.createElement('div');
+                    bubble.className = `chat-bubble ${isMe ? 'me' : 'them'}`;
+                    bubble.innerText = msg.text;
+                    chatBody.appendChild(bubble);
+                });
+                chatBody.scrollTop = chatBody.scrollHeight;
+            });
+        }
+    }
+
+    async function sendMessage() {
+        const input = document.querySelector('.chat-input');
+        const text = input.value.trim();
+        if (!text) return;
+
+        if (window.fbase && window.db && currentChatId) {
+            const { collection, addDoc, serverTimestamp } = window.fbase;
+            let myUid = localStorage.getItem('pgX_myUid') || 'anon';
+            const chatId = [myUid, currentChatId].sort().join('_');
+
+            await addDoc(collection(window.db, "chats", chatId, "messages"), {
+                text: text,
+                senderId: myUid,
+                createdAt: serverTimestamp()
+            });
+        } else {
+            // Local fallback
+            const chatBody = document.getElementById('chat-body');
+            const bubble = document.createElement('div');
+            bubble.className = 'chat-bubble me';
+            bubble.innerText = text;
+            chatBody.appendChild(bubble);
+        }
+        input.value = '';
+    }
+
+    // --- 5. UI CONTROLS ---
+
+    let currentVideoView = 'swipe';
+
+    window.openVideoFeed = function() {
+        document.getElementById('video-modal').style.display = 'block';
+        window.renderVideoFeed();
+    }
+
+    window.setVideoMode = function(mode) {
+        currentVideoView = mode;
+        window.renderVideoFeed();
+    }
+
+    window.handleVideoUpload = function(event) {
+        const file = event.target.files[0];
+        if (!file) return;
+        const videoUrl = URL.createObjectURL(file);
+        
+        let allVideos = JSON.parse(localStorage.getItem('pgX_videos')) || [];
+        allVideos.unshift({
+            url: videoUrl,
+            user: localStorage.getItem('pgX_alias') || "Me",
+            timestamp: new Date().toLocaleTimeString()
+        });
+        localStorage.setItem('pgX_videos', JSON.stringify(allVideos));
+        window.renderVideoFeed();
+    }
+
+    window.renderVideoFeed = function() {
+        const container = document.getElementById('video-feed-content');
+        const allVideos = JSON.parse(localStorage.getItem('pgX_videos')) || [];
+
+        container.className = ''; 
+        if (currentVideoView === 'grid') container.classList.add('feed-layout-grid');
+        else container.classList.add('feed-layout-swipe');
+
+        if (allVideos.length === 0) {
+            container.innerHTML = `<div style="text-align:center; color:#666; margin-top:50px;">No videos yet.<br>Be the first!</div>`;
+            return;
+        }
+
+        container.innerHTML = allVideos.map(vid => `
+            <div class="video-item">
+                <video src="${vid.url}" controls playsinline loop></video>
+                <div class="vid-details" style="padding: 10px;">
+                    <span style="color: white; font-weight: bold;">${vid.user}</span>
+                </div>
+            </div>
+        `).join('');
+    }
+
+    window.toggleUserMenu = function() {
+        const menu = document.getElementById('user-dropdown');
+        menu.style.display = (menu.style.display === 'block') ? 'none' : 'block';
+    }
+
+    const userTrigger = document.getElementById('user-icon-trigger');
+    if(userTrigger) userTrigger.onclick = (e) => { e.stopPropagation(); window.toggleUserMenu(); };
+
+    window.switchView = function(viewId, btn) {
+        document.querySelectorAll('.app-view').forEach(v => v.classList.remove('active'));
+        document.querySelectorAll('.view-btn').forEach(b => b.classList.remove('active'));
+        document.getElementById('view-' + viewId).classList.add('active');
+        btn.classList.add('active');
+        if (viewId === 'map') setTimeout(() => map.invalidateSize(), 100);
+    }
+
+    window.openMsgModal = function() {
+        document.getElementById('msg-modal').style.display = 'block';
+    }
+
+    window.closeChat = function() {
+        document.getElementById('msg-modal').style.display = 'none';
+        document.getElementById('msg-list-view').style.display = 'block';
+        document.getElementById('chat-view').style.display = 'none';
+    }
+
+    window.openTab = function(tabId, btn) {
+        document.querySelectorAll('.tab-pane').forEach(t => t.style.display = 'none');
+        document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+        document.getElementById(tabId).style.display = 'block';
+        btn.classList.add('active');
+    }
+
+    window.toggleAccordion = function(id, isChecked) {
+        const el = document.getElementById(id);
+        if(el) el.style.display = isChecked ? 'block' : 'none';
+    }
+
+    window.toggleProfileAcc = function(id) {
+        const el = document.getElementById(id);
+        if(el.style.display === 'block') el.style.display = 'none';
+        else el.style.display = 'block';
+    }
+    
+    window.selectProfileOption = function(displayId, value, accId) {
+        document.getElementById(displayId).innerText = value;
+        document.getElementById(accId).style.display = 'none';
+    }
+
+    window.previewMainAndGallery = function(event) {
+        const file = event.target.files[0];
+        if (file) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const imgUrl = e.target.result;
+                // Update Main
+                document.getElementById('my-main-preview').src = imgUrl;
+                // Update Gallery #1
+                const galleryImg = document.getElementById('g1-preview');
+                galleryImg.src = imgUrl;
+                galleryImg.style.display = 'block';
+                const galleryLabel = document.getElementById('g1-lbl');
+                if(galleryLabel) galleryLabel.style.display = 'none';
+                // Update Header
+                const headerIcon = document.getElementById('user-icon-trigger');
+                headerIcon.innerHTML = `<img src="${imgUrl}" style="width:100%; height:100%; border-radius:50%; object-fit:cover;">`;
+            }
+            reader.readAsDataURL(file);
+        }
+    }
+    
+    window.previewVideo = function(event) {
+        alert("Video selected!");
+    }
+
+    window.saveProfile = async function() {
+        const alias = document.getElementById('p-alias').value;
+        const bio = document.getElementById('p-bio').value;
+        const imgVal = document.getElementById('my-main-preview').src;
+
+        // 1. Save Local
+        localStorage.setItem('pgX_alias', alias);
+        localStorage.setItem('pgX_bio', bio);
+        localStorage.setItem('my_profile_pic', imgVal);
+
+        // 2. Save to Firebase (Hybrid)
+        if (window.fbase && window.db) {
+            const myUid = localStorage.getItem('pgX_myUid');
+            try {
+                await window.fbase.setDoc(window.fbase.doc(window.db, "users", myUid), {
+                    alias: alias,
+                    bio: bio,
+                    lastSeen: window.fbase.serverTimestamp()
+                }, { merge: true });
+            } catch (e) { console.error("Sync failed", e); }
+        }
+
+        document.getElementById('profile-modal').style.display = 'none';
+    }
+
+    window.loadMyProfile = function() {
+        const storedAlias = localStorage.getItem('pgX_alias') || ""; 
+        const storedBio = localStorage.getItem('pgX_bio') || "";
+        const storedImg = localStorage.getItem('my_profile_pic') || "https://via.placeholder.com/120";
+
+        document.getElementById('p-alias').value = storedAlias;
+        document.getElementById('p-bio').value = storedBio;
+        document.getElementById('my-main-preview').src = storedImg;
+        
+        const galleryImg = document.getElementById('g1-preview');
+        const galleryLabel = document.getElementById('g1-lbl');
+        
+        if (storedImg.includes('data:image') || storedImg.includes('http')) {
+             galleryImg.src = storedImg;
+             galleryImg.style.display = 'block';
+             if(galleryLabel) galleryLabel.style.display = 'none';
+        }
+
+        document.getElementById('profile-modal').style.display = 'block';
+        document.getElementById('user-dropdown').style.display = 'none';
+    }
+
+    window.applyFilters = function() {
+        document.getElementById('filter-modal').style.display = 'none';
+        renderDeck();
+    }
+
+    window.openUserProfile = function(alias, age, img, id) {
+        const modal = document.getElementById('view-user-modal');
+        document.getElementById('view-user-img').src = img;
+        document.getElementById('view-user-img-small').src = img;
+        document.getElementById('view-user-name').innerText = alias + ", " + age;
+        document.getElementById('view-user-bio').innerText = `${alias} is a ${age} year old member.`;
+        
+        const chipsContainer = document.getElementById('view-user-chips');
+        chipsContainer.innerHTML = `<span class="stat-chip love">Words of Affirmation</span><span class="stat-chip">Non-Smoker</span>`;
+        
+        modal.style.display = 'block';
+    }
+
+    window.toggleReportMenu = function() {
+        const menu = document.getElementById('report-menu');
+        menu.style.display = (menu.style.display === 'block') ? 'none' : 'block';
+    }
+
+    // --- 6. ARCADE ---
+    const games = [
+        { name: "Simple Pong", file: "Simplepong.html", thumb: "https://via.placeholder.com/150/000000/FFFFFF/?text=Pong" },
+        { name: "Speed Jump", file: "Speedjump.html", thumb: "https://via.placeholder.com/150/000000/FFFFFF/?text=Jump" },
+        { name: "Ghost Poke", file: "Ghostpoke.html", thumb: "https://via.placeholder.com/150/000000/FFFFFF/?text=Ghost" },
+        { name: "Caos Racer", file: "caosracer.html", thumb: "https://via.placeholder.com/150/000000/FFFFFF/?text=Racer" },
+        { name: "Big Shot", file: "bigshot.html", thumb: "https://via.placeholder.com/150/000000/FFFFFF/?text=Shot" },
+        { name: "Flap Dodge", file: "flapdodge.html", thumb: "https://via.placeholder.com/150/000000/FFFFFF/?text=Flap" }
+    ];
+
+    function initArcade() {
+        const grid = document.getElementById('arcade-grid');
+        if (!grid) return;
+        grid.innerHTML = ''; 
+
+        games.forEach(game => {
+            const card = document.createElement('div');
+            card.className = 'game-card'; 
+            card.style = "position:relative; background:#222; border-radius:12px; overflow:hidden; aspect-ratio:1/1; border:1px solid #333;";
+            card.innerHTML = `
+                <img src="${game.thumb}" style="width:100%; height:100%; object-fit:cover;">
+                <div class="game-overlay" onclick="window.revealPlay(this)" style="position:absolute; inset:0; background:rgba(0,0,0,0); display:flex; align-items:center; justify-content:center; cursor:pointer; transition:0.3s;">
+                    <button onclick="window.launchGame('${game.file}', event)" class="play-btn" style="background:var(--accent); color:white; border:none; padding:10px 20px; border-radius:20px; font-weight:bold; transform: scale(0.8); opacity:0; transition:0.2s; pointer-events:none;">PLAY</button>
+                </div>
+                <div style="position:absolute; bottom:0; left:0; right:0; padding:8px; background:linear-gradient(transparent, rgba(0,0,0,0.8)); color:white; font-size:12px; font-weight:600; pointer-events:none;">${game.name}</div>
+            `;
+            grid.appendChild(card);
+        });
+    }
+
+    window.revealPlay = function(overlay) {
+        document.querySelectorAll('.game-overlay').forEach(el => {
+            el.style.background = "rgba(0,0,0,0)";
+            const btn = el.querySelector('.play-btn');
+            btn.style.opacity = "0";
+            btn.style.transform = "scale(0.8)";
+            btn.style.pointerEvents = "none";
+        });
+        overlay.style.background = "rgba(0,0,0,0.7)";
+        const activeBtn = overlay.querySelector('.play-btn');
+        activeBtn.style.opacity = "1";
+        activeBtn.style.transform = "scale(1)";
+        activeBtn.style.pointerEvents = "auto";
+    };
+
+    window.launchGame = function(file, event) {
+        if (event) event.stopPropagation();
+        const player = document.getElementById('game-player');
+        const frame = document.getElementById('game-frame');
+        // frame.src = file; // Enable this when you have real game files
+        frame.src = "about:blank"; 
+        player.style.display = 'block';
+    };
+
+    window.closeGame = function() {
+        const player = document.getElementById('game-player');
+        const frame = document.getElementById('game-frame');
+        frame.src = ''; 
+        player.style.display = 'none';
+    };
+
+    window.closeArcade = function() {
+        window.closeGame();
+        document.getElementById('game-modal').style.display = 'none';
+    };
+    
+    window.closeConfirm = function() {
+        document.getElementById('confirm-modal').style.display = 'none';
+    }
+    window.confirmYes = function() {
+        alert("Item deleted");
+        window.closeConfirm();
+    }
+
+    // START
+    initBackend();
+});
+</script>
+</body>
+</html>
