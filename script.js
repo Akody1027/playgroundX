@@ -300,6 +300,64 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // --- 5. UI CONTROLS ---
 
+
+
+    let currentVideoView = 'swipe';
+
+    window.openVideoFeed = function() {
+        document.getElementById('video-modal').style.display = 'block';
+        window.renderVideoFeed();
+    }
+
+    window.setVideoMode = function(mode) {
+        currentVideoView = mode;
+        window.renderVideoFeed();
+    }
+
+    window.handleVideoUpload = function(event) {
+        const file = event.target.files[0];
+        if (!file) return;
+        const videoUrl = URL.createObjectURL(file);
+        
+        let allVideos = JSON.parse(localStorage.getItem('pgX_videos')) || [];
+        allVideos.unshift({
+            url: videoUrl,
+            user: localStorage.getItem('pgX_alias') || "Me",
+            timestamp: new Date().toLocaleTimeString()
+        });
+        localStorage.setItem('pgX_videos', JSON.stringify(allVideos));
+        window.renderVideoFeed();
+    }
+
+    window.renderVideoFeed = function() {
+        const container = document.getElementById('video-feed-content');
+        const allVideos = JSON.parse(localStorage.getItem('pgX_videos')) || [];
+
+        container.className = ''; 
+        if (currentVideoView === 'grid') container.classList.add('feed-layout-grid');
+        else container.classList.add('feed-layout-swipe');
+
+        if (allVideos.length === 0) {
+            container.innerHTML = `<div style="text-align:center; color:#666; margin-top:50px;">No videos yet.<br>Be the first!</div>`;
+            return;
+        }
+
+        container.innerHTML = allVideos.map(vid => `
+            <div class="video-item">
+                <video src="${vid.url}" controls playsinline loop></video>
+                <div class="vid-details" style="padding: 10px;">
+                    <span style="color: white; font-weight: bold;">${vid.user}</span>
+                </div>
+            </div>
+        `).join('');
+    }
+
+
+
+
+
+
+    
     window.toggleUserMenu = function() {
         const menu = document.getElementById('user-dropdown');
         menu.style.display = (menu.style.display === 'block') ? 'none' : 'block';
@@ -522,3 +580,4 @@ document.addEventListener('DOMContentLoaded', () => {
     // START
     initBackend();
 });
+
