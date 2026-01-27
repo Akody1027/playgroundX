@@ -807,8 +807,28 @@ document.addEventListener('DOMContentLoaded', () => {
 
     window.handleAge = function(isAdult) {
         if (isAdult) {
-            document.getElementById('age-gate').style.display = 'none';
-            document.getElementById('location-gate').style.display = 'flex';
+            const ageGate = document.getElementById('age-gate');
+            const locGate = document.getElementById('location-gate');
+            
+            // Fade out Age
+            ageGate.style.transition = "opacity 0.5s";
+            ageGate.style.opacity = "0";
+            
+            setTimeout(() => {
+                ageGate.style.display = 'none';
+                
+                // Prepare Location Gate
+                locGate.style.opacity = "0";
+                locGate.style.display = 'flex';
+                
+                // Trigger reflow
+                void locGate.offsetWidth; 
+                
+                // Fade in Location
+                locGate.style.transition = "opacity 0.5s";
+                locGate.style.opacity = "1";
+            }, 500);
+            
         } else {
             if (history.length > 1) {
                 history.back();
@@ -831,18 +851,39 @@ document.addEventListener('DOMContentLoaded', () => {
                     if(activeDeck) updateMapPins(activeDeck);
                 }
 
-                // Hide Gate and Welcome
-                document.getElementById('location-gate').style.display = 'none';
-                alert("Welcome to playgroundX!");
+                // Success: Transition to Loader
+                const locGate = document.getElementById('location-gate');
+                const loader = document.getElementById('loading-overlay');
+                
+                // Fade out Location
+                locGate.style.opacity = "0";
+                
+                setTimeout(() => {
+                    locGate.style.display = 'none';
+                    
+                    // Show Loader
+                    loader.style.display = 'flex';
+                    loader.innerHTML = '<div class="spinner"></div><div style="color: #666; font-size: 14px; font-weight: bold;">INITIALIZING SECURE CONNECTION...</div>';
+                    
+                    // Wait 3.5 seconds
+                    setTimeout(() => {
+                        loader.style.opacity = '0'; // Optional fade out for loader
+                        loader.style.transition = 'opacity 0.5s';
+                        setTimeout(() => {
+                            loader.style.display = 'none';
+                        }, 500);
+                    }, 3500);
+                    
+                }, 500);
                 
             }, (err) => {
                 console.warn("Location permission denied", err);
                 alert("Location access needed to show your position.");
-                document.getElementById('location-gate').style.display = 'none';
+                // Keep location gate visible or show error?
+                // For now, keep visible so they can try again.
             });
         } else {
             alert("Geolocation not supported.");
-            document.getElementById('location-gate').style.display = 'none';
         }
     }
 
@@ -862,7 +903,7 @@ document.addEventListener('DOMContentLoaded', () => {
     function getEmptyStateHTML() {
         return `
             <div class="swipe-card" style=" display: flex; align-items: center; justify-content: center; background: #1a1a1a;">
-                <img src="nousericon.png" style="width: 80%; height: 90%; object-fit: fill; opacity: 0.5;">
+                <img src="nousericon.png" style="width: 90%; height: 90%; object-fit: cover; opacity: 0.5;">
                 <div class="card-header-overlay" style="justify-content:center;">
                     <span class="card-alias" style="color:gray;">No Users Nearby</span>
                 </div>
@@ -1363,80 +1404,6 @@ document.addEventListener('DOMContentLoaded', () => {
         menu.style.display = (menu.style.display === 'block') ? 'none' : 'block';
     }
 
-    // --- 6. ARCADE ---
-    const games = [
-        { name: "Simple Pong", file: "Simplepong.html", thumb: "https://via.placeholder.com/150/000000/FFFFFF/?text=Pong" },
-        { name: "Speed Jump", file: "Speedjump.html", thumb: "https://via.placeholder.com/150/000000/FFFFFF/?text=Jump" },
-        { name: "Ghost Poke", file: "Ghostpoke.html", thumb: "https://via.placeholder.com/150/000000/FFFFFF/?text=Ghost" },
-        { name: "Caos Racer", file: "caosracer.html", thumb: "https://via.placeholder.com/150/000000/FFFFFF/?text=Racer" },
-        { name: "Big Shot", file: "bigshot.html", thumb: "https://via.placeholder.com/150/000000/FFFFFF/?text=Shot" },
-        { name: "Flap Dodge", file: "flapdodge.html", thumb: "https://via.placeholder.com/150/000000/FFFFFF/?text=Flap" }
-    ];
-
-    function initArcade() {
-        const grid = document.getElementById('arcade-grid');
-        if (!grid) return;
-        grid.innerHTML = ''; 
-
-        games.forEach(game => {
-            const card = document.createElement('div');
-            card.className = 'game-card'; 
-            card.style = "position:relative; background:#222; border-radius:12px; overflow:hidden; aspect-ratio:1/1; border:1px solid #333;";
-            card.innerHTML = `
-                <img src="${game.thumb}" style="width:100%; height:100%; object-fit:cover;">
-                <div class="game-overlay" onclick="window.revealPlay(this)" style="position:absolute; inset:0; background:rgba(0,0,0,0); display:flex; align-items:center; justify-content:center; cursor:pointer; transition:0.3s;">
-                    <button onclick="window.launchGame('${game.file}', event)" class="play-btn" style="background:var(--accent); color:white; border:none; padding:10px 20px; border-radius:20px; font-weight:bold; transform: scale(0.8); opacity:0; transition:0.2s; pointer-events:none;">PLAY</button>
-                </div>
-                <div style="position:absolute; bottom:0; left:0; right:0; padding:8px; background:linear-gradient(transparent, rgba(0,0,0,0.8)); color:white; font-size:12px; font-weight:600; pointer-events:none;">${game.name}</div>
-            `;
-            grid.appendChild(card);
-        });
-    }
-
-    window.revealPlay = function(overlay) {
-        document.querySelectorAll('.game-overlay').forEach(el => {
-            el.style.background = "rgba(0,0,0,0)";
-            const btn = el.querySelector('.play-btn');
-            btn.style.opacity = "0";
-            btn.style.transform = "scale(0.8)";
-            btn.style.pointerEvents = "none";
-        });
-        overlay.style.background = "rgba(0,0,0,0.7)";
-        const activeBtn = overlay.querySelector('.play-btn');
-        activeBtn.style.opacity = "1";
-        activeBtn.style.transform = "scale(1)";
-        activeBtn.style.pointerEvents = "auto";
-    };
-
-    window.launchGame = function(file, event) {
-        if (event) event.stopPropagation();
-        const player = document.getElementById('game-player');
-        const frame = document.getElementById('game-frame');
-        // frame.src = file; // Enable this when you have real game files
-        frame.src = "about:blank"; 
-        player.style.display = 'block';
-    };
-
-    window.closeGame = function() {
-        const player = document.getElementById('game-player');
-        const frame = document.getElementById('game-frame');
-        frame.src = ''; 
-        player.style.display = 'none';
-    };
-
-    window.closeArcade = function() {
-        window.closeGame();
-        document.getElementById('game-modal').style.display = 'none';
-    };
-    
-    window.closeConfirm = function() {
-        document.getElementById('confirm-modal').style.display = 'none';
-    }
-    window.confirmYes = function() {
-        alert("Item deleted");
-        window.closeConfirm();
-    }
-
     // --- FIX FOR PROFILE BUTTON: Attach listener immediately ---
     const profileBtn = document.getElementById('open-my-profile');
     if(profileBtn) {
@@ -1452,4 +1419,3 @@ document.addEventListener('DOMContentLoaded', () => {
 </script>
 </body>
 </html>
-
