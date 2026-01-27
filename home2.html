@@ -399,6 +399,19 @@
     </div>
 </div>
 
+<div id="location-gate" style="display:none; position: fixed; inset: 0; background: rgba(0,0,0,0.9); z-index: 99999; flex-direction: column; align-items: center; justify-content: center; text-align: center; backdrop-filter: blur(10px);">
+    <div style="background: #1E1E1E; padding: 30px; border-radius: 20px; max-width: 90%; width: 350px; border: 1px solid #333;">
+        <div style="font-size: 40px; margin-bottom: 20px;">📍</div>
+        <h2 style="color: white; margin: 0 0 10px 0;">Enable Location</h2>
+        <p style="color: #ccc; margin-bottom: 20px; font-size: 14px; line-height: 1.5;">
+            To match you with people nearby, we need your location. <br><br>
+            <span style="color: var(--accent);">No one can see you until you allow it.</span><br>
+            You can change this in settings later.
+        </p>
+        <button onclick="window.requestLocation()" style="background: var(--accent); color: white; border: none; padding: 14px; width: 100%; border-radius: 12px; font-weight: bold; font-size: 16px; cursor: pointer;">Allow Location</button>
+    </div>
+</div>
+
 <div id="loading-overlay">
     <div class="spinner"></div>
     <div style="color: #666; font-size: 14px; font-weight: bold;">INITIALIZING SECURE CONNECTION...</div>
@@ -795,13 +808,41 @@ document.addEventListener('DOMContentLoaded', () => {
     window.handleAge = function(isAdult) {
         if (isAdult) {
             document.getElementById('age-gate').style.display = 'none';
-            alert("Welcome to playgroundX!"); // "Show a welcome prompt"
+            document.getElementById('location-gate').style.display = 'flex';
         } else {
             if (history.length > 1) {
                 history.back();
             } else {
                 window.location.href = "https://google.com";
             }
+        }
+    }
+    
+    window.requestLocation = function() {
+        if (navigator.geolocation) {
+            navigator.geolocation.getCurrentPosition((position) => {
+                const lat = position.coords.latitude;
+                const lng = position.coords.longitude;
+                window.myLocation = { lat, lng };
+                
+                // Update Map
+                if (window.map) {
+                    window.map.setView([lat, lng], 13);
+                    if(activeDeck) updateMapPins(activeDeck);
+                }
+
+                // Hide Gate and Welcome
+                document.getElementById('location-gate').style.display = 'none';
+                alert("Welcome to playgroundX!");
+                
+            }, (err) => {
+                console.warn("Location permission denied", err);
+                alert("Location access needed to show your position.");
+                document.getElementById('location-gate').style.display = 'none';
+            });
+        } else {
+            alert("Geolocation not supported.");
+            document.getElementById('location-gate').style.display = 'none';
         }
     }
 
@@ -849,8 +890,7 @@ document.addEventListener('DOMContentLoaded', () => {
             // 2. Check if Profile Exists in DB, if not create default
             await ensureUserProfile();
             
-            // 3. GET REAL GEOLOCATION
-            updateUserLocation();
+            // 3. GET REAL GEOLOCATION - REMOVED (Handled by UI flow now)
 
         } catch (error) {
             console.warn("Auth Failed (Offline Mode Activated):", error);
@@ -866,26 +906,6 @@ document.addEventListener('DOMContentLoaded', () => {
             initArcade();
             // loadMyProfile(); REMOVED TO PREVENT AUTO POPUP
             loading.style.display = 'none';
-        }
-    }
-    
-    function updateUserLocation() {
-        if (navigator.geolocation) {
-            navigator.geolocation.getCurrentPosition((position) => {
-                const lat = position.coords.latitude;
-                const lng = position.coords.longitude;
-                // Store locally for map update function to use
-                window.myLocation = { lat, lng };
-                
-                // If map is already initialized, update it
-                if (window.map) {
-                    window.map.setView([lat, lng], 13);
-                    // Update the "Me" marker logic in updateMapPins
-                    if(activeDeck) updateMapPins(activeDeck);
-                }
-            }, (err) => {
-                console.warn("Location permission denied or unavailable", err);
-            });
         }
     }
 
