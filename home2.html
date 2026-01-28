@@ -2244,32 +2244,6 @@ updateConnectionStatus();
 
 
 
-
-    // ==========================================
-    // SPEED DATING LOGIC (ROBUST FIX)
-    // ==========================================
-
-    // 1. GLOBAL CONFIG (Fixes the scope error)
-    window.SPEED_DATE_CONFIG = {
-        icon_src: "speedheart.png",
-        date_duration: 180, // 3 minutes
-        lobby_timer: 10,    // seconds (Short for testing)
-    };
-
-    let speedInterval;
-    let isSpeedQueued = false;
-
-    // 2. Open Intro
-    window.openSpeedIntro = function() {
-        console.log("Opening Speed Intro...");
-        const modal = document.getElementById('speed-intro-modal');
-        if(modal) modal.style.display = 'flex';
-    }
-
-    // 3. Join Queue -> Open Lobby (NO CAM YET)
-    window.joinSpeedQueue = function() {
-        console.log("Joining Speed Queue...");
-        isSpeedQueued = true;
         
 
         
@@ -2407,8 +2381,7 @@ updateConnectionStatus();
         document.getElementById('speed-lobby').style.display = 'flex';
     }
 
-    // START
-    initBackend();
+    
 
 
 
@@ -2425,6 +2398,7 @@ updateConnectionStatus();
 </script>
 </body>
 </html>
+
 
 
 
