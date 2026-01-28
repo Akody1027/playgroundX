@@ -353,7 +353,7 @@
         .spinner {
             width: 40px; height: 40px; border: 4px solid #333;
             border-top: 4px solid var(--accent); border-radius: 50%;
-            animation: spin 1s linear infinite; margin-bottom: 20px;
+            animation: spin 3s linear infinite; margin-bottom: 20px;
         }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
 
@@ -493,6 +493,12 @@
     </div>
 </div>
 
+
+
+
+
+    
+
 <div id="location-gate" style="display:none; position: fixed; inset: 0; background: rgba(0,0,0,0.9); z-index: 99999; flex-direction: column; align-items: center; justify-content: center; text-align: center; backdrop-filter: blur(10px);">
     <div style="background: #1E1E1E; padding: 30px; border-radius: 20px; max-width: 90%; width: 350px; border: 1px solid #333;">
         <div style="font-size: 40px; margin-bottom: 20px;"></div>
@@ -506,11 +512,25 @@
     </div>
 </div>
 
+
+
+
+
+
+
+    
 <div id="loading-overlay">
     <div class="spinner"></div>
     <div style="color: #666; font-size: 14px; font-weight: bold;">INITIALIZING SECURE CONNECTION...</div>
 </div>
 
+
+
+
+
+
+
+    
 <div id="header">
     <div class="header-left" style="display:flex; align-items:center; gap: 10px;">
         <img src="Play.ico" style="height: 24px; width: auto;">
@@ -520,11 +540,16 @@
         </div>
     </div>
 
+
     <div style="display: flex; align-items: center; gap: 20px;">
         <div id="global-upload-status" class="upload-status">
             <div class="upload-spinner"></div>
         </div>
 
+
+
+
+        
  <div class="header-icons">
                 <div onclick="openModal('camera-modal')" style="cursor: pointer;">
                     <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -554,8 +579,17 @@
 </div>
 
 
+
+    
+
+
     <button id="admin-panel-btn" onclick="document.getElementById('admin-panel').style.display='block'">GOD</button>
 
+
+
+
+
+    
     <div id="admin-panel">
         <div class="admin-header">
             <h2>Admin God Mode</h2>
@@ -576,14 +610,22 @@
             <button class="admin-btn" onclick="location.reload()">Emergency Refresh</button>
         </div>
     </div>
+
     
-<div id="user-dropdown">
+    <div id="user-dropdown">
         <a href="#" onclick="openModal('modal-my-profile'); toggleUserDropdown();">My Profile</a>
         <a href="#" onclick="logout();">Logout</a>
     </div>
 
 </div>
 
+
+
+
+
+
+
+    
 <div class="toolbar">
     <div class="view-group">
         <button class="view-btn active" onclick="window.switchView('swipe', this)"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><line x1="3" y1="9" x2="21" y2="9"></line></svg></button>
@@ -596,6 +638,14 @@
     </button>
 </div>
 
+
+
+
+
+
+
+
+    
 <div id="view-swipe" class="app-view active">
     <div id="swipe-zone"></div>
     <div class="fixed-actions">
@@ -614,6 +664,13 @@
     </div>
 </div>
 
+
+
+
+
+
+
+    
 <div id="view-grid" class="app-view">
     <div class="grid-container" id="grid-content"></div>
 </div>
@@ -622,6 +679,12 @@
     <div id="map"></div>
 </div>
 
+
+
+
+
+
+    
 <div id="profile-modal" class="modal">
 <div class="modal-header">
             <button class="back-arrow-btn" onclick="closeModal('modal-my-profile')">
@@ -842,6 +905,14 @@
     </div>
 </div>
 
+
+
+
+
+
+
+
+    
 <div id="filter-modal" class="modal" style="background: rgba(0,0,0,0.9);">
     <div class="filter-content" style="background: #1A1A1A; width: 85%; max-width: 400px; height: 100%; float: right; padding: 30px; overflow-y: auto;">
         <div style="display: flex; justify-content: space-between; margin-bottom: 30px;">
@@ -874,6 +945,10 @@
         <div style="height: 50px;"></div> 
     </div>
 </div>
+
+
+
+    
 <div id="view-user-modal" class="modal">
     <div class="modal-header">
         <button class="back-arrow-btn" onclick="document.getElementById('view-user-modal').style.display='none'">
@@ -888,6 +963,13 @@
             </div>
         </div>
     </div>
+
+
+
+
+
+
+
     
     <div style="padding: 20px; max-width: 500px; margin: 0 auto; padding-bottom: 20px;">
         <div style="width: 100%; height: 350px; background: #333; border-radius: 20px; overflow: hidden; margin-bottom: 20px;">
@@ -901,7 +983,9 @@
             <div class="gallery-slot" style="background: #222;"></div>
             <div class="gallery-slot" style="background: #222; border-color: var(--accent);">▶</div>
         </div>
-        
+
+
+
         <h1 id="view-user-name" style="margin: 0; font-size: 28px; color: var(--accent);">Alias</h1>
         <p style="color: #666; font-size: 13px; font-weight: bold; margin-bottom: 15px;">Verified Member ✓</p>
 
@@ -948,6 +1032,9 @@
             <button class="tab-btn active" onclick="window.openTab('tab-winks', this)">Winks</button>
             <button class="tab-btn" onclick="window.openTab('tab-chats', this)">Messages</button>
         </div>
+
+
+
         <div id="tab-winks" class="tab-pane active"></div>
 
         <div id="tab-chats" class="tab-pane">
@@ -955,7 +1042,7 @@
         </div>
     </div>
 
-    <div id="chat-view">
+    <div id="chat-view" style="display:none;">
         <div style="padding:10px; background:#111; border-bottom:1px solid #333; display:flex; align-items:center; gap:10px;">
             <div style="width:30px; height:30px; background:#444; border-radius:50%;"></div>
             <span style="font-weight:bold; color:white;" id="chat-target-name">User</span>
@@ -1718,6 +1805,7 @@ updateConnectionStatus();
 </script>
 </body>
 </html>
+
 
 
 
