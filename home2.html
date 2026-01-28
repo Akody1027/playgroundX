@@ -983,50 +983,41 @@
 </div>
 
 
-    <div id="camera-modal" class="modal">
-<div class="modal-header">
-            <button class="back-arrow-btn" onclick="closeModal('modal-studio')">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
-            </button>
-            <h2 style="color:white; margin:0; font-size:18px;">Studio & Live</h2>
-            <div style="display:flex; align-items:center; gap:10px;">
-                <span style="font-size:12px; color:#888;">GO LIVE</span>
-                <label class="toggle-switch">
-                    <input type="checkbox" id="live-toggle" class="toggle-checkbox" onchange="toggleLiveStream()">
-                    <span class="toggle-switch"></span>
-                </label>
-            </div>
+<div id="camera-modal" class="modal">
+    <div class="modal-header">
+        <button class="back-arrow-btn" onclick="closeModal('camera-modal')">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+        </button>
+        <h2 style="color:white; margin:0; font-size:18px;">Studio & Live</h2>
+        <div style="display:flex; align-items:center; gap:10px;">
+            <span style="font-size:12px; color:#888;">GO LIVE</span>
+            <label class="toggle-switch">
+                <input type="checkbox" id="live-toggle" class="toggle-checkbox" onchange="toggleLiveStream()">
+                <span class="toggle-switch"></span>
+            </label>
+        </div>
+    </div>
+
+    <div style="padding:20px;">
+        <div id="live-preview-container" style="display:none; margin-bottom:20px; position:relative;">
+            <video id="local-video" autoplay muted playsinline style="width:100%; border-radius:15px; background:#111; aspect-ratio:9/16; object-fit:cover;"></video>
+            <div style="position:absolute; top:10px; left:10px; background:red; color:white; padding:2px 8px; border-radius:4px; font-size:10px; font-weight:bold; animation: pulse 1s infinite;">LIVE</div>
         </div>
 
-        <div style="padding:20px;">
-            <div id="live-preview-container" style="display:none; margin-bottom:20px; position:relative;">
-                <video id="local-video" autoplay muted playsinline style="width:100%; border-radius:15px; background:#111; aspect-ratio:9/16; object-fit:cover;"></video>
-                <div style="position:absolute; top:10px; left:10px; background:red; color:white; padding:2px 8px; border-radius:4px; font-size:10px; font-weight:bold; animation: pulse 1s infinite;">LIVE</div>
+        <div class="filter-label">LIVE NOW</div>
+        <div id="live-grid" class="grid-container">
             </div>
 
-            <div class="filter-label">LIVE NOW</div>
-            <div id="live-grid" class="grid-container">
-                </div>
-
-            <hr style="border:0; border-top:1px solid #222; margin:30px 0;">
-
-            <div class="filter-label">UPLOAD NEW VIDEO</div>
-            <div style="background:#111; padding:20px; border-radius:15px; border:1px dashed #444; text-align:center;">
-                <input type="file" id="video-upload-input" accept="video/*" hidden onchange="handleVideoUpload(this)">
-                <button onclick="document.getElementById('video-upload-input').click()" style="background:var(--accent); color:white; border:none; padding:12px 25px; border-radius:25px; font-weight:bold; cursor:pointer;">
-                    Select Video File
-                </button>
-                <p style="font-size:11px; color:#666; margin-top:10px;">Max size 50MB. MP4/MOV supported.</p>
-                
-                <div class="toggle-row" style="margin-top:20px; text-align:left;">
-                    <span>Contains Explicit Content</span>
-                    <label class="toggle-switch">
-                        <input type="checkbox" id="video-explicit" class="toggle-checkbox">
-                        <span class="toggle-switch"></span>
-                    </label>
-                </div>
-            </div>
         </div>
+
+    <div style="padding: 20px; text-align: center; color: #666; margin-top: 50px;">
+        <svg width="60" height="60" viewBox="0 0 24 24" fill="none" stroke="#444" stroke-width="1.5" style="margin-bottom:20px;">
+             <path d="M23 7l-7 5 7 5V7z"></path><rect x="1" y="5" width="15" height="14" rx="2" ry="2"></rect>
+        </svg>
+        <h3 style="color:white;">Content Studio</h3>
+        <p>Go Live to connect with others nearby.</p>
+    </div>
+</div>
 
 
 
@@ -1441,11 +1432,18 @@ window.requestLocation = function() {
 
     let currentVideoView = 'swipe';
 
-    window.openVideoFeed = function() {
-        document.getElementById('video-modal').style.display = 'block';
-        window.renderVideoFeed(); // Init listener
-    }
 
+window.openVideoFeed = function() {
+    const modal = document.getElementById('video-modal');
+    if(modal) {
+        modal.style.display = 'block';
+        window.renderVideoFeed(); 
+    } else {
+        console.error("Video modal not found");
+    }
+}
+
+    
     window.setVideoMode = function(mode) {
         currentVideoView = mode;
         // Re-render container class immediately
@@ -1508,8 +1506,13 @@ window.requestLocation = function() {
         menu.style.display = (menu.style.display === 'block') ? 'none' : 'block';
     }
 
-    const userTrigger = document.getElementById('user-icon-trigger');
-    if(userTrigger) userTrigger.onclick = (e) => { e.stopPropagation(); window.toggleUserMenu(); };
+const userTrigger = document.getElementById('user-icon-trigger');
+if(userTrigger) {
+    userTrigger.onclick = (e) => { 
+        e.stopPropagation(); 
+        window.toggleUserDropdown(); // FIXED NAME
+    };
+}
 
     window.switchView = function(viewId, btn) {
         document.querySelectorAll('.app-view').forEach(v => v.classList.remove('active'));
@@ -1701,6 +1704,7 @@ updateConnectionStatus();
 </script>
 </body>
 </html>
+
 
 
 
