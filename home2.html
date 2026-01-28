@@ -1190,7 +1190,6 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         } finally {
             renderDeck();
-            initArcade();
             // loadMyProfile(); REMOVED TO PREVENT AUTO POPUP
             loading.style.display = 'none';
         }
@@ -1503,7 +1502,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }, (error) => console.error("Video Sync Error", error));
     }
 
-    window.toggleUserMenu = function() {
+    window.toggleUserDropdown = function() {
         const menu = document.getElementById('user-dropdown');
         menu.style.display = (menu.style.display === 'block') ? 'none' : 'block';
     }
@@ -1519,9 +1518,26 @@ document.addEventListener('DOMContentLoaded', () => {
         if (viewId === 'map') setTimeout(() => window.map.invalidateSize(), 100);
     }
 
-    window.openMsgModal = function() {
-        document.getElementById('msg-modal').style.display = 'block';
+// FIXED: Smart Modal Opener
+window.openModal = function(id) {
+    // 1. Handle Profile Redirect
+    if (id === 'modal-my-profile') {
+        window.loadMyProfile();
+        return;
     }
+    // 2. Handle Studio ID Mismatch (HTML calls 'modal-studio', Div is 'camera-modal')
+    if (id === 'modal-studio') id = 'camera-modal';
+
+    // 3. Open the Modal
+    const el = document.getElementById(id);
+    if (el) el.style.display = 'block';
+}
+
+// FIXED: Close Modal Helper
+window.closeModal = function(id) {
+    const el = document.getElementById(id);
+    if (el) el.style.display = 'none';
+}
 
     window.closeChat = function() {
         document.getElementById('msg-modal').style.display = 'none';
@@ -1663,12 +1679,28 @@ window.openUserProfile = function(alias, age, img, id) {
         };
     }
 
+// FIXED: Connection Status Logic
+window.addEventListener('online', updateConnectionStatus);
+window.addEventListener('offline', updateConnectionStatus);
+
+function updateConnectionStatus() {
+    const dot = document.getElementById('connection-dot');
+    if (dot) {
+        dot.className = navigator.onLine ? "connection-dot online" : "connection-dot offline";
+    }
+}
+// Run immediately
+updateConnectionStatus();
+
+
+    
     // START
     initBackend();
 });
 </script>
 </body>
 </html>
+
 
 
 
