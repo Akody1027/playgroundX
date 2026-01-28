@@ -441,17 +441,7 @@
     --live-anim-speed: 4s;        /* How fast gifts float up */
 }
 
-/* 1. The Container - Sits on top of the video */
-.live-hud-layer {
-    position: absolute;
-    inset: 0;           /* Stretches to fill the video box */
-    z-index: 50;        /* Sits above the video (z-index 10) */
-    display: flex;
-    flex-direction: column;
-    justify-content: space-between;
-    pointer-events: none; /* Lets you click "through" empty areas to the video */
-    overflow: hidden;
-}
+
 
 /* 2. The Gradient - Makes text readable on top of video */
 .live-gradient-overlay {
@@ -482,18 +472,39 @@
 }
 
 /* 4. The Chat Area (Messages) */
+
+
+
+/* FORCE HUD TO FRONT */
+.live-hud-layer {
+    position: absolute;
+    inset: 0;
+    z-index: 9999; /* Massive number ensures it is ALWAYS on top */
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    pointer-events: none;
+    overflow: hidden;
+}
+
+/* IMPROVE CHAT VISIBILITY */
 .live-chat-area {
     position: relative;
-    z-index: 55;
+    z-index: 10000; /* Even higher than the layer */
     height: 250px;
     overflow-y: auto;
     padding: 15px;
     display: flex;
     flex-direction: column;
     gap: 8px;
-    /* Hide scrollbar but keep functionality */
-    -ms-overflow-style: none; scrollbar-width: none;
+    /* Add a slight shadow so text pops against any background */
+    text-shadow: 0 2px 4px rgba(0,0,0,0.8);
 }
+
+
+
+        
+
 .live-chat-area::-webkit-scrollbar { display: none; }
 
 /* 5. Message Bubbles */
@@ -2154,6 +2165,7 @@ updateConnectionStatus();
 </script>
 </body>
 </html>
+
 
 
 
