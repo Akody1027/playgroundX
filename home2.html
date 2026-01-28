@@ -717,7 +717,11 @@
 
 
 <div onclick="window.openSpeedIntro()" style="cursor: pointer; margin-right: 15px;">
-    <img src="speedheart.png" style="width: 28px; height: 28px; object-fit: contain;">
+    <img src="speedheart.png" style="width: 28px; height: 28px; object-fit: contain; filter: drop-shadow(0.5px 0 0 white) 
+          drop-shadow(-0.5px 0 0 white) 
+          drop-shadow(0 0.5px 0 white) 
+          drop-shadow(0 -0.5px 0 white);
+        }">
 </div>
 
 
@@ -2369,6 +2373,7 @@ updateConnectionStatus();
 </script>
 </body>
 </html>
+
 
 
 
