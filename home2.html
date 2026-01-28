@@ -505,10 +505,10 @@
 
 
 <div id="header">
-        <div class="header-left">
+        <div class="header-left" style="display:flex; align-items:center; gap:10px;">
             <div id="connection-dot" class="connection-dot online" title="Online"></div>
-            <div style="font-weight: 900; font-size: 20px; letter-spacing: -1px; color: var(--accent);">
-                playground<span style="color:white">X</span>
+            <div style="font-weight: 900; font-size: 20px; letter-spacing: -1px; color: white;">
+                playground<span style="color: var(--accent);">X</span>
             </div>
         </div>
 
@@ -519,7 +519,7 @@
             </div>
 
             <div class="header-icons">
-                <div class="msg-icon-wrapper" onclick="openModal('modal-chats')">
+                <div class="msg-icon-wrapper" onclick="openModal('msg-modal')">
                     <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
                     <div id="msg-badge" class="badge" style="display: none;">0</div>
                 </div>
@@ -527,6 +527,7 @@
                     <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
                 </div>
             </div>
+        </div>
         </div>
     </div>
 
@@ -1668,6 +1669,7 @@ window.openUserProfile = function(alias, age, img, id) {
 </script>
 </body>
 </html>
+
 
 
 
