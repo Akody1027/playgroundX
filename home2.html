@@ -637,26 +637,61 @@
                 <button onclick="switchProfileTab('wallet')" id="tab-btn-wallet" style="background:none; border:none; color:#888; padding-bottom:10px; font-weight:bold;">Wallet</button>
             </div>
 
-            <div id="profile-tab-edit">
-                <div class="filter-label">GALLERY (P1 is Main, G2-G4 are extra)</div>
-                <div class="gallery-grid">
-                    <div class="gallery-slot" onclick="document.getElementById('p1-input').click()">
-                        <input type="file" id="p1-input" hidden accept="image/*">
-                        <img id="p1-preview" src="nousericon.png">
-                    </div>
-                    <div class="gallery-slot" onclick="document.getElementById('g2-input').click()">
-                        <input type="file" id="g2-input" hidden accept="image/*">
-                        <img id="g2-preview" src="nousericon.png">
-                    </div>
-                    <div class="gallery-slot" onclick="document.getElementById('g3-input').click()">
-                        <input type="file" id="g3-input" hidden accept="image/*">
-                        <img id="g3-preview" src="nousericon.png">
-                    </div>
-                    <div class="gallery-slot" onclick="document.getElementById('g4-input').click()">
-                        <input type="file" id="g4-input" hidden accept="image/*">
-                        <img id="g4-preview" src="nousericon.png">
+
+              <div id="profile-tab-edit">
+               
+
+                <div style="text-align: center; margin: 20px 0;">
+                    <div style="position: relative; width: 120px; height: 120px; margin: 0 auto;">
+                        <img id="my-main-preview" src="https://via.placeholder.com/120" style="width: 100%; height: 100%; border-radius: 50%; object-fit: cover; border: 3px solid var(--accent);">
+                        <label for="main-up" style="position: absolute; bottom: 0; right: 0; background: var(--accent); width: 35px; height: 35px; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; border: 3px solid #000; color: white; font-size: 22px; font-weight: bold;">+</label>
+                        <input type="file" id="main-up" hidden onchange="window.previewMainAndGallery(event)">
                     </div>
                 </div>
+
+                <div class="gallery-grid">
+                    <div class="gallery-slot" style="border-color:var(--accent); position:relative; padding:0;">
+                       <img id="g1-preview" src="" style="width:100%; height:100%; object-fit:cover; display:none;">
+                       <label id="g1-lbl" style="position:absolute; inset:0; display:flex; align-items:center; justify-content:center; width:100%; height:100%;">★</label>
+                    </div>
+                    <div class="gallery-slot"><input type="file" id="g2" hidden><label for="g2">+</label></div>
+                    <div class="gallery-slot"><input type="file" id="g3" hidden><label for="g3">+</label></div>
+                    <div class="gallery-slot"><input type="file" id="g4" hidden><label for="g4">+</label></div>
+                    <div class="gallery-slot">
+                        <input type="file" id="vid-up" hidden accept="video/*" onchange="window.previewVideo(event)">
+                        <label for="vid-up">▶</label>
+                        <video id="vid-preview" style="display:none;" autoplay muted loop></video>
+                    </div>
+                </div>
+
+                <div style="display: flex; flex-direction: column; gap: 10px; margin-bottom: 50px;">
+
+                    <div><label class="filter-label" style="margin-top:0;">DISPLAY NAME (ALIAS)</label><input type="text" id="p-alias" class="style-input" placeholder="e.g. Jay_Rocker"></div>
+                    
+                    <div><label class="filter-label" style="margin-top:0;">BIO</label><textarea id="p-bio" style="width: 100%; background: #111; border: 1px solid #333; padding: 12px; border-radius: 10px; color: white;"></textarea></div>
+
+                    <div class="toggle-row"><span>Show Explicit Content</span><input type="checkbox" id="p-explicit" class="toggle-checkbox"><label for="p-explicit" class="toggle-switch"></label></div>
+                    
+                    <label class="filter-label">GENDER</label>
+                    <div class="toggle-row" onclick="window.toggleProfileAcc('acc-gender')">
+                        <span id="disp-gender">Select Gender...</span>
+                        <span style="color:#666;">▼</span>
+                    </div>
+                    <div id="acc-gender" class="accordion-content">
+                        <label class="radio-option" onclick="window.selectProfileOption('disp-gender', 'Man', 'acc-gender')">Man</label>
+                        <label class="radio-option" onclick="window.selectProfileOption('disp-gender', 'Woman', 'acc-gender')">Woman</label>
+                    </div>
+
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                        <div>
+                            <label class="filter-label">AGE</label>
+                            <input type="number" id="p-age" class="style-input" value="21" style="text-align:center;">
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            
 
                 <div style="display:flex; gap:10px; margin-bottom:15px;">
                     <div style="flex:2">
@@ -1600,31 +1635,46 @@ window.closeModal = function(id) {
     }
 
     window.saveProfile = async function() {
+        // 1. Get Values from ORIGINAL Layout
         const alias = document.getElementById('p-alias').value;
         const bio = document.getElementById('p-bio').value;
-        const imgVal = document.getElementById('my-main-preview').src;
+        const age = document.getElementById('p-age').value;
+        const isExplicit = document.getElementById('p-explicit').checked;
+        
+        // 2. Prepare Updates
+        const updates = {
+            alias: alias || "User",
+            bio: bio,
+            age: parseInt(age) || 18,
+            isExplicit: isExplicit,
+            lastSeen: window.fbase.serverTimestamp()
+        };
 
-        // 1. Save Local (for fast access)
-        localStorage.setItem('pgX_alias', alias);
-        localStorage.setItem('pgX_bio', bio);
-        localStorage.setItem('my_profile_pic', imgVal);
-
-        // 2. Save to Firebase (Real Persistence)
+        // 3. Handle File Upload (Original 'main-up' ID)
+        const fileInput = document.getElementById('main-up');
+        
         if (currentUserUid) {
             try {
-                // Public Collection ID: 'users'
-                const userRef = window.fbase.doc(window.db, 'artifacts', window.APP_ID, 'public', 'data', 'users', currentUserUid);
-                await window.fbase.setDoc(userRef, {
-                    alias: alias,
-                    bio: bio,
-                    img: imgVal, // Note: Base64 strings can be large, in real prod use Storage URLs.
-                    lastSeen: window.fbase.serverTimestamp()
-                }, { merge: true });
-                alert("Profile Saved to Cloud!");
-            } catch (e) { console.error("Sync failed", e); alert("Save failed. Check console."); }
-        }
+                if (fileInput && fileInput.files[0]) {
+                    const storageRef = window.fbase.ref(window.storage, `profiles/${currentUserUid}_main_${Date.now()}`);
+                    const snap = await window.fbase.uploadBytes(storageRef, fileInput.files[0]);
+                    const url = await window.fbase.getDownloadURL(snap.ref);
+                    updates.p1 = url; // Save URL
+                }
 
-        document.getElementById('profile-modal').style.display = 'none';
+                // 4. Save to Firestore
+                const userRef = window.fbase.doc(window.db, 'artifacts', window.APP_ID, 'public', 'data', 'users', currentUserUid);
+                await window.fbase.setDoc(userRef, updates, { merge: true });
+                
+                alert("Profile Saved!");
+                document.getElementById('profile-modal').style.display = 'none';
+                if(window.renderDeck) renderDeck(); 
+                
+            } catch (e) { 
+                console.error("Save failed", e); 
+                alert("Error saving: " + e.message); 
+            }
+        }
     }
 
     window.loadMyProfile = function() {
@@ -1705,6 +1755,7 @@ updateConnectionStatus();
 </script>
 </body>
 </html>
+
 
 
 
