@@ -885,11 +885,30 @@
         <div class="stats-grid" id="view-user-chips"></div>
         <p style="color: #ccc; line-height: 1.5; margin-bottom: 50px;" id="view-user-bio">...</p>
     </div>
+    <div class="profile-actions" style="display:flex; flex-direction:column; gap:10px; padding:0 20px;">
+                <div style="display:flex; gap:10px;">
+                    <button class="swipe-btn" style="flex:1; border-color:#FFD700; color:#FFD700;" onclick="sendWink(currentTargetId)">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l8.84-8.84 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path></svg>
+                    </button>
+                    <button class="swipe-btn" style="flex:1; border-color:var(--accent); color:var(--accent);" onclick="openChat(currentTargetId)">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
+                    </button>
+                </div>
 
-    <div class="sticky-actions">
-        <button class="action-btn-main" style="background: #222; color: white; border: 1px solid #444;" onclick="alert('Wink Sent! 😉')">😉 Wink</button>
-        <button class="action-btn-main" style="background: var(--accent); color: white;" onclick="alert('Opening Chat... 💬')">Message</button>
-    </div>
+                <button class="buy-btn" style="width:100%; padding:15px; background:#FBBF24;" onclick="tipUser(currentTargetId)">
+                    Tip 10 Coins
+                </button>
+                
+                <button onclick="reportContent('user', currentTargetId)" style="background:none; border:none; color:#EF4444; font-size:12px; margin-top:5px; text-decoration:underline; cursor:pointer; width:100%;">
+                    Report Inappropriate Content
+                </button>
+            </div>
+
+
+
+
+
+    
 </div>
 
 <div id="msg-modal" class="modal">
@@ -1613,7 +1632,9 @@ document.addEventListener('DOMContentLoaded', () => {
         renderDeck();
     }
 
-    window.openUserProfile = function(alias, age, img, id) {
+window.openUserProfile = function(alias, age, img, id) {
+        currentTargetId = id; // <--- CRITICAL: Links the Tip/Report buttons to this user
+        
         const modal = document.getElementById('view-user-modal');
         document.getElementById('view-user-img').src = img;
         document.getElementById('view-user-img-small').src = img;
@@ -1621,6 +1642,7 @@ document.addEventListener('DOMContentLoaded', () => {
         document.getElementById('view-user-bio').innerText = `${alias} is a ${age} year old member.`;
         
         const chipsContainer = document.getElementById('view-user-chips');
+        // (Optional: You can update this later to show real Vices/Children status)
         chipsContainer.innerHTML = `<span class="stat-chip love">Words of Affirmation</span><span class="stat-chip">Non-Smoker</span>`;
         
         modal.style.display = 'block';
@@ -1646,6 +1668,7 @@ document.addEventListener('DOMContentLoaded', () => {
 </script>
 </body>
 </html>
+
 
 
 
