@@ -2271,21 +2271,50 @@ updateConnectionStatus();
         console.log("Joining Speed Queue...");
         isSpeedQueued = true;
         
-        // Hide Intro
+
+        
+        
+
+
+
+    // ==========================================
+    // SPEED DATING LOGIC (FINAL FIX)
+    // ==========================================
+
+    // 1. GLOBAL CONFIG (Attached to window to prevent crashes)
+    window.SPEED_DATE_CONFIG = {
+        icon_src: "speedheart.png",
+        date_duration: 180, // 3 minutes
+        lobby_timer: 10,    // seconds (Short for testing)
+    };
+
+    let speedInterval;
+    let isSpeedQueued = false;
+
+    // 2. Open Intro
+    window.openSpeedIntro = function() {
+        const modal = document.getElementById('speed-intro-modal');
+        if(modal) modal.style.display = 'flex';
+    }
+
+    // 3. Join Queue -> Open Lobby
+    window.joinSpeedQueue = function() {
+        isSpeedQueued = true;
+        
+        // A. Close Intro
         const intro = document.getElementById('speed-intro-modal');
         if(intro) intro.style.display = 'none';
         
-        // Show Lobby 
+        // B. Open Lobby
         const lobby = document.getElementById('speed-lobby');
         if(lobby) {
             lobby.style.display = 'flex';
         } else {
-            console.error("Error: #speed-lobby element missing!");
+            console.error("Error: Lobby Element Not Found");
             return;
         }
         
-        // Start Countdown
-        // Use window.SPEED_DATE_CONFIG to ensure we find the variable
+        // C. Start Countdown (Using window.SPEED_DATE_CONFIG)
         let time = window.SPEED_DATE_CONFIG.lobby_timer;
         const timerEl = document.getElementById('speed-timer');
         
@@ -2293,6 +2322,7 @@ updateConnectionStatus();
         
         speedInterval = setInterval(() => {
             time--;
+            
             // Format 00:00
             let m = Math.floor(time / 60).toString().padStart(2, '0');
             let s = (time % 60).toString().padStart(2, '0');
@@ -2317,7 +2347,6 @@ updateConnectionStatus();
         isSpeedQueued = false;
         if(speedInterval) clearInterval(speedInterval);
         
-        // Close all Speed Modals
         document.getElementById('speed-lobby').style.display = 'none';
         document.getElementById('speed-ready-alert').style.display = 'none';
         document.getElementById('speed-ui').style.display = 'none';
@@ -2327,25 +2356,20 @@ updateConnectionStatus();
     // 5. Confirm Ready
     window.confirmSpeedReady = function() {
         document.getElementById('speed-ready-alert').style.display = 'none';
-        // Visual feedback
         const avatars = document.querySelectorAll('.speed-avatar');
         if(avatars.length > 0) avatars[avatars.length-1].classList.add('ready'); 
     }
 
-    // 6. Start the Date (REQUEST CAM HERE)
+    // 6. Start the Date
     window.startSpeedDate = async function() {
-        console.log("Starting Speed Date...");
         document.getElementById('speed-lobby').style.display = 'none';
         document.getElementById('speed-ui').style.display = 'block';
 
-        // Start Camera NOW
         try {
             const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "user" }, audio: true });
             document.getElementById('speed-local-vid').srcObject = stream;
-            // Use sample video for "Them" until matching is built
             document.getElementById('speed-remote-vid').src = "https://www.w3schools.com/html/mov_bbb.mp4";
             
-            // Start 3 Minute Timer
             let dateTimer = window.SPEED_DATE_CONFIG.date_duration;
             const uiTimer = document.getElementById('speed-game-timer');
             
@@ -2367,29 +2391,30 @@ updateConnectionStatus();
         }
     }
 
-    // 7. Actions (Wink / Pass)
+    // 7. Actions
     window.handleSpeedWink = function() {
         alert("Wink Sent! 😉");
     }
 
     window.handleSpeedPass = function() {
         if(window.dateInterval) clearInterval(window.dateInterval);
-        
-        // Stop camera
         const video = document.getElementById('speed-local-vid');
         if (video && video.srcObject) {
             video.srcObject.getTracks().forEach(t => t.stop());
         }
-        
         document.getElementById('speed-ui').style.display = 'none';
         alert("Date ended. Waiting for next round...");
         document.getElementById('speed-lobby').style.display = 'flex';
     }
 
-        
-        
+    // START
+    initBackend();
 
-    
+
+
+
+
+        
 
     
     
@@ -2400,6 +2425,7 @@ updateConnectionStatus();
 </script>
 </body>
 </html>
+
 
 
 
