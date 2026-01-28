@@ -2246,16 +2246,11 @@ updateConnectionStatus();
 
         
 
-        
-        
-
-
-
-    // ==========================================
-    // SPEED DATING LOGIC (FINAL FIX)
+            // ==========================================
+    // SPEED DATING LOGIC (CLEAN START)
     // ==========================================
 
-    // 1. GLOBAL CONFIG (Attached to window to prevent crashes)
+    // 1. GLOBAL CONFIG
     window.SPEED_DATE_CONFIG = {
         icon_src: "speedheart.png",
         date_duration: 180, // 3 minutes
@@ -2275,11 +2270,10 @@ updateConnectionStatus();
     window.joinSpeedQueue = function() {
         isSpeedQueued = true;
         
-        // A. Close Intro
-        const intro = document.getElementById('speed-intro-modal');
-        if(intro) intro.style.display = 'none';
+        // Hide Intro
+        document.getElementById('speed-intro-modal').style.display = 'none';
         
-        // B. Open Lobby
+        // Show Lobby
         const lobby = document.getElementById('speed-lobby');
         if(lobby) {
             lobby.style.display = 'flex';
@@ -2288,7 +2282,7 @@ updateConnectionStatus();
             return;
         }
         
-        // C. Start Countdown (Using window.SPEED_DATE_CONFIG)
+        // Start Countdown
         let time = window.SPEED_DATE_CONFIG.lobby_timer;
         const timerEl = document.getElementById('speed-timer');
         
@@ -2381,16 +2375,10 @@ updateConnectionStatus();
         document.getElementById('speed-lobby').style.display = 'flex';
     }
 
-    
-
-
-
-
-
         
 
-    
-    
+
+
     
     // START
     initBackend();
@@ -2398,6 +2386,7 @@ updateConnectionStatus();
 </script>
 </body>
 </html>
+
 
 
 
