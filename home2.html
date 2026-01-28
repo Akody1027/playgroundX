@@ -1978,11 +1978,34 @@ updateConnectionStatus();
                     console.log("Stream registered with ID:", currentStreamDocId);
                 }
 
-            } catch (err) {
-                console.error("Live Error:", err);
+            
+        } catch (err) {
+            console.error("Live Error:", err);
+            
+            // FIX 1: Alert the user clearly
+            if(err.code === 'permission-denied') {
+                alert("Database Locked: You need to update your Firestore Rules in the Firebase Console.");
+            } else {
                 alert("Could not go live: " + err.message);
-                toggle.checked = false;
             }
+
+            // FIX 2: FORCE KILL THE CAMERA HARDWARE
+            if (localStream) {
+                localStream.getTracks().forEach(track => track.stop());
+                localStream = null;
+            }
+            
+            // FIX 3: Reset UI
+            videoElement.srcObject = null;
+            previewContainer.style.display = 'none';
+            toggle.checked = false;
+        }
+
+
+
+
+
+            
         } else {
             // --- ENDING STREAM ---
             
@@ -2131,6 +2154,7 @@ updateConnectionStatus();
 </script>
 </body>
 </html>
+
 
 
 
