@@ -390,9 +390,17 @@
 }
 
 /* Header Updates */
-.connection-dot { width: 8px; height: 8px; border-radius: 50%; background: #666; transition: background 0.3s; display: inline-block; margin-right: 5px; }
-.connection-dot.online { background: #10B981; box-shadow: 0 0 5px #10B981; }
+/* Header Updates & Connection Badge */
+.connection-dot { 
+    position: absolute; bottom: 0; right: -2px; /* Position bottom-right of icon */
+    width: 12px; height: 12px; border-radius: 50%; 
+    background: #666; border: 2px solid #000; /* Black border to separate from icon */
+    transition: background 0.3s; z-index: 1003;
+}
+.connection-dot.online { background: #10B981; }
 .connection-dot.offline { background: #EF4444; }
+
+.user-icon-wrapper { position: relative; cursor: pointer; display: flex; align-items: center; }
 
 .upload-status { display: none; align-items: center; gap: 8px; background: #222; padding: 5px 10px; border-radius: 20px; font-size: 12px; font-weight: bold; border: 1px solid #333; margin-right: 10px; }
 .upload-spinner { width: 14px; height: 14px; border: 2px solid #555; border-top-color: var(--accent); border-radius: 50%; animation: spin 1s linear infinite; }
@@ -503,33 +511,40 @@
     <div style="color: #666; font-size: 14px; font-weight: bold;">INITIALIZING SECURE CONNECTION...</div>
 </div>
 
-
 <div id="header">
-        <div class="header-left" style="display:flex; align-items:center; gap:10px;">
-            <div id="connection-dot" class="connection-dot online" title="Online"></div>
-            <div style="font-weight: 900; font-size: 20px; letter-spacing: -1px; color: white;">
-                playground<span style="color: var(--accent);">X</span>
-            </div>
-        </div>
-
-        <div style="display: flex; align-items: center; gap: 15px;">
-            <div id="global-upload-status" class="upload-status">
-                <div class="upload-spinner"></div>
-                <span id="upload-text">Processing...</span>
-            </div>
-
-            <div class="header-icons">
-                <div class="msg-icon-wrapper" onclick="openModal('msg-modal')">
-                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
-                    <div id="msg-badge" class="badge" style="display: none;">0</div>
-                </div>
-                <div onclick="toggleUserDropdown()" style="cursor: pointer;">
-                    <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
-                </div>
-            </div>
-        </div>
+    <div class="header-left" style="display:flex; align-items:center;">
+        <div style="font-weight: 900; font-size: 20px; letter-spacing: -1px; color: white;">
+            playground<span style="color: var(--accent);">X</span>
         </div>
     </div>
+
+    <div style="display: flex; align-items: center; gap: 20px;">
+        <div id="global-upload-status" class="upload-status">
+            <div class="upload-spinner"></div>
+        </div>
+
+        <div class="header-icons">
+            <div onclick="openModal('camera-modal')" style="cursor: pointer;">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path><circle cx="12" cy="13" r="4"></circle></svg>
+            </div>
+
+            <div onclick="openVideoFeed()" style="cursor: pointer;">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="20" height="20" rx="2.18" ry="2.18"></rect><line x1="7" y1="2" x2="7" y2="22"></line><line x1="17" y1="2" x2="17" y2="22"></line><line x1="2" y1="12" x2="22" y2="12"></line><line x1="2" y1="7" x2="7" y2="7"></line><line x1="2" y1="17" x2="7" y2="17"></line><line x1="17" y1="17" x2="22" y2="17"></line><line x1="17" y1="7" x2="22" y2="7"></line></svg>
+            </div>
+
+            <div class="msg-icon-wrapper" onclick="openModal('msg-modal')">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
+                <div id="msg-badge" class="badge" style="display: none;">0</div>
+            </div>
+
+            <div class="user-icon-wrapper" onclick="toggleUserDropdown()" id="user-icon-trigger">
+                <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+                <div id="connection-dot" class="connection-dot online"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
 
     <button id="admin-panel-btn" onclick="document.getElementById('admin-panel').style.display='block'">GOD</button>
 
@@ -1051,87 +1066,65 @@
 <script>
 document.addEventListener('DOMContentLoaded', () => {
 
-    window.handleAge = function(isAdult) {
-        if (isAdult) {
-            const ageGate = document.getElementById('age-gate');
-            const locGate = document.getElementById('location-gate');
-            
-            // Fade out Age
-            ageGate.style.transition = "opacity 0.5s";
-            ageGate.style.opacity = "0";
-            
-            setTimeout(() => {
-                ageGate.style.display = 'none';
-                
-                // Prepare Location Gate
-                locGate.style.opacity = "0";
-                locGate.style.display = 'flex';
-                
-                // Trigger reflow
-                void locGate.offsetWidth; 
-                
-                // Fade in Location
-                locGate.style.transition = "opacity 0.5s";
-                locGate.style.opacity = "1";
-            }, 500);
-            
-        } else {
-            if (history.length > 1) {
-                history.back();
-            } else {
-                window.location.href = "https://google.com";
-            }
-        }
-    }
-    
-    window.requestLocation = function() {
-        if (navigator.geolocation) {
-            navigator.geolocation.getCurrentPosition((position) => {
-                const lat = position.coords.latitude;
-                const lng = position.coords.longitude;
-                window.myLocation = { lat, lng };
-                
-                // Update Map
-                if (window.map) {
-                    window.map.setView([lat, lng], 13);
-                    if(activeDeck) updateMapPins(activeDeck);
-                }
+window.handleAge = function(isAdult) {
+    if (isAdult) {
+        const ageGate = document.getElementById('age-gate');
+        const locGate = document.getElementById('location-gate');
 
-                // Success: Transition to Loader
-                const locGate = document.getElementById('location-gate');
-                const loader = document.getElementById('loading-overlay');
-                
-                // Fade out Location
-                locGate.style.opacity = "0";
-                
-                setTimeout(() => {
-                    locGate.style.display = 'none';
-                    
-                    // Show Loader
-                    loader.style.display = 'flex';
-                    loader.innerHTML = '<div class="spinner"></div><div style="color: #666; font-size: 14px; font-weight: bold;">INITIALIZING SECURE CONNECTION...</div>';
-                    
-                    // Wait 3.5 seconds
-                    setTimeout(() => {
-                        loader.style.opacity = '0'; // Optional fade out for loader
-                        loader.style.transition = 'opacity 0.5s';
-                        setTimeout(() => {
-                            loader.style.display = 'none';
-                        }, 500);
-                    }, 3500);
-                    
-                }, 500);
-                
-            }, (err) => {
-                console.warn("Location permission denied", err);
-                alert("Location access needed to show your position.");
-                // Keep location gate visible or show error?
-                // For now, keep visible so they can try again.
-            });
-        } else {
-            alert("Geolocation not supported.");
-        }
+        // 1. Show Location Gate FIRST (behind Age Gate)
+        locGate.style.display = 'flex';
+        locGate.style.opacity = '1';
+
+        // 2. Then Fade out Age Gate
+        ageGate.style.transition = "opacity 0.5s";
+        ageGate.style.opacity = "0";
+
+        setTimeout(() => {
+            ageGate.style.display = 'none';
+        }, 500);
+
+    } else {
+        if (history.length > 1) { history.back(); } 
+        else { window.location.href = "https://google.com"; }
     }
+}
+
+window.requestLocation = function() {
+    // 1. Show Spinner FIRST (Overlaying everything)
+    const loader = document.getElementById('loading-overlay');
+    const locGate = document.getElementById('location-gate');
+
+    loader.style.display = 'flex';
+    loader.style.opacity = '1';
+    loader.innerHTML = '<div class="spinner"></div><div style="color: #666; font-size: 14px; font-weight: bold;">INITIALIZING SECURE CONNECTION...</div>';
+
+    // 2. Hide Location Gate immediately (Loader is covering it)
+    locGate.style.display = 'none';
+
+    // 3. Request Actual Location (Logic remains)
+    if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition((position) => {
+            const lat = position.coords.latitude;
+            const lng = position.coords.longitude;
+            window.myLocation = { lat, lng };
+            if (window.map) {
+                window.map.setView([lat, lng], 13);
+                if(activeDeck) updateMapPins(activeDeck);
+            }
+        }, (err) => console.warn("Location denied", err));
+    }
+
+    // 4. Wait 3.5 seconds, then reveal App
+    setTimeout(() => {
+        loader.style.transition = 'opacity 0.5s';
+        loader.style.opacity = '0';
+        setTimeout(() => {
+            loader.style.display = 'none';
+        }, 500);
+    }, 3500);
+}
+                
+
 
     // --- CONFIGURATION & GLOBAL STATE ---
     // MOCKS REMOVED HERE
@@ -1700,6 +1693,7 @@ updateConnectionStatus();
 </script>
 </body>
 </html>
+
 
 
 
