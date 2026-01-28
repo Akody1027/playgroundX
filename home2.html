@@ -1285,6 +1285,76 @@
 </div>
 
 
+
+
+
+
+
+
+<div id="speed-intro-modal" class="modal" style="display:none; align-items:center; justify-content:center; padding-top:0;">
+    <div style="background:#1E1E1E; padding:30px; border-radius:20px; max-width:90%; width:350px; text-align:center; border:1px solid #333;">
+        <h1 style="color:white; margin:0 0 10px 0;">Speed Dating ⚡</h1>
+        <p style="color:#ccc; line-height:1.5; margin-bottom:30px;">
+            Meet people nearby via live video. <br>
+            Each date lasts <span style="color:var(--accent); font-weight:bold;">3 minutes</span>.<br>
+            If you vibe, send a Wink!
+        </p>
+        <button onclick="window.joinSpeedQueue()" style="width:100%; background:var(--accent); color:white; border:none; padding:15px; border-radius:12px; font-weight:bold; font-size:16px; margin-bottom:10px;">Join the List</button>
+        <button onclick="document.getElementById('speed-intro-modal').style.display='none'" style="background:none; border:none; color:#666; font-weight:bold;">Cancel</button>
+    </div>
+</div>
+
+<div id="speed-lobby" class="speed-modal">
+    <h3 style="color:#888; text-transform:uppercase; letter-spacing:1px;">Next Round In</h3>
+    <div id="speed-timer" class="speed-timer-box">04:22</div>
+    
+    <div style="color:white; margin-bottom:10px;">Waiting: <span style="color:var(--accent);">12 Men / 15 Women</span></div>
+    
+    <div class="speed-avatar-grid" id="lobby-avatars">
+        <div class="speed-avatar"></div><div class="speed-avatar"></div>
+        <div class="speed-avatar"></div><div class="speed-avatar" style="border-color:var(--accent);"></div>
+    </div>
+
+    <button onclick="window.leaveSpeedQueue()" style="margin-top:30px; background:#333; color:white; border:1px solid #555; padding:10px 20px; border-radius:20px;">Leave Queue</button>
+</div>
+
+<div id="speed-ready-alert" class="speed-modal" style="background:rgba(139, 92, 246, 0.9);">
+    <h1 style="color:white; font-size:40px;">Wake Up! ⏰</h1>
+    <p style="color:white; font-size:18px; margin-bottom:40px;">Speed Dating starts in 1 minute.</p>
+    
+    <button onclick="window.confirmSpeedReady()" style="background:white; color:var(--accent); border:none; padding:20px 40px; border-radius:50px; font-weight:900; font-size:20px; box-shadow:0 10px 20px rgba(0,0,0,0.3); margin-bottom:20px;">I'M READY!</button>
+    
+    <br>
+    <button onclick="window.leaveSpeedQueue()" style="background:none; border:2px solid white; color:white; padding:10px 20px; border-radius:20px; font-weight:bold;">Leave Queue</button>
+</div>
+
+<div id="speed-ui" class="speed-video-ui">
+    <video id="speed-remote-vid" class="speed-cam-main" autoplay loop muted playsinline></video>
+    
+    <video id="speed-local-vid" class="speed-cam-self" autoplay muted playsinline></video>
+
+    <div style="position:absolute; top:20px; width:100%; text-align:center;">
+        <div style="background:rgba(0,0,0,0.6); display:inline-block; padding:5px 15px; border-radius:20px; color:white; font-weight:bold; font-variant-numeric:tabular-nums;">
+            ⏱ <span id="speed-game-timer">3:00</span>
+        </div>
+    </div>
+
+    <div class="speed-controls">
+        <button class="speed-btn-action" style="background:#EF4444; color:white;" onclick="window.handleSpeedPass()">✖</button>
+        <button class="speed-btn-action" style="background:#10B981; color:white;" onclick="window.handleSpeedWink()">😉</button>
+    </div>
+</div>
+
+
+
+
+
+
+
+
+
+
+    
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
 <script>
@@ -2200,6 +2270,126 @@ updateConnectionStatus();
     }
 
 
+
+
+
+    // ==========================================
+    // SPEED DATING LOGIC
+    // ==========================================
+
+    const SPEED_DATE_CONFIG = {
+        icon_src: "speedheart.png",
+        date_duration: 180, // 3 minutes
+        lobby_timer: 10,    // seconds (Short for testing, change to 300 later)
+    };
+
+    let speedInterval;
+    let isSpeedQueued = false;
+
+    // 1. Open Intro
+    window.openSpeedIntro = function() {
+        document.getElementById('speed-intro-modal').style.display = 'flex';
+    }
+
+    // 2. Join Queue -> Open Lobby
+    window.joinSpeedQueue = function() {
+        isSpeedQueued = true;
+        document.getElementById('speed-intro-modal').style.display = 'none';
+        document.getElementById('speed-lobby').style.display = 'flex';
+        
+        // Start Fake Countdown
+        let time = SPEED_DATE_CONFIG.lobby_timer;
+        const timerEl = document.getElementById('speed-timer');
+        
+        clearInterval(speedInterval);
+        speedInterval = setInterval(() => {
+            time--;
+            // Format 00:00
+            let m = Math.floor(time / 60).toString().padStart(2, '0');
+            let s = (time % 60).toString().padStart(2, '0');
+            timerEl.innerText = `${m}:${s}`;
+
+            // Trigger Ready Check at 5 seconds (for testing)
+            if (time === 5) {
+                document.getElementById('speed-ready-alert').style.display = 'flex';
+            }
+
+            // Start Date at 0
+            if (time <= 0) {
+                clearInterval(speedInterval);
+                window.startSpeedDate();
+            }
+        }, 1000);
+    }
+
+    // 3. Leave Queue
+    window.leaveSpeedQueue = function() {
+        isSpeedQueued = false;
+        clearInterval(speedInterval);
+        document.getElementById('speed-lobby').style.display = 'none';
+        document.getElementById('speed-ready-alert').style.display = 'none';
+        document.getElementById('speed-ui').style.display = 'none';
+    }
+
+    // 4. Confirm Ready
+    window.confirmSpeedReady = function() {
+        document.getElementById('speed-ready-alert').style.display = 'none';
+        // Visual feedback in lobby
+        const avatars = document.querySelectorAll('.speed-avatar');
+        avatars[avatars.length-1].classList.add('ready'); // Turn last one green
+    }
+
+    // 5. Start the Date
+    window.startSpeedDate = async function() {
+        document.getElementById('speed-lobby').style.display = 'none';
+        document.getElementById('speed-ui').style.display = 'block';
+
+        // Start Camera
+        try {
+            const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "user" }, audio: true });
+            document.getElementById('speed-local-vid').srcObject = stream;
+            // Use sample video for "Them"
+            document.getElementById('speed-remote-vid').src = "https://www.w3schools.com/html/mov_bbb.mp4";
+        } catch(e) {
+            console.error("Cam error", e);
+        }
+
+        // Start 3 Minute Timer
+        let dateTimer = SPEED_DATE_CONFIG.date_duration;
+        const uiTimer = document.getElementById('speed-game-timer');
+        
+        window.dateInterval = setInterval(() => {
+            dateTimer--;
+            let m = Math.floor(dateTimer / 60);
+            let s = (dateTimer % 60).toString().padStart(2, '0');
+            uiTimer.innerText = `${m}:${s}`;
+            
+            if (dateTimer <= 0) window.handleSpeedPass();
+        }, 1000);
+    }
+
+    // 6. Actions (Wink / Pass)
+    window.handleSpeedWink = function() {
+        // Trigger existing wink logic
+        // Assuming 'currentTargetId' is set, if not we use a dummy for demo
+        alert("Wink Sent! 😉");
+        // In real app: window.sendWink(currentMatchUid);
+    }
+
+    window.handleSpeedPass = function() {
+        clearInterval(window.dateInterval);
+        // Stop camera
+        const video = document.getElementById('speed-local-vid');
+        if (video.srcObject) video.srcObject.getTracks().forEach(t => t.stop());
+        
+        document.getElementById('speed-ui').style.display = 'none';
+        alert("Date ended. Waiting for next round...");
+        // Redirect to lobby or main screen
+        document.getElementById('speed-lobby').style.display = 'flex';
+    }
+
+
+    
     
     
     // START
@@ -2208,6 +2398,7 @@ updateConnectionStatus();
 </script>
 </body>
 </html>
+
 
 
 
