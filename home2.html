@@ -433,6 +433,157 @@
 
 
 
+/* --- LIVE STREAM DASHBOARD (HUD) --- */
+:root {
+    /* USER EDITABLE: Change these numbers to resize elements */
+    --live-gift-size: 50px;       /* Size of the floating hearts/gifts */
+    --live-chat-font: 14px;       /* Size of the chat text */
+    --live-anim-speed: 4s;        /* How fast gifts float up */
+}
+
+/* 1. The Container - Sits on top of the video */
+.live-hud-layer {
+    position: absolute;
+    inset: 0;           /* Stretches to fill the video box */
+    z-index: 50;        /* Sits above the video (z-index 10) */
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    pointer-events: none; /* Lets you click "through" empty areas to the video */
+    overflow: hidden;
+}
+
+/* 2. The Gradient - Makes text readable on top of video */
+.live-gradient-overlay {
+    position: absolute;
+    bottom: 0; left: 0; width: 100%; height: 40%;
+    background: linear-gradient(to top, rgba(0,0,0,0.8) 0%, transparent 100%);
+    z-index: 51;
+    pointer-events: none;
+}
+
+/* 3. The Top Bar (Viewer Count) */
+.live-top-bar {
+    padding: 15px;
+    display: flex;
+    gap: 10px;
+    pointer-events: auto; /* Re-enable clicking for buttons */
+}
+.live-viewer-badge {
+    background: rgba(0,0,0,0.5);
+    backdrop-filter: blur(5px);
+    padding: 5px 12px;
+    border-radius: 20px;
+    color: white;
+    font-size: 12px;
+    font-weight: bold;
+    display: flex; align-items: center; gap: 6px;
+    border: 1px solid rgba(255,255,255,0.2);
+}
+
+/* 4. The Chat Area (Messages) */
+.live-chat-area {
+    position: relative;
+    z-index: 55;
+    height: 250px;
+    overflow-y: auto;
+    padding: 15px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    /* Hide scrollbar but keep functionality */
+    -ms-overflow-style: none; scrollbar-width: none;
+}
+.live-chat-area::-webkit-scrollbar { display: none; }
+
+/* 5. Message Bubbles */
+.live-msg-row {
+    display: flex;
+    animation: fadeEntry 0.3s ease-out;
+}
+/* VIEWER MESSAGES (Left) */
+.live-msg-row.viewer {
+    justify-content: flex-start;
+}
+.live-msg-bubble-viewer {
+    color: white;
+    text-shadow: 0 1px 2px black;
+    font-size: var(--live-chat-font);
+    background: rgba(0,0,0,0.2); /* Very faint background */
+    padding: 4px 8px;
+    border-radius: 8px;
+}
+/* HOST MESSAGES (Right) */
+.live-msg-row.host {
+    justify-content: flex-end;
+}
+.live-msg-bubble-host {
+    background: var(--accent); /* Uses your Purple App Color */
+    color: white;
+    padding: 8px 12px;
+    border-radius: 12px;
+    border-bottom-right-radius: 2px;
+    font-size: var(--live-chat-font);
+    box-shadow: 0 2px 5px rgba(0,0,0,0.5);
+}
+
+/* 6. Input Controls (Bottom) */
+.live-controls-bar {
+    padding: 10px;
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    z-index: 60;
+    pointer-events: auto;
+}
+.live-input {
+    flex: 1;
+    background: rgba(0,0,0,0.6);
+    border: 1px solid #444;
+    color: white;
+    padding: 10px;
+    border-radius: 20px;
+    font-size: 14px;
+}
+.live-btn-icon {
+    width: 40px; height: 40px;
+    border-radius: 50%;
+    border: none;
+    background: linear-gradient(135deg, #FFD700, #FFA500); /* Gold Gradient */
+    font-size: 20px;
+    cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    box-shadow: 0 0 10px rgba(255, 215, 0, 0.3);
+}
+
+/* 7. Gift Animation (Floating Up) */
+@keyframes floatUp {
+    0% { transform: translateY(0) scale(0.5); opacity: 0; }
+    10% { transform: translateY(-20px) scale(1.2); opacity: 1; }
+    100% { transform: translateY(-300px) scale(1); opacity: 0; }
+}
+.floating-gift {
+    position: absolute;
+    bottom: 80px;
+    right: 20px;
+    font-size: var(--live-gift-size);
+    animation: floatUp var(--live-anim-speed) ease-in forwards;
+    z-index: 100;
+    pointer-events: none;
+}
+/* Custom class if you use Images instead of Emojis */
+.floating-gift img {
+    width: var(--live-gift-size);
+    height: var(--live-gift-size);
+    object-fit: contain;
+}
+@keyframes fadeEntry { from { opacity:0; transform:translateY(10px); } to { opacity:1; transform:translateY(0); } }
+
+
+
+        
+
+
         
     </style>
     <script type="module">
@@ -1029,10 +1180,43 @@
     </div>
 
     <div style="padding:20px;">
-        <div id="live-preview-container" style="display:none; margin-bottom:20px; position:relative;">
-            <video id="local-video" autoplay muted playsinline style="width:100%; border-radius:15px; background:#111; aspect-ratio:9/16; object-fit:cover;"></video>
-            <div style="position:absolute; top:10px; left:10px; background:red; color:white; padding:2px 8px; border-radius:4px; font-size:10px; font-weight:bold; animation: pulse 1s infinite;">LIVE</div>
+
+
+<div id="live-preview-container" style="display:none; margin-bottom:20px; position:relative; overflow:hidden; border-radius:15px;">
+    
+    <video id="local-video" autoplay muted playsinline style="width:100%; background:#111; aspect-ratio:9/16; object-fit:cover;"></video>
+
+    <div class="live-gradient-overlay"></div>
+
+    <div class="live-hud-layer">
+        
+        <div class="live-top-bar">
+            <div class="live-viewer-badge">
+                <span style="color:#EF4444;">●</span> LIVE
+            </div>
+            <div class="live-viewer-badge">
+                👁 <span id="live-viewer-count">0</span>
+            </div>
         </div>
+
+        <div id="live-chat-feed" class="live-chat-area">
+            </div>
+
+        <div class="live-controls-bar">
+            <input type="text" id="live-msg-input" class="live-input" placeholder="Say something..." onkeypress="window.handleLiveEnter(event)">
+            
+            <button onclick="window.sendLiveMessage()" style="background:var(--accent); border:none; width:40px; height:40px; border-radius:50%; color:white;">➤</button>
+            
+            <button class="live-btn-icon" onclick="window.sendLiveGift()">🎁</button>
+        </div>
+
+    </div>
+
+    <div id="live-anim-zone" style="position:absolute; inset:0; pointer-events:none; overflow:hidden; z-index:99;"></div>
+</div>
+
+
+        
 
         <div class="filter-label">LIVE NOW</div>
         <div id="live-grid" class="grid-container">
@@ -1824,6 +2008,119 @@ updateConnectionStatus();
     }
 
 
+    // ==========================================
+    // LIVE STREAM DASHBOARD LOGIC
+    // ==========================================
+
+    /* --- CONFIGURATION ZONE --- */
+    /* Edit this section to change images/emojis without touching complex code */
+    const LIVE_CONFIG = {
+        // OPTION 1: Use Emojis (Default)
+        // OPTION 2: Use Images (Uncomment the 'url' lines to use them)
+        
+        gift_icon: "❤️", 
+        // gift_icon: "https://cdn-icons-png.flaticon.com/512/210/210545.png", 
+        
+        // How long (in seconds) before a chat message fades out?
+        chat_fade_time: 10000 
+    };
+
+    // 1. Handle "Enter" key in input box
+    window.handleLiveEnter = function(e) {
+        if (e.key === 'Enter') window.sendLiveMessage();
+    }
+
+    // 2. Send Message Logic (Left vs Right)
+    window.sendLiveMessage = function() {
+        const input = document.getElementById('live-msg-input');
+        const text = input.value.trim();
+        if (!text) return;
+
+        // Add to screen (TRUE = Host/Right Side)
+        addChatMessage(text, true, "Me");
+        input.value = "";
+    }
+
+    // 3. The Core Chat Renderer
+    function addChatMessage(text, isHost, username) {
+        const feed = document.getElementById('live-chat-feed');
+        
+        // Create the row container
+        const row = document.createElement('div');
+        row.className = `live-msg-row ${isHost ? 'host' : 'viewer'}`;
+        
+        // Create the bubble
+        const bubble = document.createElement('div');
+        bubble.className = isHost ? 'live-msg-bubble-host' : 'live-msg-bubble-viewer';
+        
+        // Format: "Username: Message" (Viewers) or just "Message" (Host)
+        if (isHost) {
+            bubble.innerText = text;
+        } else {
+            bubble.innerHTML = `<span style="opacity:0.7; font-size:11px; margin-right:4px;">${username}:</span> ${text}`;
+        }
+
+        row.appendChild(bubble);
+        feed.appendChild(row);
+
+        // Auto-scroll to bottom
+        feed.scrollTop = feed.scrollHeight;
+
+        // "Ghost" Effect: Remove after X seconds to keep screen clean
+        setTimeout(() => {
+            row.style.transition = "opacity 1s";
+            row.style.opacity = "0";
+            setTimeout(() => row.remove(), 1000);
+        }, LIVE_CONFIG.chat_fade_time);
+    }
+
+    // 4. Gift Animation Logic
+    window.sendLiveGift = function() {
+        const zone = document.getElementById('live-anim-zone');
+        const el = document.createElement('div');
+        el.className = 'floating-gift';
+        
+        // LOGIC: Check if it's an Image URL or an Emoji
+        if (LIVE_CONFIG.gift_icon.includes('/') || LIVE_CONFIG.gift_icon.includes('.png')) {
+            // Render as Image
+            el.innerHTML = `<img src="${LIVE_CONFIG.gift_icon}">`;
+        } else {
+            // Render as Emoji text
+            el.innerText = LIVE_CONFIG.gift_icon;
+        }
+
+        // Randomize horizontal position slightly for "natural" feel
+        const randomRight = 10 + Math.random() * 20; // Between 10% and 30% from right
+        el.style.right = randomRight + "%";
+
+        zone.appendChild(el);
+
+        // Show a system message in chat
+        addChatMessage("Sent a Gift! 🎁", true, "Me");
+
+        // Clean up DOM after animation ends (4 seconds)
+        setTimeout(() => el.remove(), 4000);
+    }
+
+    // 5. Simulation (Fake viewers interacting)
+    // Triggers when you click "Go Live"
+    window.startLiveSimulation = function() {
+        // Fake viewer count
+        setInterval(() => {
+            const countEl = document.getElementById('live-viewer-count');
+            let count = parseInt(countEl.innerText);
+            count += Math.floor(Math.random() * 3) - 1; // +1, 0, or -1
+            if(count < 0) count = 0;
+            countEl.innerText = count;
+        }, 3000);
+
+        // Fake incoming comment every 5 seconds
+        setInterval(() => {
+            const comments = ["Hi!", "Cool stream", "Where are you?", "Sending love!"];
+            const rando = comments[Math.floor(Math.random() * comments.length)];
+            addChatMessage(rando, false, "Guest_" + Math.floor(Math.random()*100));
+        }, 5000);
+    }
 
 
     
@@ -1834,6 +2131,7 @@ updateConnectionStatus();
 </script>
 </body>
 </html>
+
 
 
 
