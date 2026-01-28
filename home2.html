@@ -2137,6 +2137,134 @@ updateConnectionStatus();
         
 
 
+    // ==========================================
+    // SPEED DATING LOGIC (Fresh Install)
+    // ==========================================
+
+    // 1. GLOBAL CONFIG
+    window.SPEED_DATE_CONFIG = {
+        icon_src: "speedheart.png",
+        date_duration: 180, // 3 minutes
+        lobby_timer: 10,    // seconds (Short for testing)
+    };
+
+    let speedInterval;
+    let isSpeedQueued = false;
+
+    // 2. Open Intro
+    window.openSpeedIntro = function() {
+        const modal = document.getElementById('speed-intro-modal');
+        if(modal) modal.style.display = 'flex';
+    }
+
+    // 3. Join Queue -> Open Lobby
+    window.joinSpeedQueue = function() {
+        isSpeedQueued = true;
+        
+        // Hide Intro
+        document.getElementById('speed-intro-modal').style.display = 'none';
+        
+        // Show Lobby
+        const lobby = document.getElementById('speed-lobby');
+        if(lobby) {
+            lobby.style.display = 'flex';
+        } else {
+            console.error("Error: Lobby Element Not Found");
+            return;
+        }
+        
+        // Start Countdown
+        let time = window.SPEED_DATE_CONFIG.lobby_timer;
+        const timerEl = document.getElementById('speed-timer');
+        
+        if(speedInterval) clearInterval(speedInterval);
+        
+        speedInterval = setInterval(() => {
+            time--;
+            
+            // Format 00:00
+            let m = Math.floor(time / 60).toString().padStart(2, '0');
+            let s = (time % 60).toString().padStart(2, '0');
+            if(timerEl) timerEl.innerText = `${m}:${s}`;
+
+            // Trigger Ready Check at 5 seconds
+            if (time === 5) {
+                const readyAlert = document.getElementById('speed-ready-alert');
+                if(readyAlert) readyAlert.style.display = 'flex';
+            }
+
+            // Start Date at 0
+            if (time <= 0) {
+                clearInterval(speedInterval);
+                window.startSpeedDate();
+            }
+        }, 1000);
+    }
+
+    // 4. Leave Queue
+    window.leaveSpeedQueue = function() {
+        isSpeedQueued = false;
+        if(speedInterval) clearInterval(speedInterval);
+        
+        document.getElementById('speed-lobby').style.display = 'none';
+        document.getElementById('speed-ready-alert').style.display = 'none';
+        document.getElementById('speed-ui').style.display = 'none';
+        document.getElementById('speed-intro-modal').style.display = 'none';
+    }
+
+    // 5. Confirm Ready
+    window.confirmSpeedReady = function() {
+        document.getElementById('speed-ready-alert').style.display = 'none';
+        const avatars = document.querySelectorAll('.speed-avatar');
+        if(avatars.length > 0) avatars[avatars.length-1].classList.add('ready'); 
+    }
+
+    // 6. Start the Date
+    window.startSpeedDate = async function() {
+        document.getElementById('speed-lobby').style.display = 'none';
+        document.getElementById('speed-ui').style.display = 'block';
+
+        try {
+            const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "user" }, audio: true });
+            document.getElementById('speed-local-vid').srcObject = stream;
+            document.getElementById('speed-remote-vid').src = "https://www.w3schools.com/html/mov_bbb.mp4";
+            
+            let dateTimer = window.SPEED_DATE_CONFIG.date_duration;
+            const uiTimer = document.getElementById('speed-game-timer');
+            
+            if(window.dateInterval) clearInterval(window.dateInterval);
+            
+            window.dateInterval = setInterval(() => {
+                dateTimer--;
+                let m = Math.floor(dateTimer / 60);
+                let s = (dateTimer % 60).toString().padStart(2, '0');
+                if(uiTimer) uiTimer.innerText = `${m}:${s}`;
+                
+                if (dateTimer <= 0) window.handleSpeedPass();
+            }, 1000);
+
+        } catch(e) {
+            console.error("Cam error", e);
+            alert("Camera permission denied. Cannot start date.");
+            window.leaveSpeedQueue();
+        }
+    }
+
+    // 7. Actions
+    window.handleSpeedWink = function() {
+        alert("Wink Sent! 😉");
+    }
+
+    window.handleSpeedPass = function() {
+        if(window.dateInterval) clearInterval(window.dateInterval);
+        const video = document.getElementById('speed-local-vid');
+        if (video && video.srcObject) {
+            video.srcObject.getTracks().forEach(t => t.stop());
+        }
+        document.getElementById('speed-ui').style.display = 'none';
+        alert("Date ended. Waiting for next round...");
+        document.getElementById('speed-lobby').style.display = 'flex';
+    }
 
     
     // START
@@ -2145,6 +2273,7 @@ updateConnectionStatus();
 </script>
 </body>
 </html>
+
 
 
 
