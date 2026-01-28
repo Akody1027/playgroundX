@@ -579,7 +579,6 @@
     
 <div id="user-dropdown">
         <a href="#" onclick="openModal('modal-my-profile'); toggleUserDropdown();">My Profile</a>
-        <a href="#" onclick="openModal('modal-studio'); toggleUserDropdown();">Studio (Go Live)</a>
         <a href="#" onclick="logout();">Logout</a>
     </div>
 
@@ -753,10 +752,12 @@
                <img id="g1-preview" src="" style="width:100%; height:100%; object-fit:cover; display:none;">
                <label id="g1-lbl" style="position:absolute; inset:0; display:flex; align-items:center; justify-content:center; width:100%; height:100%;">★</label>
             </div>
+            
             <div class="gallery-slot"><input type="file" id="g2" hidden><label for="g2">+</label></div>
             <div class="gallery-slot"><input type="file" id="g3" hidden><label for="g3">+</label></div>
             <div class="gallery-slot"><input type="file" id="g4" hidden><label for="g4">+</label></div>
             <div class="gallery-slot">
+                
                 <input type="file" id="vid-up" hidden accept="video/*" onchange="window.previewVideo(event)">
                 <label for="vid-up">▶</label>
                 <video id="vid-preview" style="display:none;" autoplay muted loop></video>
@@ -1704,6 +1705,7 @@ updateConnectionStatus();
 </script>
 </body>
 </html>
+
 
 
 
