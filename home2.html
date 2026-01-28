@@ -683,82 +683,163 @@
 
 
 
+            
 
-    
+
+
+
 <div id="profile-modal" class="modal">
-<div class="modal-header">
-            <button class="back-arrow-btn" onclick="closeModal('modal-my-profile')">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
-            </button>
-            <h2 style="color:white; margin:0; font-size:18px;">Edit Profile</h2>
-            <button onclick="saveProfile()" style="background:var(--accent); color:white; border:none; padding:8px 15px; border-radius:15px; font-weight:bold;">Save</button>
+    <div class="modal-header">
+        <button class="back-arrow-btn" onclick="closeModal('modal-my-profile')">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+        </button>
+        <h2 style="color:white; margin:0; font-size:18px;">Edit Profile</h2>
+        <button onclick="saveProfile()" style="background:var(--accent); color:white; border:none; padding:8px 15px; border-radius:15px; font-weight:bold;">Save</button>
+    </div>
+
+    <div style="padding:20px;">
+        <div style="display:flex; gap:20px; border-bottom:1px solid #222; margin-bottom:20px;">
+            <button onclick="window.openTab('profile-tab-edit', this); document.getElementById('tab-btn-wallet').classList.remove('active');" id="tab-btn-edit" class="tab-btn active" style="padding: 10px 0; color:var(--accent); border-bottom:2px solid var(--accent);">Profile</button>
+            <button onclick="window.openTab('profile-tab-wallet', this); document.getElementById('tab-btn-edit').classList.remove('active');" id="tab-btn-wallet" class="tab-btn" style="padding: 10px 0; color:#888;">Wallet</button>
         </div>
 
-        <div style="padding:20px;">
-            <div style="display:flex; gap:20px; border-bottom:1px solid #222; margin-bottom:20px;">
-                <button onclick="switchProfileTab('edit')" id="tab-btn-edit" style="background:none; border:none; color:var(--accent); padding-bottom:10px; border-bottom:2px solid var(--accent); font-weight:bold;">Profile</button>
-                <button onclick="switchProfileTab('wallet')" id="tab-btn-wallet" style="background:none; border:none; color:#888; padding-bottom:10px; font-weight:bold;">Wallet</button>
+        <div id="profile-tab-edit" class="tab-pane active" style="display:block; padding:0;">
+            
+            <div style="text-align: center; margin: 20px 0;">
+                <div style="position: relative; width: 120px; height: 120px; margin: 0 auto;">
+                    <img id="my-main-preview" src="https://via.placeholder.com/120" style="width: 100%; height: 100%; border-radius: 50%; object-fit: cover; border: 3px solid var(--accent);">
+                    <label for="main-up" style="position: absolute; bottom: 0; right: 0; background: var(--accent); width: 35px; height: 35px; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; border: 3px solid #000; color: white; font-size: 22px; font-weight: bold;">+</label>
+                    <input type="file" id="main-up" hidden onchange="window.previewMainAndGallery(event)">
+                </div>
             </div>
 
+            <div class="gallery-grid">
+                <div class="gallery-slot" style="border-color:var(--accent); position:relative; padding:0;">
+                    <img id="g1-preview" src="" style="width:100%; height:100%; object-fit:cover; display:none;">
+                    <label id="g1-lbl" style="position:absolute; inset:0; display:flex; align-items:center; justify-content:center; width:100%; height:100%;">★</label>
+                </div>
+                <div class="gallery-slot"><input type="file" id="g2" hidden><label for="g2">+</label></div>
+                <div class="gallery-slot"><input type="file" id="g3" hidden><label for="g3">+</label></div>
+                <div class="gallery-slot"><input type="file" id="g4" hidden><label for="g4">+</label></div>
+                <div class="gallery-slot">
+                    <input type="file" id="vid-up" hidden accept="video/*" onchange="window.previewVideo(event)">
+                    <label for="vid-up">▶</label>
+                    <video id="vid-preview" style="display:none;" autoplay muted loop></video>
+                </div>
+            </div>
 
-              <div id="profile-tab-edit">
-               
+            <div style="display: flex; flex-direction: column; gap: 10px; margin-bottom: 50px;">
+                
+                <div><label class="filter-label" style="margin-top:0;">DISPLAY NAME</label><input type="text" id="p-alias" class="style-input" placeholder="e.g. Jay_Rocker"></div>
+                
+                <div><label class="filter-label" style="margin-top:0;">BIO</label><textarea id="p-bio" style="width: 100%; background: #111; border: 1px solid #333; padding: 12px; border-radius: 10px; color: white;"></textarea></div>
 
-                <div style="text-align: center; margin: 20px 0;">
-                    <div style="position: relative; width: 120px; height: 120px; margin: 0 auto;">
-                        <img id="my-main-preview" src="https://via.placeholder.com/120" style="width: 100%; height: 100%; border-radius: 50%; object-fit: cover; border: 3px solid var(--accent);">
-                        <label for="main-up" style="position: absolute; bottom: 0; right: 0; background: var(--accent); width: 35px; height: 35px; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; border: 3px solid #000; color: white; font-size: 22px; font-weight: bold;">+</label>
-                        <input type="file" id="main-up" hidden onchange="window.previewMainAndGallery(event)">
-                    </div>
+                <div class="toggle-row"><span>Show Explicit Content</span><input type="checkbox" id="p-explicit" class="toggle-checkbox"><label for="p-explicit" class="toggle-switch"></label></div>
+                
+                <div class="toggle-row"><span>Use GPS Location</span><input type="checkbox" id="p-use-gps" class="toggle-checkbox" checked onchange="window.toggleAccordion('loc-manual', !this.checked)"><label for="p-use-gps" class="toggle-switch"></label></div>
+                <div id="loc-manual" class="accordion-content"><input type="text" class="style-input" placeholder="Enter City..."></div>
+
+                <label class="filter-label">GENDER</label>
+                <div class="toggle-row" onclick="window.toggleProfileAcc('acc-gender')">
+                    <span id="disp-gender">Select Gender...</span>
+                    <span style="color:#666;">▼</span>
+                </div>
+                <div id="acc-gender" class="accordion-content">
+                    <label class="radio-option" onclick="window.selectProfileOption('disp-gender', 'Man', 'acc-gender')">Man</label>
+                    <label class="radio-option" onclick="window.selectProfileOption('disp-gender', 'Woman', 'acc-gender')">Woman</label>
+                    <label class="radio-option" onclick="window.selectProfileOption('disp-gender', 'Non-Binary', 'acc-gender')">Non-Binary</label>
                 </div>
 
-                <div class="gallery-grid">
-                    <div class="gallery-slot" style="border-color:var(--accent); position:relative; padding:0;">
-                       <img id="g1-preview" src="" style="width:100%; height:100%; object-fit:cover; display:none;">
-                       <label id="g1-lbl" style="position:absolute; inset:0; display:flex; align-items:center; justify-content:center; width:100%; height:100%;">★</label>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                    <div>
+                        <label class="filter-label">AGE</label>
+                        <input type="number" id="p-age" class="style-input" value="21" style="text-align:center;">
                     </div>
-                    <div class="gallery-slot"><input type="file" id="g2" hidden><label for="g2">+</label></div>
-                    <div class="gallery-slot"><input type="file" id="g3" hidden><label for="g3">+</label></div>
-                    <div class="gallery-slot"><input type="file" id="g4" hidden><label for="g4">+</label></div>
-                    <div class="gallery-slot">
-                        <input type="file" id="vid-up" hidden accept="video/*" onchange="window.previewVideo(event)">
-                        <label for="vid-up">▶</label>
-                        <video id="vid-preview" style="display:none;" autoplay muted loop></video>
-                    </div>
-                </div>
-
-                <div style="display: flex; flex-direction: column; gap: 10px; margin-bottom: 50px;">
-
-                    <div><label class="filter-label" style="margin-top:0;">DISPLAY NAME (ALIAS)</label><input type="text" id="p-alias" class="style-input" placeholder="e.g. Jay_Rocker"></div>
-                    
-                    <div><label class="filter-label" style="margin-top:0;">BIO</label><textarea id="p-bio" style="width: 100%; background: #111; border: 1px solid #333; padding: 12px; border-radius: 10px; color: white;"></textarea></div>
-
-                    <div class="toggle-row"><span>Show Explicit Content</span><input type="checkbox" id="p-explicit" class="toggle-checkbox"><label for="p-explicit" class="toggle-switch"></label></div>
-                    
-                    <label class="filter-label">GENDER</label>
-                    <div class="toggle-row" onclick="window.toggleProfileAcc('acc-gender')">
-                        <span id="disp-gender">Select Gender...</span>
-                        <span style="color:#666;">▼</span>
-                    </div>
-                    <div id="acc-gender" class="accordion-content">
-                        <label class="radio-option" onclick="window.selectProfileOption('disp-gender', 'Man', 'acc-gender')">Man</label>
-                        <label class="radio-option" onclick="window.selectProfileOption('disp-gender', 'Woman', 'acc-gender')">Woman</label>
-                    </div>
-
-                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
-                        <div>
-                            <label class="filter-label">AGE</label>
-                            <input type="number" id="p-age" class="style-input" value="21" style="text-align:center;">
+                    <div>
+                        <label class="filter-label">BODY TYPE</label>
+                        <div class="toggle-row" onclick="window.toggleProfileAcc('acc-body')" style="justify-content:center;">
+                            <span id="disp-body">Average</span>
                         </div>
                     </div>
                 </div>
+                <div id="acc-body" class="accordion-content">
+                    <label class="radio-option" onclick="window.selectProfileOption('disp-body', 'Average', 'acc-body')">Average</label>
+                    <label class="radio-option" onclick="window.selectProfileOption('disp-body', 'Athletic', 'acc-body')">Athletic</label>
+                    <label class="radio-option" onclick="window.selectProfileOption('disp-body', 'Curvy', 'acc-body')">Curvy</label>
+                    <label class="radio-option" onclick="window.selectProfileOption('disp-body', 'Muscular', 'acc-body')">Muscular</label>
+                </div>
+
+                <label class="filter-label">RELATIONSHIP TYPE</label>
+                <div class="toggle-row" onclick="window.toggleProfileAcc('acc-rel')">
+                    <span id="disp-rel">Select Type...</span>
+                    <span style="color:#666;">▼</span>
+                </div>
+                <div id="acc-rel" class="accordion-content">
+                    <label class="radio-option" onclick="window.selectProfileOption('disp-rel', 'Marriage', 'acc-rel')">Marriage</label>
+                    <label class="radio-option" onclick="window.selectProfileOption('disp-rel', 'Long-Term', 'acc-rel')">Long-Term</label>
+                    <label class="radio-option" onclick="window.selectProfileOption('disp-rel', 'Short-Term', 'acc-rel')">Short-Term</label>
+                    <label class="radio-option" onclick="window.selectProfileOption('disp-rel', 'Fun', 'acc-rel')">Fun</label>
+                </div>
+
+                <label class="filter-label">LOVE LANGUAGE</label>
+                <div class="toggle-row" onclick="window.toggleProfileAcc('acc-love')">
+                    <span id="disp-love">Select Love Language...</span>
+                    <span style="color:#666;">▼</span>
+                </div>
+                <div id="acc-love" class="accordion-content">
+                    <label class="radio-option" onclick="window.selectProfileOption('disp-love', 'Words of Affirmation', 'acc-love')">Words of Affirmation</label>
+                    <label class="radio-option" onclick="window.selectProfileOption('disp-love', 'Acts of Service', 'acc-love')">Acts of Service</label>
+                    <label class="radio-option" onclick="window.selectProfileOption('disp-love', 'Receiving Gifts', 'acc-love')">Receiving Gifts</label>
+                    <label class="radio-option" onclick="window.selectProfileOption('disp-love', 'Quality Time', 'acc-love')">Quality Time</label>
+                    <label class="radio-option" onclick="window.selectProfileOption('disp-love', 'Physical Touch', 'acc-love')">Physical Touch</label>
+                </div>
+
+                <label class="filter-label">VICES</label>
+                <div class="toggle-row" onclick="window.toggleProfileAcc('acc-vices')">
+                    <span id="disp-vices">None</span>
+                    <span style="color:#666;">▼</span>
+                </div>
+                <div id="acc-vices" class="accordion-content">
+                    <label class="radio-option" onclick="window.selectProfileOption('disp-vices', 'None', 'acc-vices')">None</label>
+                    <label class="radio-option" onclick="window.selectProfileOption('disp-vices', 'Smoker', 'acc-vices')">Smoker</label>
+                    <label class="radio-option" onclick="window.selectProfileOption('disp-vices', 'Social Drinker', 'acc-vices')">Social Drinker</label>
+                    <label class="radio-option" onclick="window.selectProfileOption('disp-vices', '420 Friendly', 'acc-vices')">420 Friendly</label>
+                </div>
+            </div>
+        </div>
+
+        <div id="profile-tab-wallet" class="tab-pane" style="display:none; padding:0;">
+            <div class="coin-balance">
+                <span id="wallet-balance">0</span> <span style="font-size:14px; color:#888;">COINS</span>
             </div>
 
-            
+            <div class="filter-label">BUY COIN BUNDLES</div>
+            <div class="coin-bundle">
+                <span>100 Coins</span>
+                <button class="buy-btn" onclick="buyTokens(100, 14.99)">$14.99</button>
+            </div>
+            <div class="coin-bundle">
+                <span>500 Coins</span>
+                <button class="buy-btn" onclick="buyTokens(500, 64.99)">$64.99</button>
+            </div>
+            <div class="coin-bundle">
+                <span>1000 Coins</span>
+                <button class="buy-btn" onclick="buyTokens(1000, 99.99)">$99.99</button>
+            </div>
 
+            <div class="filter-label" style="margin-top:30px;">PAYMENT METHOD</div>
+            <div style="background:#111; padding:15px; border-radius:12px; border:1px solid #333;">
+                <input type="text" class="style-input" style="margin-bottom:10px;" placeholder="Card Number">
+                <div style="display:flex; gap:10px;">
+                    <input type="text" class="style-input" placeholder="MM/YY">
+                    <input type="text" class="style-input" placeholder="CVV">
+                </div>
+                <button class="admin-btn" style="background:#444; margin-top:15px; cursor:default;">Save Card (Demo Only)</button>
+            </div>
+        </div>
 
-
-
+    </div>
+</div>
 
 
 
@@ -766,144 +847,6 @@
 
     
 
-            <div id="profile-tab-wallet" style="display:none;">
-                <div class="coin-balance">
-                    <span id="wallet-balance">0</span> <span style="font-size:14px; color:#888;">COINS</span>
-                </div>
-
-                <div class="filter-label">BUY COIN BUNDLES</div>
-                <div class="coin-bundle">
-                    <span>100 Coins</span>
-                    <button class="buy-btn" onclick="buyTokens(100, 14.99)">$14.99</button>
-                </div>
-                <div class="coin-bundle">
-                    <span>500 Coins</span>
-                    <button class="buy-btn" onclick="buyTokens(500, 64.99)">$64.99</button>
-                </div>
-                <div class="coin-bundle">
-                    <span>1000 Coins</span>
-                    <button class="buy-btn" onclick="buyTokens(1000, 99.99)">$99.99</button>
-                </div>
-
-                <div class="filter-label" style="margin-top:30px;">PAYMENT METHOD</div>
-                <div style="background:#111; padding:15px; border-radius:12px; border:1px solid #333;">
-                    <input type="text" class="style-input" style="margin-bottom:10px;" placeholder="Card Number">
-                    <div style="display:flex; gap:10px;">
-                        <input type="text" class="style-input" placeholder="MM/YY">
-                        <input type="text" class="style-input" placeholder="CVV">
-                    </div>
-                    <button class="admin-btn" style="background:#444; margin-top:15px; cursor:default;">Save Card (Demo Only)</button>
-                </div>
-            </div>
-        </div>
-    <div style="padding: 20px; max-width: 500px; margin: 0 auto;">
-        
-        <div><label class="filter-label" style="margin-top:0;">DISPLAY NAME (ALIAS)</label><input type="text" id="p-alias" class="style-input" placeholder="e.g. Jay_Rocker"></div>
-
-        <div style="text-align: center; margin: 20px 0;">
-            <div style="position: relative; width: 120px; height: 120px; margin: 0 auto;">
-                <img id="my-main-preview" src="https://via.placeholder.com/120" style="width: 100%; height: 100%; border-radius: 50%; object-fit: cover; border: 3px solid var(--accent);">
-                <label for="main-up" style="position: absolute; bottom: 0; right: 0; background: var(--accent); width: 35px; height: 35px; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; border: 3px solid #000; color: white; font-size: 22px; font-weight: bold;">+</label>
-                <input type="file" id="main-up" hidden onchange="window.previewMainAndGallery(event)">
-            </div>
-        </div>
-
-        <div class="gallery-grid">
-            <div class="gallery-slot" style="border-color:var(--accent); position:relative; padding:0;">
-               <img id="g1-preview" src="" style="width:100%; height:100%; object-fit:cover; display:none;">
-               <label id="g1-lbl" style="position:absolute; inset:0; display:flex; align-items:center; justify-content:center; width:100%; height:100%;">★</label>
-            </div>
-            
-            <div class="gallery-slot"><input type="file" id="g2" hidden><label for="g2">+</label></div>
-            <div class="gallery-slot"><input type="file" id="g3" hidden><label for="g3">+</label></div>
-            <div class="gallery-slot"><input type="file" id="g4" hidden><label for="g4">+</label></div>
-            <div class="gallery-slot">
-                
-                <input type="file" id="vid-up" hidden accept="video/*" onchange="window.previewVideo(event)">
-                <label for="vid-up">▶</label>
-                <video id="vid-preview" style="display:none;" autoplay muted loop></video>
-            </div>
-        </div>
-
-<div style="display: flex; flex-direction: column; gap: 10px; margin-bottom: 50px;">
-    
-    <div><label class="filter-label" style="margin-top:0;">BIO</label><textarea id="p-bio" style="width: 100%; background: #111; border: 1px solid #333; padding: 12px; border-radius: 10px; color: white;"></textarea></div>
-
-    <div class="toggle-row"><span>Show Explicit Content</span><input type="checkbox" id="p-explicit" class="toggle-checkbox"><label for="p-explicit" class="toggle-switch"></label></div>
-    <div class="toggle-row"><span>Use GPS Location</span><input type="checkbox" id="p-use-gps" class="toggle-checkbox" checked onchange="window.toggleAccordion('loc-manual', !this.checked)"><label for="p-use-gps" class="toggle-switch"></label></div>
-    <div id="loc-manual" class="accordion-content"><input type="text" class="style-input" placeholder="Enter City..."></div>
-
-    <label class="filter-label">GENDER</label>
-    <div class="toggle-row" onclick="window.toggleProfileAcc('acc-gender')">
-        <span id="disp-gender">Select Gender...</span>
-        <span style="color:#666;">▼</span>
-    </div>
-    <div id="acc-gender" class="accordion-content">
-        <label class="radio-option" onclick="window.selectProfileOption('disp-gender', 'Man', 'acc-gender')">Man</label>
-        <label class="radio-option" onclick="window.selectProfileOption('disp-gender', 'Woman', 'acc-gender')">Woman</label>
-        <label class="radio-option" onclick="window.selectProfileOption('disp-gender', 'Non-Binary', 'acc-gender')">Non-Binary</label>
-    </div>
-
-    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
-        <div>
-            <label class="filter-label">AGE</label>
-            <input type="number" id="p-age" class="style-input" value="21" style="text-align:center;">
-        </div>
-        <div>
-            <label class="filter-label">BODY TYPE</label>
-            <div class="toggle-row" onclick="window.toggleProfileAcc('acc-body')" style="justify-content:center;">
-                <span id="disp-body">Average</span>
-            </div>
-        </div>
-    </div>
-    <div id="acc-body" class="accordion-content">
-        <label class="radio-option" onclick="window.selectProfileOption('disp-body', 'Average', 'acc-body')">Average</label>
-        <label class="radio-option" onclick="window.selectProfileOption('disp-body', 'Athletic', 'acc-body')">Athletic</label>
-        <label class="radio-option" onclick="window.selectProfileOption('disp-body', 'Curvy', 'acc-body')">Curvy</label>
-        <label class="radio-option" onclick="window.selectProfileOption('disp-body', 'Muscular', 'acc-body')">Muscular</label>
-    </div>
-
-    <label class="filter-label">RELATIONSHIP TYPE</label>
-    <div class="toggle-row" onclick="window.toggleProfileAcc('acc-rel')">
-        <span id="disp-rel">Select Type...</span>
-        <span style="color:#666;">▼</span>
-    </div>
-    <div id="acc-rel" class="accordion-content">
-        <label class="radio-option" onclick="window.selectProfileOption('disp-rel', 'Marriage', 'acc-rel')">Marriage</label>
-        <label class="radio-option" onclick="window.selectProfileOption('disp-rel', 'Long-Term', 'acc-rel')">Long-Term</label>
-        <label class="radio-option" onclick="window.selectProfileOption('disp-rel', 'Short-Term', 'acc-rel')">Short-Term</label>
-        <label class="radio-option" onclick="window.selectProfileOption('disp-rel', 'Fun', 'acc-rel')">Fun</label>
-    </div>
-
-    <label class="filter-label">LOVE LANGUAGE</label>
-    <div class="toggle-row" onclick="window.toggleProfileAcc('acc-love')">
-        <span id="disp-love">Select Love Language...</span>
-        <span style="color:#666;">▼</span>
-    </div>
-    <div id="acc-love" class="accordion-content">
-        <label class="radio-option" onclick="window.selectProfileOption('disp-love', 'Words of Affirmation', 'acc-love')">Words of Affirmation</label>
-        <label class="radio-option" onclick="window.selectProfileOption('disp-love', 'Acts of Service', 'acc-love')">Acts of Service</label>
-        <label class="radio-option" onclick="window.selectProfileOption('disp-love', 'Receiving Gifts', 'acc-love')">Receiving Gifts</label>
-        <label class="radio-option" onclick="window.selectProfileOption('disp-love', 'Quality Time', 'acc-love')">Quality Time</label>
-        <label class="radio-option" onclick="window.selectProfileOption('disp-love', 'Physical Touch', 'acc-love')">Physical Touch</label>
-    </div>
-
-    <label class="filter-label">VICES</label>
-    <div class="toggle-row" onclick="window.toggleProfileAcc('acc-vices')">
-        <span id="disp-vices">None</span>
-        <span style="color:#666;">▼</span>
-    </div>
-    <div id="acc-vices" class="accordion-content">
-        <label class="radio-option" onclick="window.selectProfileOption('disp-vices', 'None', 'acc-vices')">None</label>
-        <label class="radio-option" onclick="window.selectProfileOption('disp-vices', 'Smoker', 'acc-vices')">Smoker</label>
-        <label class="radio-option" onclick="window.selectProfileOption('disp-vices', 'Social Drinker', 'acc-vices')">Social Drinker</label>
-        <label class="radio-option" onclick="window.selectProfileOption('disp-vices', '420 Friendly', 'acc-vices')">420 Friendly</label>
-    </div>
-
-</div>
-
-    </div>
-</div>
 
 
 
@@ -1805,6 +1748,7 @@ updateConnectionStatus();
 </script>
 </body>
 </html>
+
 
 
 
