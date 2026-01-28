@@ -1988,7 +1988,7 @@ updateConnectionStatus();
                     currentStreamDocId = streamRef.id;
                     console.log("Stream registered with ID:", currentStreamDocId);
                 }
-
+            }
             
         } catch (err) {
             console.error("Live Error:", err);
@@ -2041,6 +2041,54 @@ updateConnectionStatus();
         }
     }
 
+
+
+    let liveGridUnsubscribe = null;
+
+    window.initLiveGrid = function() {
+        const grid = document.getElementById('live-grid');
+        const streamsRef = window.fbase.collection(window.db, 'artifacts', window.APP_ID, 'public', 'data', 'active_streams');
+        
+        if (liveGridUnsubscribe) liveGridUnsubscribe();
+
+        liveGridUnsubscribe = window.fbase.onSnapshot(streamsRef, (snapshot) => {
+            if (snapshot.empty) {
+                grid.innerHTML = `
+                    <div style="grid-column: 1 / -1; text-align: center; padding: 40px; color: #666;">
+                        <div style="font-size: 24px; margin-bottom: 10px;">😴</div>
+                        <div>No one is live right now.<br>Be the first!</div>
+                    </div>
+                `;
+                return;
+            }
+
+            grid.innerHTML = '';
+            snapshot.forEach(doc => {
+                const s = doc.data();
+                const el = document.createElement('div');
+                el.className = 'grid-item'; 
+                el.style.position = 'relative';
+                el.style.cursor = 'pointer';
+                el.style.border = '2px solid #FF4444'; 
+                
+                el.innerHTML = `
+                    <img src="${s.hostImg}" style="width:100%; height:100%; object-fit:cover;">
+                    <div class="grid-overlay" style="background: linear-gradient(to top, rgba(255,0,0,0.8), transparent);">
+                        <span>${s.hostAlias}</span>
+                        <span style="display:flex; align-items:center; gap:4px;">
+                            <div style="width:8px; height:8px; background:white; border-radius:50%;"></div> LIVE
+                        </span>
+                    </div>
+                `;
+                el.onclick = () => alert(`Joining ${s.hostAlias}'s stream... (Video Player feature coming soon)`);
+                grid.appendChild(el);
+            });
+        });
+    }
+
+
+
+    
 
     // ==========================================
     // LIVE STREAM DASHBOARD LOGIC
@@ -2165,6 +2213,7 @@ updateConnectionStatus();
 </script>
 </body>
 </html>
+
 
 
 
