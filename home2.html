@@ -613,9 +613,10 @@
 
     
     <div id="user-dropdown">
-        <a href="#" onclick="openModal('modal-my-profile'); toggleUserDropdown();">My Profile</a>
+        <a href="#" onclick="openModal('modal-my-profile'); document.getElementById('user-dropdown').style.display='none';">My Profile</a>
         <a href="#" onclick="logout();">Logout</a>
     </div>
+    
 
 </div>
 
@@ -1748,6 +1749,7 @@ updateConnectionStatus();
 </script>
 </body>
 </html>
+
 
 
 
