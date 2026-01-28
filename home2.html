@@ -1959,6 +1959,8 @@ updateConnectionStatus();
     let localStream = null;
     let currentStreamDocId = null;
 
+
+    
     window.toggleLiveStream = async function() {
         const toggle = document.getElementById('live-toggle');
         const videoElement = document.getElementById('local-video');
@@ -1975,7 +1977,7 @@ updateConnectionStatus();
                 videoElement.srcObject = localStream;
                 previewContainer.style.display = 'block';
 
-                // 2. REGISTER STREAM IN FIREBASE (The "Real Data" Step)
+                // 2. REGISTER STREAM IN FIREBASE
                 if (currentUserUid) {
                     const streamRef = await window.fbase.addDoc(window.fbase.collection(window.db, 'artifacts', window.APP_ID, 'public', 'data', 'active_streams'), {
                         hostId: currentUserUid,
@@ -1988,39 +1990,32 @@ updateConnectionStatus();
                     currentStreamDocId = streamRef.id;
                     console.log("Stream registered with ID:", currentStreamDocId);
                 }
-            
-            
-        } catch (err) {
-            console.error("Live Error:", err);
-            
-            // FIX 1: Alert the user clearly
-            if(err.code === 'permission-denied') {
-                alert("Database Locked: You need to update your Firestore Rules in the Firebase Console.");
-            } else {
-                alert("Could not go live: " + err.message);
+
+                // 3. START SIMULATION (This was missing)
+                // 
+                if (window.startLiveSimulation) window.startLiveSimulation();
+
+            } catch (err) { // <--- FIXED: No extra '}' here anymore
+                console.error("Live Error:", err);
+                
+                if(err.code === 'permission-denied') {
+                    alert("Database Locked: You need to update your Firestore Rules in the Firebase Console.");
+                } else {
+                    alert("Could not go live: " + err.message);
+                }
+
+                if (localStream) {
+                    localStream.getTracks().forEach(track => track.stop());
+                    localStream = null;
+                }
+                
+                videoElement.srcObject = null;
+                previewContainer.style.display = 'none';
+                toggle.checked = false;
             }
-
-            // FIX 2: FORCE KILL THE CAMERA HARDWARE
-            if (localStream) {
-                localStream.getTracks().forEach(track => track.stop());
-                localStream = null;
-            }
-            
-            // FIX 3: Reset UI
-            videoElement.srcObject = null;
-            previewContainer.style.display = 'none';
-            toggle.checked = false;
-        }
-
-
-
-
-
             
         } else {
             // --- ENDING STREAM ---
-            
-            // 1. Stop Camera Hardware
             if (localStream) {
                 localStream.getTracks().forEach(track => track.stop());
                 localStream = null;
@@ -2028,7 +2023,6 @@ updateConnectionStatus();
             videoElement.srcObject = null;
             previewContainer.style.display = 'none';
 
-            // 2. REMOVE FROM FIREBASE
             if (currentStreamDocId) {
                 try {
                     await window.fbase.deleteDoc(window.fbase.doc(window.db, 'artifacts', window.APP_ID, 'public', 'data', 'active_streams', currentStreamDocId));
@@ -2040,6 +2034,7 @@ updateConnectionStatus();
             }
         }
     }
+
 
 
 
@@ -2213,6 +2208,7 @@ updateConnectionStatus();
 </script>
 </body>
 </html>
+
 
 
 
