@@ -2128,119 +2128,6 @@ updateConnectionStatus();
 
     
 
-    // ==========================================
-    // LIVE STREAM DASHBOARD LOGIC
-    // ==========================================
-
-    /* --- CONFIGURATION ZONE --- */
-    /* Edit this section to change images/emojis without touching complex code */
-    const LIVE_CONFIG = {
-        // OPTION 1: Use Emojis (Default)
-        // OPTION 2: Use Images (Uncomment the 'url' lines to use them)
-        
-        gift_icon: "❤️", 
-        // gift_icon: "https://cdn-icons-png.flaticon.com/512/210/210545.png", 
-        
-        // How long (in seconds) before a chat message fades out?
-        chat_fade_time: 10000 
-    };
-
-    // 1. Handle "Enter" key in input box
-    window.handleLiveEnter = function(e) {
-        if (e.key === 'Enter') window.sendLiveMessage();
-    }
-
-    // 2. Send Message Logic (Left vs Right)
-    window.sendLiveMessage = function() {
-        const input = document.getElementById('live-msg-input');
-        const text = input.value.trim();
-        if (!text) return;
-
-        // Add to screen (TRUE = Host/Right Side)
-        addChatMessage(text, true, "Me");
-        input.value = "";
-    }
-
-    // 3. The Core Chat Renderer
-    function addChatMessage(text, isHost, username) {
-        const feed = document.getElementById('live-chat-feed');
-        
-        // Create the row container
-        const row = document.createElement('div');
-        row.className = `live-msg-row ${isHost ? 'host' : 'viewer'}`;
-        
-        // Create the bubble
-        const bubble = document.createElement('div');
-        bubble.className = isHost ? 'live-msg-bubble-host' : 'live-msg-bubble-viewer';
-        
-        // Format: "Username: Message" (Viewers) or just "Message" (Host)
-        if (isHost) {
-            bubble.innerText = text;
-        } else {
-            bubble.innerHTML = `<span style="opacity:0.7; font-size:11px; margin-right:4px;">${username}:</span> ${text}`;
-        }
-
-        row.appendChild(bubble);
-        feed.appendChild(row);
-
-        // Auto-scroll to bottom
-        feed.scrollTop = feed.scrollHeight;
-
-        // "Ghost" Effect: Remove after X seconds to keep screen clean
-        setTimeout(() => {
-            row.style.transition = "opacity 1s";
-            row.style.opacity = "0";
-            setTimeout(() => row.remove(), 1000);
-        }, LIVE_CONFIG.chat_fade_time);
-    }
-
-    // 4. Gift Animation Logic
-    window.sendLiveGift = function() {
-        const zone = document.getElementById('live-anim-zone');
-        const el = document.createElement('div');
-        el.className = 'floating-gift';
-        
-        // LOGIC: Check if it's an Image URL or an Emoji
-        if (LIVE_CONFIG.gift_icon.includes('/') || LIVE_CONFIG.gift_icon.includes('.png')) {
-            // Render as Image
-            el.innerHTML = `<img src="${LIVE_CONFIG.gift_icon}">`;
-        } else {
-            // Render as Emoji text
-            el.innerText = LIVE_CONFIG.gift_icon;
-        }
-
-        // Randomize horizontal position slightly for "natural" feel
-        const randomRight = 10 + Math.random() * 20; // Between 10% and 30% from right
-        el.style.right = randomRight + "%";
-
-        zone.appendChild(el);
-
-        // Show a system message in chat
-        addChatMessage("Sent a Gift! 🎁", true, "Me");
-
-        // Clean up DOM after animation ends (4 seconds)
-        setTimeout(() => el.remove(), 4000);
-    }
-
-    // 5. Simulation (Fake viewers interacting)
-    // Triggers when you click "Go Live"
-    window.startLiveSimulation = function() {
-        // Fake viewer count
-        setInterval(() => {
-            const countEl = document.getElementById('live-viewer-count');
-            let count = parseInt(countEl.innerText);
-            count += Math.floor(Math.random() * 3) - 1; // +1, 0, or -1
-            if(count < 0) count = 0;
-            countEl.innerText = count;
-        }, 3000);
-
-        // Fake incoming comment every 5 seconds
-        setInterval(() => {
-            const comments = ["Hi!", "Cool stream", "Where are you?", "Sending love!"];
-            const rando = comments[Math.floor(Math.random() * comments.length)];
-            addChatMessage(rando, false, "Guest_" + Math.floor(Math.random()*100));
-        }, 5000);
-    }
 
 
 
@@ -2386,6 +2273,7 @@ updateConnectionStatus();
 </script>
 </body>
 </html>
+
 
 
 
