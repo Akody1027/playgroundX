@@ -595,6 +595,126 @@
         
 
 
+
+
+
+
+
+/* --- NEW SPEED LOUNGE STYLES --- */
+#speed-lounge {
+    display: none;
+    position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+    background: #0f0f0f; z-index: 9000;
+    font-family: 'Inter', sans-serif;
+}
+
+/* layout: Sidebar (Left) + Main Stage (Right) */
+.lounge-layout {
+    display: flex; width: 100%; height: 100%;
+}
+
+/* Sidebar: User Queue & Filters */
+.lounge-sidebar {
+    width: 320px; background: #161616; border-right: 1px solid #333;
+    display: flex; flex-direction: column; padding: 20px;
+    z-index: 2;
+}
+
+.lounge-header {
+    font-size: 12px; font-weight: bold; color: #666; letter-spacing: 1px;
+    margin-bottom: 15px; text-transform: uppercase;
+    display: flex; justify-content: space-between; align-items: center;
+}
+
+/* Filter Toggles */
+.filter-group {
+    background: #000; border-radius: 8px; padding: 4px; display: flex; margin-bottom: 15px; border: 1px solid #333;
+}
+.filter-opt {
+    flex: 1; text-align: center; padding: 8px 0; font-size: 12px; font-weight: bold;
+    color: #666; cursor: pointer; border-radius: 6px; transition: 0.2s;
+}
+.filter-opt.active {
+    background: #333; color: white;
+}
+
+/* The Live Queue List */
+.queue-list {
+    flex: 1; overflow-y: auto; overflow-x: hidden;
+    display: flex; flex-direction: column; gap: 10px;
+    margin-bottom: 20px;
+    /* Hide Scrollbar */
+    scrollbar-width: none; 
+}
+.queue-list::-webkit-scrollbar { display: none; }
+
+/* User Chip Animation */
+@keyframes slideInLeft {
+    from { transform: translateX(-50px); opacity: 0; }
+    to { transform: translateX(0); opacity: 1; }
+}
+.user-chip {
+    display: flex; align-items: center; gap: 10px;
+    background: #1E1E1E; padding: 8px 12px; border-radius: 50px;
+    border: 1px solid #333; animation: slideInLeft 0.3s ease-out forwards;
+}
+.chip-img { width: 32px; height: 32px; border-radius: 50%; object-fit: cover; border: 1px solid #555; }
+.chip-info { display: flex; flex-direction: column; }
+.chip-name { font-size: 13px; color: white; font-weight: 600; }
+.chip-status { font-size: 10px; color: var(--accent); }
+
+/* Main Stage: The Global Timer */
+.lounge-main {
+    flex: 1; position: relative; display: flex; flex-direction: column;
+    align-items: center; justify-content: center; overflow: hidden;
+}
+
+/* Radar Background Effect */
+.radar-bg {
+    position: absolute; width: 600px; height: 600px;
+    border: 1px solid rgba(139, 92, 246, 0.1); border-radius: 50%;
+    z-index: 1;
+}
+.radar-bg::after {
+    content: ''; position: absolute; inset: 0; border-radius: 50%;
+    background: conic-gradient(transparent 0deg, rgba(139, 92, 246, 0.1) 60deg, transparent 61deg);
+    animation: radarSpin 4s linear infinite;
+}
+@keyframes radarSpin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+
+.timer-box { z-index: 10; text-align: center; }
+.timer-label { font-size: 14px; color: #888; margin-bottom: 10px; letter-spacing: 2px; }
+.huge-timer { font-size: 80px; font-weight: 900; color: white; font-variant-numeric: tabular-nums; line-height: 1; text-shadow: 0 0 30px rgba(139, 92, 246, 0.5); }
+.timer-sub { font-size: 14px; color: var(--accent); margin-top: 10px; font-weight: bold; }
+
+/* Join Button */
+.join-btn-large {
+    width: 100%; padding: 16px; border-radius: 12px;
+    background: var(--accent); color: white; font-weight: 800; font-size: 16px;
+    border: none; cursor: pointer; transition: 0.2s;
+    box-shadow: 0 4px 15px rgba(139, 92, 246, 0.3);
+}
+.join-btn-large:active { transform: scale(0.98); }
+
+/* Mobile Responsive Adjustments */
+@media (max-width: 768px) {
+    .lounge-layout { flex-direction: column-reverse; }
+    .lounge-sidebar { width: 100%; height: 50%; border-right: none; border-top: 1px solid #333; }
+    .lounge-main { height: 50%; }
+    .huge-timer { font-size: 60px; }
+}
+
+
+
+
+
+
+
+
+
+
+        
+
         
     </style>
     <script type="module">
@@ -1302,16 +1422,48 @@
 
 
 
-<div id="speed-intro-modal" class="modal" style="display:none; align-items:center; justify-content:center; padding-top:0;">
-    <div style="background:#1E1E1E; padding:30px; border-radius:20px; max-width:90%; width:350px; text-align:center; border:1px solid #333;">
-        <h1 style="color:white; margin:0 0 10px 0;">Speed Dating ⚡</h1>
-        <p style="color:#ccc; line-height:1.5; margin-bottom:30px;">
-            Meet people nearby via live video. <br>
-            Each date lasts <span style="color:var(--accent); font-weight:bold;">3 minutes</span>.<br>
-            If you vibe, send a Wink!
-        </p>
-        <button onclick="window.joinSpeedQueue()" style="width:100%; background:var(--accent); color:white; border:none; padding:15px; border-radius:12px; font-weight:bold; font-size:16px; margin-bottom:10px;">Check it out</button>
-        <button onclick="document.getElementById('speed-intro-modal').style.display='none'" style="background:none; border:none; color:#666; font-weight:bold;">Cancel</button>
+
+
+
+<div id="speed-lounge">
+    <button onclick="window.closeLounge()" style="position:absolute; top:20px; right:20px; z-index:100; background:none; border:none; color:white; font-size:24px; cursor:pointer;">✕</button>
+
+    <div class="lounge-layout">
+        <div class="lounge-sidebar">
+            <div class="lounge-header">
+                <span>Filter Queue</span>
+                <span id="queue-count" style="color:white;">0 Online</span>
+            </div>
+
+            <div class="filter-group">
+                <div class="filter-opt active" onclick="setLoungeFilter(this, 'men')">Men</div>
+                <div class="filter-opt" onclick="setLoungeFilter(this, 'women')">Women</div>
+                <div class="filter-opt" onclick="setLoungeFilter(this, 'all')">Everyone</div>
+            </div>
+
+            <div class="filter-group">
+                <div class="filter-opt active" onclick="setLocationFilter(this, 'near')">Nearby</div>
+                <div class="filter-opt" onclick="setLocationFilter(this, 'us')">National</div>
+                <div class="filter-opt" onclick="setLocationFilter(this, 'global')">Global</div>
+            </div>
+
+            <div id="lounge-queue" class="queue-list">
+                </div>
+
+            <div style="margin-top:auto;">
+                <button id="btn-join-queue" class="join-btn-large" onclick="window.joinGlobalQueue()">JOIN QUEUE</button>
+            </div>
+        </div>
+
+        <div class="lounge-main">
+            <div class="radar-bg"></div>
+            
+            <div class="timer-box">
+                <div class="timer-label">NEXT GLOBAL ROUND STARTS IN</div>
+                <div id="global-countdown" class="huge-timer">10:00</div>
+                <div class="timer-sub">● LIVE SESSION IN PROGRESS</div>
+            </div>
+        </div>
     </div>
 </div>
 
@@ -1319,43 +1471,9 @@
 
 
 
-
-<div id="speed-lobby" style="display:none; position:fixed; inset:0; background:#111; z-index:9000; flex-direction:column; align-items:center; justify-content:center;">
-    <div class="empty-throb-img" style="font-size:50px; margin-bottom:20px;">⚡</div>
-    <h2 style="color:white; margin-bottom:10px;">Finding a Date...</h2>
-    <p style="color:#888;">Next round starts in:</p>
-    <div id="speed-timer" style="font-size:40px; font-weight:bold; color:var(--accent); margin-bottom:30px;">00:10</div>
     
-    <div style="display:flex; gap:10px; margin-bottom:30px;">
-        <div class="speed-avatar ready" style="width:40px; height:40px; border-radius:50%; background:#333; border:2px solid var(--accent);"></div>
-        <div class="speed-avatar" style="width:40px; height:40px; border-radius:50%; background:#333; border:2px solid #555;"></div>
-        <div class="speed-avatar" style="width:40px; height:40px; border-radius:50%; background:#333; border:2px solid #555;"></div>
-    </div>
 
-    <button onclick="window.leaveSpeedQueue()" style="background:none; border:1px solid #444; color:#aaa; padding:10px 20px; border-radius:20px;">Leave Queue</button>
-</div>
 
-<div id="speed-ready-alert" style="display:none; position:fixed; top:20%; left:50%; transform:translate(-50%, -50%); background:var(--accent); padding:20px; border-radius:15px; z-index:9100; text-align:center; width:80%; max-width:300px; box-shadow:0 10px 40px rgba(0,0,0,0.5);">
-    <h3 style="color:white; margin:0 0 10px 0;">Match Found!</h3>
-    <button onclick="window.confirmSpeedReady()" style="background:white; color:var(--accent); border:none; padding:12px 24px; border-radius:20px; font-weight:bold; font-size:16px;">I'm Ready!</button>
-</div>
-
-<div id="speed-ui" style="display:none; position:fixed; inset:0; background:black; z-index:9200;">
-    <video id="speed-remote-vid" autoplay loop muted playsinline style="width:100%; height:100%; object-fit:cover;"></video>
-    
-    <div style="position:absolute; top:20px; right:20px; width:100px; height:140px; background:#222; border-radius:10px; overflow:hidden; border:2px solid #333;">
-        <video id="speed-local-vid" autoplay muted playsinline style="width:100%; height:100%; object-fit:cover; transform:scaleX(-1);"></video>
-    </div>
-
-    <div style="position:absolute; top:20px; left:20px; background:rgba(0,0,0,0.5); padding:5px 15px; border-radius:20px; color:white; font-weight:bold; border:1px solid rgba(255,255,255,0.2);">
-        ⏱ <span id="speed-game-timer">03:00</span>
-    </div>
-
-    <div style="position:absolute; bottom:30px; width:100%; display:flex; justify-content:center; gap:20px;">
-        <button onclick="window.handleSpeedPass()" style="width:60px; height:60px; border-radius:50%; background:#FF4444; border:none; font-size:24px;">✕</button>
-        <button onclick="window.handleSpeedWink()" style="width:60px; height:60px; border-radius:50%; background:var(--accent); border:none; font-size:24px;">😉</button>
-    </div>
-</div>
 
 
 
@@ -2163,6 +2281,151 @@ updateConnectionStatus();
 
 
 
+
+
+    // --- GLOBAL VARIABLES ---
+    let loungeInterval = null;
+    let queueSimulator = null;
+    let isQueueJoined = false;
+
+    // 1. OPEN LOUNGE
+    window.openSpeedIntro = function() {
+        document.getElementById('speed-lounge').style.display = 'block';
+        startGlobalTimer();
+        startQueueSimulation();
+    }
+
+    // 2. CLOSE LOUNGE
+    window.closeLounge = function() {
+        document.getElementById('speed-lounge').style.display = 'none';
+        if(loungeInterval) clearInterval(loungeInterval);
+        if(queueSimulator) clearInterval(queueSimulator);
+    }
+
+    // 3. GLOBAL TIMER LOGIC (10 Minute Epochs)
+    function startGlobalTimer() {
+        const timerEl = document.getElementById('global-countdown');
+        
+        // Update immediately, then every second
+        updateTimer();
+        loungeInterval = setInterval(updateTimer, 1000);
+
+        function updateTimer() {
+            const now = Date.now();
+            const interval = 10 * 60 * 1000; // 10 Minutes in ms
+            
+            // Calculate next 10-minute mark (e.g. 10:00, 10:10, 10:20)
+            const nextRound = Math.ceil(now / interval) * interval;
+            const diff = nextRound - now;
+
+            if (diff <= 0) {
+                // ROUND START!
+                if(isQueueJoined) {
+                    window.location.href = "speed_dating.html"; // TRIGGER PAGE SWITCH
+                } else {
+                    // Reset Logic if not joined
+                }
+            }
+
+            // Format mm:ss
+            const m = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+            const s = Math.floor((diff % (1000 * 60)) / 1000);
+            timerEl.innerText = `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
+        }
+    }
+
+    // 4. JOIN LOGIC
+    window.joinGlobalQueue = function() {
+        const btn = document.getElementById('btn-join-queue');
+        
+        // Visual Feedback
+        btn.innerText = "WAITING FOR ROUND...";
+        btn.style.background = "#333";
+        btn.style.color = "#aaa";
+        btn.disabled = true;
+        
+        isQueueJoined = true;
+
+        // Add "Me" to the top of the list
+        const list = document.getElementById('lounge-queue');
+        const myChip = document.createElement('div');
+        myChip.className = 'user-chip';
+        myChip.style.border = '1px solid var(--accent)';
+        myChip.innerHTML = `
+            <img src="${localStorage.getItem('my_profile_pic') || 'https://via.placeholder.com/40'}" class="chip-img">
+            <div class="chip-info">
+                <span class="chip-name">You (Pending)</span>
+                <span class="chip-status">Ready to Match</span>
+            </div>
+        `;
+        list.prepend(myChip);
+    }
+
+    // 5. QUEUE SIMULATION (Creates "Fake" Activity)
+    function startQueueSimulation() {
+        const list = document.getElementById('lounge-queue');
+        const countEl = document.getElementById('queue-count');
+        list.innerHTML = ''; // Clear previous
+        
+        let count = Math.floor(Math.random() * 30) + 10; // Start with random number
+        countEl.innerText = count + " Online";
+
+        // Add initial batch
+        for(let i=0; i<5; i++) addRandomUser(list);
+
+        // Add new user every 2-5 seconds
+        queueSimulator = setInterval(() => {
+            if(Math.random() > 0.5) {
+                addRandomUser(list);
+                count++;
+                countEl.innerText = count + " Online";
+            }
+        }, 2000);
+    }
+
+    const FAKE_NAMES = ["Sarah", "Mike", "Jessica", "Davon", "Li", "Aisha", "Tom", "Chloe"];
+    function addRandomUser(list) {
+        const name = FAKE_NAMES[Math.floor(Math.random() * FAKE_NAMES.length)];
+        const chip = document.createElement('div');
+        chip.className = 'user-chip';
+        chip.innerHTML = `
+            <img src="https://i.pravatar.cc/150?u=${Math.random()}" class="chip-img">
+            <div class="chip-info">
+                <span class="chip-name">${name}</span>
+                <span class="chip-status">Just Joined</span>
+            </div>
+        `;
+        list.prepend(chip); // Add to top
+        
+        // Remove old ones to keep DOM clean
+        if(list.children.length > 20) list.lastElementChild.remove();
+    }
+
+    // 6. FILTER TOGGLES
+    window.setLoungeFilter = function(el, type) {
+        // Remove active class from siblings
+        el.parentElement.querySelectorAll('.filter-opt').forEach(d => d.classList.remove('active'));
+        el.classList.add('active');
+        // Visual Reset of Queue to look like it refreshed
+        startQueueSimulation(); 
+    }
+
+    window.setLocationFilter = function(el, type) {
+        el.parentElement.querySelectorAll('.filter-opt').forEach(d => d.classList.remove('active'));
+        el.classList.add('active');
+        startQueueSimulation();
+    }
+
+
+
+
+
+
+
+
+
+    
+
         
 
 
@@ -2305,6 +2568,7 @@ updateConnectionStatus();
 </script>
 </body>
 </html>
+
 
 
 
