@@ -17,6 +17,7 @@
             --text-white: #FFFFFF;
             --text-gray: #A1A1AA;
             --border: rgba(255,255,255,0.08);
+            --success: #8B5CF6; /* Purple Checkmarks */
         }
 
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
@@ -148,15 +149,13 @@
         .login-visible .login-card { opacity: 1; transform: scale(1); }
 
         /* INPUTS WITH ICONS */
-        .input-wrapper {
-            position: relative; margin-bottom: 15px;
-        }
+        .input-wrapper { position: relative; margin-bottom: 15px; }
         .input-icon {
             position: absolute; left: 15px; top: 50%; transform: translateY(-50%);
             color: #666; width: 20px; height: 20px;
         }
         .inp {
-            width: 100%; padding: 15px 15px 15px 45px; /* Padding left for icon */
+            width: 100%; padding: 15px 15px 15px 45px;
             background: #111; border: 1px solid #333;
             color: white; border-radius: 8px; outline: none; font-size: 15px; transition: 0.2s;
         }
@@ -171,24 +170,118 @@
         }
         .back-nav:hover { color: white; }
 
+        /* TOGGLE LINK */
+        .auth-toggle {
+            margin-top: 20px; text-align: center; font-size: 13px; color: #666; cursor: pointer;
+        }
+        .auth-toggle span {
+            color: var(--primary); font-weight: bold; text-decoration: none;
+        }
+        .auth-toggle:hover span { text-decoration: underline; }
 
+        /* --- WIZARD STYLES (New) --- */
+        #wizard-overlay {
+            position: fixed; inset: 0; z-index: 2000;
+            background: #050505;
+            display: none; /* Hidden by default */
+            align-items: center; justify-content: center;
+        }
+        .wizard-container {
+            width: 100%; max-width: 500px; height: 600px;
+            position: relative; overflow: hidden;
+            display: flex; align-items: center; justify-content: center;
+        }
+        .w-step {
+            position: absolute; inset: 0; padding: 30px;
+            display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center;
+            opacity: 0; transform: translateX(100%); pointer-events: none;
+            transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .w-step.active { opacity: 1; transform: translateX(0); pointer-events: all; }
+        .w-step.exit { opacity: 0; transform: translateX(-100%); }
 
-.auth-toggle {
-    margin-top: 20px; text-align: center; font-size: 13px; color: #666; cursor: pointer;
-}
-.auth-toggle span {
-    color: var(--primary); font-weight: bold; text-decoration: none;
-}
-.auth-toggle:hover span { text-decoration: underline; }
-
-
-
-
+        .w-icon { font-size: 50px; margin-bottom: 20px; display: block; }
+        .w-title { font-size: 24px; font-weight: 800; margin-bottom: 10px; color: white; }
+        .w-desc { color: #888; font-size: 14px; line-height: 1.6; margin-bottom: 30px; max-width: 350px; }
         
+        .file-drop {
+            width: 100%; border: 2px dashed #333; border-radius: 12px; padding: 20px;
+            margin-bottom: 15px; color: #666; font-size: 13px; cursor: pointer; transition: 0.2s;
+        }
+        .file-drop:hover { border-color: var(--primary); color: white; }
+        
+        .avatar-guide {
+            width: 100px; height: 100px; background: #222; border-radius: 50%;
+            display: flex; align-items: center; justify-content: center; font-size: 40px;
+            margin-bottom: 20px; border: 2px solid var(--primary);
+        }
+
+        .btn-wizard {
+            background: var(--primary); color: white; border: none; padding: 15px 40px;
+            border-radius: 50px; font-weight: bold; font-size: 15px; cursor: pointer;
+            margin-top: 20px; width: 100%; max-width: 200px;
+        }
 
     </style>
 </head>
 <body>
+
+    <div id="wizard-overlay">
+        <div class="wizard-container">
+            
+            <div id="step-safety" class="w-step active">
+                <div class="w-icon">🛡️</div>
+                <div class="w-title">The Safety Oath</div>
+                <div class="w-desc">
+                    We are building a fortress, not a playground. By proceeding, you agree to our zero-tolerance policy against bots, solicitation, and harassment.
+                </div>
+                <button class="btn-wizard" onclick="wizardNext('step-safety', 'step-email')">I AGREE</button>
+            </div>
+
+            <div id="step-email" class="w-step">
+                <div class="w-icon">✉️</div>
+                <div class="w-title">Verify Email</div>
+                <div class="w-desc">We will send a confirmation link to verify you own this address.</div>
+                <input type="text" id="wiz-email-display" class="inp" disabled style="text-align:center; color:var(--primary); font-weight:bold;">
+                <button class="btn-wizard" onclick="triggerEmailSend()">SEND LINK</button>
+            </div>
+
+            <div id="step-id" class="w-step">
+                <div class="w-icon">🪪</div>
+                <div class="w-title">Identity Check</div>
+                <div class="w-desc">Upload a government-issued ID. Data is deleted immediately after the BIPA handshake.</div>
+                
+                <input type="file" id="id-front" class="file-drop" accept="image/*" aria-label="Upload Front of ID">
+                <div style="font-size:11px; color:#555; margin-bottom:10px;">Front of ID</div>
+                
+                <input type="file" id="id-back" class="file-drop" accept="image/*" aria-label="Upload Back of ID">
+                <div style="font-size:11px; color:#555;">Back of ID</div>
+
+                <button class="btn-wizard" onclick="wizardNext('step-id', 'step-selfie')">CONTINUE</button>
+            </div>
+
+            <div id="step-selfie" class="w-step">
+                <div class="avatar-guide">✌️</div>
+                <div class="w-title">The "Peace" Check</div>
+                <div class="w-desc">To prove you are human, take a selfie holding up a Peace Sign (Two Fingers) just like the icon above.</div>
+                
+                <input type="file" id="selfie-upload" class="file-drop" accept="image/*" capture="user">
+                
+                <button class="btn-wizard" onclick="finishOnboarding()">SUBMIT VERIFICATION</button>
+            </div>
+
+            <div id="step-success" class="w-step">
+                <div class="w-icon" style="color:var(--primary);">🎉</div>
+                <div class="w-title">You're In.</div>
+                <div class="w-desc">
+                    Your verification is now pending in the Admin Queue.<br><br>
+                    You can enter the Lounge with <strong>Limited Access</strong> (Map View Only) until fully approved.
+                </div>
+                <button class="btn-wizard" onclick="enterAppAsPending()">ENTER LOUNGE</button>
+            </div>
+
+        </div>
+    </div>
 
     <div id="landing-module">
         <nav>
@@ -213,7 +306,7 @@
 
                 <div class="feature-block">
                     <div class="feat-icon-large">
-                        <svg width="40" height="40" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"></path></svg>
+                        <svg width="40" height="40" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 00-2 2v8a2 2 0 002 2z"></path></svg>
                     </div>
                     <div class="feat-title">The Speed Lounge</div>
                     <div class="feat-desc">Step into the virtual room. You are paired instantly via high-fidelity video. The clock is set to 5 minutes. If the spark is real, you unlock the connection. If not, the room rotates.</div>
@@ -328,22 +421,20 @@
             
             <input type="date" id="dob" class="inp" style="color-scheme:dark; padding-left:15px;">
 
-            <button class="btn-act" onclick="handleEmailLogin()" style="background:var(--primary); color:white; margin-top:10px;">SECURE ENTRY</button>
+            <button class="btn-act" onclick="handleAuthAction()" style="background:var(--primary); color:white; margin-top:10px;">SECURE ENTRY</button>
             <div id="error-txt" style="color:#EF4444; font-size:12px; margin-top:15px; text-align:center;"></div>
 
             <div class="auth-toggle" onclick="toggleAuthMode()">
              New here? <span id="toggle-text">Create an Account</span>
             </div>
-
-
-            
         </div>
     </div>
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-        import { getAuth, signInWithPopup, GoogleAuthProvider, signInWithEmailAndPassword, createUserWithEmailAndPassword, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+        import { getAuth, signInWithPopup, GoogleAuthProvider, signInWithEmailAndPassword, createUserWithEmailAndPassword, sendEmailVerification, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
         import { getFirestore, doc, getDoc, setDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+        import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-storage.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyDFmhk3ybnsVsFenCE3xvdmy5y_4u9ss7o", 
@@ -358,6 +449,7 @@
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
         const db = getFirestore(app);
+        const storage = getStorage(app);
         const provider = new GoogleAuthProvider();
 
         // UI TRIGGERS
@@ -371,7 +463,57 @@
             document.getElementById('login-layer').classList.remove('login-visible');
         }
 
-        // AUTH LOGIC
+        // --- AUTH & ONBOARDING LOGIC ---
+
+        // 1. STATE TRACKING
+        window.isSignupMode = false;
+        let currentUser = null;
+
+        window.toggleAuthMode = function() {
+            window.isSignupMode = !window.isSignupMode;
+            const title = document.querySelector('.login-card h2');
+            const desc = document.querySelector('.login-card p');
+            const btn = document.querySelector('.btn-act');
+            const toggleText = document.getElementById('toggle-text');
+
+            if (window.isSignupMode) {
+                title.innerText = "Create Account";
+                desc.innerText = "Join the verified lounge.";
+                btn.innerText = "APPLY FOR ACCESS";
+                toggleText.innerText = "Login to existing account";
+            } else {
+                title.innerText = "Member Login";
+                desc.innerText = "Authenticate to enter the Lounge.";
+                btn.innerText = "SECURE ENTRY";
+                toggleText.innerText = "Create an Account";
+            }
+        }
+
+        // 2. MASTER ROUTER
+        window.handleAuthAction = function() {
+            if(window.isSignupMode) {
+                handleSignUpSequence();
+            } else {
+                handleEmailLogin();
+            }
+        }
+
+        // 3. LOGIN FLOW
+        window.handleEmailLogin = async function() {
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+            const err = document.getElementById('error-txt');
+
+            if(!email || !password) { err.innerText = "Credentials missing."; return; }
+
+            try {
+                const res = await signInWithEmailAndPassword(auth, email, password);
+                checkUserAndRedirect(res.user);
+            } catch (e) {
+                err.innerText = e.message;
+            }
+        }
+
         window.handleGoogleLogin = async function() {
             try {
                 const result = await signInWithPopup(auth, provider);
@@ -381,14 +523,14 @@
             }
         }
 
-        window.handleEmailLogin = async function() {
+        // 4. SIGN UP SEQUENCE (Trigger Wizard)
+        async function handleSignUpSequence() {
             const email = document.getElementById('email').value;
             const password = document.getElementById('password').value;
             const dobVal = document.getElementById('dob').value;
             const err = document.getElementById('error-txt');
 
-            if(!email || !password) { err.innerText = "Credentials missing."; return; }
-            if(!dobVal) { err.innerText = "Date of Birth required."; return; }
+            if(!email || !password || !dobVal) { err.innerText = "Please complete all fields."; return; }
 
             const dob = new Date(dobVal);
             if((new Date().getFullYear() - dob.getFullYear()) < 18) {
@@ -396,20 +538,104 @@
             }
 
             try {
-                await signInWithEmailAndPassword(auth, email, password);
+                // A. Create User
+                const userCred = await createUserWithEmailAndPassword(auth, email, password);
+                currentUser = userCred.user;
+
+                // B. Save Initial Data
+                await setDoc(doc(db, 'artifacts', 'playgroundX_Prod_v1', 'public', 'data', 'users', currentUser.uid), {
+                    dob: dobVal,
+                    joined: serverTimestamp(),
+                    email: email,
+                    idVerified: 'pending_upload', // Initial state
+                    isAdmin: false
+                }, { merge: true });
+
+                // C. START WIZARD
+                startOnboarding(email);
+
             } catch (e) {
-                if(e.code === 'auth/user-not-found' || e.code === 'auth/invalid-credential') {
-                     try {
-                        const userCred = await createUserWithEmailAndPassword(auth, email, password);
-                        await setDoc(doc(db, 'artifacts', 'playgroundX_Prod_v1', 'public', 'data', 'users', userCred.user.uid), {
-                            dob: dobVal, joined: serverTimestamp(), email: email, idVerified: 'pending', isAdmin: false
-                        }, { merge: true });
-                        checkUserAndRedirect(userCred.user);
-                     } catch(signupErr) { err.innerText = signupErr.message; }
-                } else { err.innerText = e.message; }
+                err.innerText = e.message;
             }
         }
 
+        // 5. WIZARD LOGIC
+        function startOnboarding(email) {
+            // Hide Login Card, Show Wizard Overlay
+            document.getElementById('login-layer').style.display = 'none';
+            document.getElementById('wizard-overlay').style.display = 'flex';
+            document.getElementById('wiz-email-display').value = email;
+        }
+
+        window.wizardNext = function(currentId, nextId) {
+            document.getElementById(currentId).classList.add('exit');
+            document.getElementById(currentId).classList.remove('active');
+            
+            setTimeout(() => {
+                document.getElementById(nextId).classList.add('active');
+            }, 100);
+        }
+
+        window.triggerEmailSend = async function() {
+            try {
+                await sendEmailVerification(currentUser);
+                alert("Verification link sent! Check your inbox.");
+                wizardNext('step-email', 'step-id');
+            } catch(e) {
+                alert("Error sending email: " + e.message);
+                wizardNext('step-email', 'step-id'); // Skip for now if error
+            }
+        }
+
+        // 6. UPLOAD LOGIC (ID & Selfie)
+        async function uploadFile(file, path) {
+            if(!file) return null;
+            const storageRef = ref(storage, path);
+            await uploadBytes(storageRef, file);
+            return await getDownloadURL(storageRef);
+        }
+
+        window.finishOnboarding = async function() {
+            const idFront = document.getElementById('id-front').files[0];
+            const idBack = document.getElementById('id-back').files[0];
+            const selfie = document.getElementById('selfie-upload').files[0];
+
+            if(!idFront || !selfie) {
+                alert("Please provide at least ID Front and Selfie.");
+                return;
+            }
+
+            // Show simple loading state text on button
+            const btn = document.querySelector('#step-selfie button');
+            btn.innerText = "UPLOADING...";
+
+            try {
+                // Upload Files
+                const frontUrl = await uploadFile(idFront, `verification/${currentUser.uid}/id_front.jpg`);
+                const backUrl = await uploadFile(idBack, `verification/${currentUser.uid}/id_back.jpg`);
+                const selfieUrl = await uploadFile(selfie, `verification/${currentUser.uid}/selfie.jpg`);
+
+                // Update DB Trigger for Admin
+                await setDoc(doc(db, 'artifacts', 'playgroundX_Prod_v1', 'public', 'data', 'users', currentUser.uid), {
+                    idVerified: 'pending', // This triggers Admin Queue
+                    idPhotoUrl: frontUrl,
+                    idBackUrl: backUrl,
+                    selfieUrl: selfieUrl
+                }, { merge: true });
+
+                wizardNext('step-selfie', 'step-success');
+
+            } catch(e) {
+                alert("Upload failed: " + e.message);
+                btn.innerText = "TRY AGAIN";
+            }
+        }
+
+        window.enterAppAsPending = function() {
+            window.location.href = "homepage.html";
+        }
+
+        // 7. REDIRECT CHECK
         async function checkUserAndRedirect(user) {
             const userRef = doc(db, 'artifacts', 'playgroundX_Prod_v1', 'public', 'data', 'users', user.uid);
             const docSnap = await getDoc(userRef);
@@ -419,37 +645,6 @@
             window.location.href = "homepage.html";
         }
 
-
-// TRACK STATE
-window.isSignupMode = false;
-
-window.toggleAuthMode = function() {
-    window.isSignupMode = !window.isSignupMode;
-    
-    const title = document.querySelector('.login-card h2');
-    const desc = document.querySelector('.login-card p');
-    const btn = document.querySelector('.btn-act'); // The submit button
-    const toggleText = document.getElementById('toggle-text');
-
-    if (window.isSignupMode) {
-        // SWITCH TO SIGN UP
-        title.innerText = "Create Account";
-        desc.innerText = "Join the verified lounge.";
-        btn.innerText = "APPLY FOR ACCESS";
-        toggleText.innerText = "Login to existing account";
-        // Optional: Show extra fields here if you ever add them (like Alias)
-    } else {
-        // SWITCH BACK TO LOGIN
-        title.innerText = "Member Login";
-        desc.innerText = "Authenticate to enter the Lounge.";
-        btn.innerText = "SECURE ENTRY";
-        toggleText.innerText = "Create an Account";
-    }
-}
-
-
-        
     </script>
 </body>
 </html>
-
