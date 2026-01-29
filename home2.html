@@ -1320,6 +1320,42 @@
 
 
 
+<div id="speed-lobby" style="display:none; position:fixed; inset:0; background:#111; z-index:9000; flex-direction:column; align-items:center; justify-content:center;">
+    <div class="empty-throb-img" style="font-size:50px; margin-bottom:20px;">⚡</div>
+    <h2 style="color:white; margin-bottom:10px;">Finding a Date...</h2>
+    <p style="color:#888;">Next round starts in:</p>
+    <div id="speed-timer" style="font-size:40px; font-weight:bold; color:var(--accent); margin-bottom:30px;">00:10</div>
+    
+    <div style="display:flex; gap:10px; margin-bottom:30px;">
+        <div class="speed-avatar ready" style="width:40px; height:40px; border-radius:50%; background:#333; border:2px solid var(--accent);"></div>
+        <div class="speed-avatar" style="width:40px; height:40px; border-radius:50%; background:#333; border:2px solid #555;"></div>
+        <div class="speed-avatar" style="width:40px; height:40px; border-radius:50%; background:#333; border:2px solid #555;"></div>
+    </div>
+
+    <button onclick="window.leaveSpeedQueue()" style="background:none; border:1px solid #444; color:#aaa; padding:10px 20px; border-radius:20px;">Leave Queue</button>
+</div>
+
+<div id="speed-ready-alert" style="display:none; position:fixed; top:20%; left:50%; transform:translate(-50%, -50%); background:var(--accent); padding:20px; border-radius:15px; z-index:9100; text-align:center; width:80%; max-width:300px; box-shadow:0 10px 40px rgba(0,0,0,0.5);">
+    <h3 style="color:white; margin:0 0 10px 0;">Match Found!</h3>
+    <button onclick="window.confirmSpeedReady()" style="background:white; color:var(--accent); border:none; padding:12px 24px; border-radius:20px; font-weight:bold; font-size:16px;">I'm Ready!</button>
+</div>
+
+<div id="speed-ui" style="display:none; position:fixed; inset:0; background:black; z-index:9200;">
+    <video id="speed-remote-vid" autoplay loop muted playsinline style="width:100%; height:100%; object-fit:cover;"></video>
+    
+    <div style="position:absolute; top:20px; right:20px; width:100px; height:140px; background:#222; border-radius:10px; overflow:hidden; border:2px solid #333;">
+        <video id="speed-local-vid" autoplay muted playsinline style="width:100%; height:100%; object-fit:cover; transform:scaleX(-1);"></video>
+    </div>
+
+    <div style="position:absolute; top:20px; left:20px; background:rgba(0,0,0,0.5); padding:5px 15px; border-radius:20px; color:white; font-weight:bold; border:1px solid rgba(255,255,255,0.2);">
+        ⏱ <span id="speed-game-timer">03:00</span>
+    </div>
+
+    <div style="position:absolute; bottom:30px; width:100%; display:flex; justify-content:center; gap:20px;">
+        <button onclick="window.handleSpeedPass()" style="width:60px; height:60px; border-radius:50%; background:#FF4444; border:none; font-size:24px;">✕</button>
+        <button onclick="window.handleSpeedWink()" style="width:60px; height:60px; border-radius:50%; background:var(--accent); border:none; font-size:24px;">😉</button>
+    </div>
+</div>
 
 
 
@@ -2269,6 +2305,7 @@ updateConnectionStatus();
 </script>
 </body>
 </html>
+
 
 
 
