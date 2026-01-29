@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Speed Date | Active</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap" rel="stylesheet">
+    
+    <style>
+        :root {
+            --accent: #8B5CF6;
+            --danger: #EF4444;
+            --bg-dark: #000;
+        }
+        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+        
+        body {
+            margin: 0; padding: 0; background: #000; color: white;
+            font-family: 'Inter', sans-serif; overflow: hidden; height: 100vh; width: 100vw;
+        }
+
+        /* --- VIDEO LAYER --- */
+        #stage { position: relative; width: 100%; height: 100%; background: #111; }
+        
+        #remote-video {
+            width: 100%; height: 100%; object-fit: cover;
+        }
+        
+        #local-video-container {
+            position: absolute; top: 80px; right: 20px;
+            width: 100px; height: 140px;
+            background: #000; border-radius: 12px;
+            overflow: hidden; border: 2px solid #333;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.5);
+            z-index: 10; cursor: grab;
+        }
+        #local-video { width: 100%; height: 100%; object-fit: cover; transform: scaleX(-1); }
+
+        /* --- HUD (HEADS UP DISPLAY) --- */
+        .hud-top {
+            position: absolute; top: 0; left: 0; width: 100%;
+            padding: 15px 20px;
+            background: linear-gradient(to bottom, rgba(0,0,0,0.9), transparent);
+            display: flex; justify-content: space-between; align-items: center;
+            z-index: 20;
+        }
+
+        .round-info { font-size: 12px; font-weight: bold; color: #aaa; background: rgba(255,255,255,0.1); padding: 5px 10px; border-radius: 20px; }
+        
+        .timer-main {
+            font-size: 28px; font-weight: 900; color: white;
+            font-variant-numeric: tabular-nums;
+            text-shadow: 0 2px 10px rgba(0,0,0,0.5);
+        }
+        .timer-main.urgent { color: var(--danger); animation: pulse 1s infinite; }
+
+        .top-actions { display: flex; gap: 15px; }
+        .icon-btn {
+            background: rgba(255,255,255,0.1); border: none;
+            width: 40px; height: 40px; border-radius: 50%;
+            color: white; font-size: 20px; cursor: pointer;
+            backdrop-filter: blur(5px); display: flex; align-items: center; justify-content: center;
+        }
+        .icon-btn.game { background: var(--accent); box-shadow: 0 0 15px rgba(139, 92, 246, 0.4); }
+
+        /* --- BOTTOM CONTROLS --- */
+        .hud-bottom {
+            position: absolute; bottom: 0; left: 0; width: 100%;
+            padding: 30px 20px;
+            background: linear-gradient(to top, rgba(0,0,0,0.9), transparent);
+            display: flex; justify-content: space-between; align-items: center;
+            z-index: 20;
+        }
+
+        .action-big {
+            width: 65px; height: 65px; border-radius: 50%; border: none;
+            font-size: 28px; cursor: pointer; display: flex; align-items: center; justify-content: center;
+            transition: transform 0.1s;
+        }
+        .action-big:active { transform: scale(0.9); }
+        
+        .btn-bio { background: rgba(255,255,255,0.2); color: white; backdrop-filter: blur(10px); }
+        .btn-like { background: #E11D48; color: white; box-shadow: 0 5px 20px rgba(225, 29, 72, 0.4); }
+        
+        /* Next Button (Disabled State) */
+        .btn-next {
+            background: #333; color: #666; width: auto; padding: 0 30px; border-radius: 30px;
+            font-size: 16px; font-weight: bold; pointer-events: none;
+        }
+        .btn-next.active {
+            background: white; color: black; pointer-events: auto;
+            box-shadow: 0 0 20px rgba(255,255,255,0.3);
+        }
+
+        /* --- HALF-SHEET PROFILE (PEEK) --- */
+        #profile-sheet {
+            position: absolute; bottom: 0; left: 0; width: 100%; height: 70%;
+            background: #161616; border-radius: 24px 24px 0 0;
+            transform: translateY(110%); transition: transform 0.3s cubic-bezier(0.2, 0.8, 0.2, 1);
+            z-index: 50; padding: 25px; border-top: 1px solid #333;
+        }
+        #profile-sheet.open { transform: translateY(0); }
+
+        .sheet-handle { width: 40px; height: 5px; background: #444; border-radius: 5px; margin: 0 auto 20px auto; }
+        .sheet-header { display: flex; gap: 15px; align-items: center; margin-bottom: 20px; }
+        .sheet-avatar { width: 60px; height: 60px; border-radius: 50%; object-fit: cover; }
+        .sheet-name { font-size: 24px; font-weight: bold; margin: 0; }
+        .sheet-tags { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 20px; }
+        .tag { background: #222; padding: 6px 12px; border-radius: 15px; font-size: 12px; color: #ccc; }
+
+        /* --- GAME OVERLAY --- */
+        #game-overlay {
+            display: none; position: absolute; inset: 0; background: rgba(0,0,0,0.95);
+            z-index: 100; align-items: center; justify-content: center; flex-direction: column;
+        }
+        .game-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; padding: 20px; }
+        .game-card {
+            background: #222; border: 1px solid #333; border-radius: 12px;
+            width: 140px; height: 140px; display: flex; flex-direction: column;
+            align-items: center; justify-content: center; cursor: pointer;
+        }
+        .game-card:hover { border-color: var(--accent); background: #2a2a2a; }
+
+        /* --- INTERMISSION (TRANSITION) --- */
+        #intermission {
+            display: none; position: absolute; inset: 0; background: #000;
+            z-index: 200; align-items: center; justify-content: center;
+            text-align: center;
+        }
+        .inter-text { font-size: 24px; font-weight: bold; color: white; margin-bottom: 10px; }
+        .inter-sub { color: var(--accent); font-size: 18px; }
+
+        @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.5; } 100% { opacity: 1; } }
+    </style>
+</head>
+<body>
+
+<div id="stage">
+    <video id="remote-video" src="https://www.w3schools.com/html/mov_bbb.mp4" autoplay loop muted playsinline></video>
+    
+    <div id="local-video-container">
+        <video id="local-video" autoplay muted playsinline></video>
+    </div>
+
+    <div class="hud-top">
+        <div class="round-info">Date 3 / 20</div>
+        <div class="timer-main" id="round-timer">02:00</div>
+        <div class="top-actions">
+            <button class="icon-btn game" onclick="toggleGames()">🎮</button>
+            <button class="icon-btn" onclick="alert('Reported')">⚠️</button>
+        </div>
+    </div>
+
+    <div class="hud-bottom">
+        <button class="action-big btn-bio" onclick="toggleProfile()">ℹ️</button>
+        
+        <button id="btn-next" class="action-big btn-next" onclick="forceNextDate()">
+            NEXT ▸
+        </button>
+
+        <button class="action-big btn-like" onclick="sendLike()">❤️</button>
+    </div>
+
+    <div id="profile-sheet">
+        <div class="sheet-handle" onclick="toggleProfile()"></div>
+        <div class="sheet-header">
+            <img src="https://i.pravatar.cc/150?img=5" class="sheet-avatar">
+            <div>
+                <h2 class="sheet-name">Sarah, 24</h2>
+                <span style="color:var(--accent); font-size:12px;">Local • 2 miles away</span>
+            </div>
+        </div>
+        <div class="sheet-tags">
+            <span class="tag">☕ Coffee Lover</span>
+            <span class="tag">🧘‍♀️ Yoga</span>
+            <span class="tag">🐕 Dogs</span>
+        </div>
+        <p style="color:#aaa; line-height:1.5;">
+            Hey! I'm Sarah. Just here to meet cool people. I love hiking and spontaneous road trips.
+        </p>
+        <button onclick="toggleProfile()" style="width:100%; padding:15px; background:#333; color:white; border:none; border-radius:12px; font-weight:bold; margin-top:20px;">Close Profile</button>
+    </div>
+
+    <div id="game-overlay">
+        <h2 style="color:white; margin-bottom:20px;">Waiting Room Arcade</h2>
+        <div class="game-grid">
+            <div class="game-card" onclick="playGame('trivia')">
+                <span style="font-size:40px;">🧠</span>
+                <span style="margin-top:10px; font-weight:bold;">Trivia</span>
+            </div>
+            <div class="game-card" onclick="playGame('tic-tac-toe')">
+                <span style="font-size:40px;">❌⭕</span>
+                <span style="margin-top:10px; font-weight:bold;">Tic Tac Toe</span>
+            </div>
+            <div class="game-card" onclick="playGame('flappy')">
+                <span style="font-size:40px;">🐦</span>
+                <span style="margin-top:10px; font-weight:bold;">Fly Bird</span>
+            </div>
+            <div class="game-card" onclick="toggleGames()">
+                <span style="font-size:40px;">↩️</span>
+                <span style="margin-top:10px; font-weight:bold;">Return</span>
+            </div>
+        </div>
+    </div>
+
+    <div id="intermission">
+        <div>
+            <div class="inter-text">Date Ended!</div>
+            <div class="inter-sub">Finding next match...</div>
+            <div style="margin-top:20px; font-size:40px; animation:pulse 0.5s infinite;">⏳</div>
+        </div>
+    </div>
+
+</div>
+
+<script>
+    // --- 1. SETUP CAMERA ---
+    async function startCamera() {
+        try {
+            const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "user" }, audio: true });
+            document.getElementById('local-video').srcObject = stream;
+        } catch (e) {
+            console.error("Cam access denied");
+        }
+    }
+    startCamera();
+
+    // --- 2. TIMER LOGIC ---
+    let timeLeft = 120; // 2 minutes
+    const timerEl = document.getElementById('round-timer');
+    const nextBtn = document.getElementById('btn-next');
+
+    const interval = setInterval(() => {
+        timeLeft--;
+        
+        // Update Text
+        let m = Math.floor(timeLeft / 60);
+        let s = (timeLeft % 60).toString().padStart(2, '0');
+        timerEl.innerText = `0${m}:${s}`;
+
+        // Urgent State
+        if (timeLeft < 10) timerEl.classList.add('urgent');
+
+        // Round End
+        if (timeLeft <= 0) {
+            clearInterval(interval);
+            timerEl.innerText = "00:00";
+            enableNextButton();
+        }
+    }, 1000);
+
+    // --- 3. UI INTERACTIONS ---
+    function enableNextButton() {
+        nextBtn.classList.add('active');
+        nextBtn.innerText = "NEXT MATCH ▸";
+    }
+
+    window.forceNextDate = function() {
+        const inter = document.getElementById('intermission');
+        inter.style.display = 'flex';
+        
+        // Simulating loading next match
+        setTimeout(() => {
+            window.location.reload(); // Reloads page to restart timer (Simulated Round Robin)
+        }, 3000);
+    }
+
+    window.toggleProfile = function() {
+        const sheet = document.getElementById('profile-sheet');
+        sheet.classList.toggle('open');
+    }
+
+    window.toggleGames = function() {
+        const overlay = document.getElementById('game-overlay');
+        overlay.style.display = (overlay.style.display === 'flex') ? 'none' : 'flex';
+    }
+
+    window.sendLike = function() {
+        // Animation feedback would go here
+        alert("Liked! ❤️");
+    }
+
+    window.playGame = function(game) {
+        alert("Launching " + game + "... (Game Module WIP)");
+    }
+
+    // --- 4. PIP DRAG LOGIC (Simple) ---
+    const pip = document.getElementById('local-video-container');
+    let isDragging = false;
+
+    pip.addEventListener('mousedown', () => isDragging = true);
+    pip.addEventListener('mouseup', () => isDragging = false);
+    pip.addEventListener('mousemove', (e) => {
+        if (isDragging) {
+            pip.style.top = (e.clientY - 70) + 'px';
+            pip.style.left = (e.clientX - 50) + 'px';
+        }
+    });
+
+</script>
+</body>
+</html>
