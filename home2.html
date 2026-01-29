@@ -596,11 +596,7 @@
 
 
 
-
-
-
-
-/* --- NEW SPEED LOUNGE STYLES (SIDEBAR LAYOUT) --- */
+/* --- FORCED SIDEBAR LAYOUT --- */
 #speed-lounge {
     display: none;
     position: fixed; top: 0; left: 0; width: 100%; height: 100%;
@@ -608,119 +604,97 @@
     font-family: 'Inter', sans-serif;
 }
 
-/* THE LAYOUT CONTAINER */
+/* 1. FORCE SIDE-BY-SIDE LAYOUT */
 .lounge-layout {
-    display: flex; 
+    display: flex !important; 
+    flex-direction: row !important; /* Forces Left/Right split */
     width: 100%; 
     height: 100%;
-    flex-direction: row; /* Forces Side-by-Side */
+    overflow: hidden; /* Prevents double scrollbars */
 }
 
-/* ZONE 1: THE ROSTER RAIL (LEFT 20%) */
+/* 2. THE LEFT RAIL (20%) */
 .lounge-sidebar {
-    width: 20%;             /* The requested 20% */
-    min-width: 280px;       /* Safety: Don't get too skinny on small laptops */
-    max-width: 350px;       /* Safety: Don't get too fat on huge screens */
+    width: 250px !important; /* Fixed width for desktop */
+    min-width: 20%;
+    height: 100% !important; /* Full vertical height */
     background: #161616; 
     border-right: 1px solid #333;
-    display: flex; 
-    flex-direction: column; 
+    display: flex; flex-direction: column; 
     padding: 20px;
-    height: 100%;           /* Full Vertical Height */
-    z-index: 2;
-    box-shadow: 5px 0 20px rgba(0,0,0,0.5); /* Shadow to lift it off the map */
+    z-index: 10;
+    box-shadow: 5px 0 20px rgba(0,0,0,0.5);
 }
 
 .lounge-header {
     font-size: 12px; font-weight: bold; color: #666; letter-spacing: 1px;
-    margin-bottom: 20px; text-transform: uppercase;
-    display: flex; justify-content: space-between; align-items: center;
+    margin-bottom: 20px; display: flex; justify-content: space-between;
     border-bottom: 1px solid #222; padding-bottom: 10px;
 }
 
-/* Filter Toggles */
-.filter-group {
-    background: #000; border-radius: 8px; padding: 4px; display: flex; 
-    margin-bottom: 15px; border: 1px solid #333;
-}
-.filter-opt {
-    flex: 1; text-align: center; padding: 8px 0; font-size: 11px; font-weight: bold;
-    color: #666; cursor: pointer; border-radius: 6px; transition: 0.2s;
-}
-.filter-opt.active { background: #333; color: white; }
-
-/* The Live Queue List - Now expands to fill vertical space */
+/* Queue List - Vertical Scrolling */
 .queue-list {
-    flex: 1;                /* Grow to fill all available height */
-    overflow-y: auto;       /* Scroll vertically if list is long */
-    overflow-x: hidden;
-    display: flex; flex-direction: column; gap: 10px;
-    margin-bottom: 20px;
+    flex: 1; /* Takes all available vertical space */
+    overflow-y: auto; 
+    display: flex; flex-direction: column; gap: 8px;
+    padding-right: 5px; /* Space for scrollbar */
+}
+/* Custom Scrollbar */
+.queue-list::-webkit-scrollbar { width: 4px; }
+.queue-list::-webkit-scrollbar-thumb { background: #333; border-radius: 4px; }
+
+/* 3. THE MAIN STAGE (80%) */
+.lounge-main {
+    flex: 1 !important; /* Takes remaining space */
+    position: relative; 
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center; 
+    background: radial-gradient(circle at center, #1a1a1a 0%, #000 80%);
 }
 
-/* User Chips */
+/* Styles for Chips & Timer */
 .user-chip {
     display: flex; align-items: center; gap: 10px;
-    background: #1E1E1E; padding: 10px; border-radius: 12px;
+    background: #1E1E1E; padding: 8px; border-radius: 8px;
     border: 1px solid #333; animation: slideInLeft 0.3s ease-out forwards;
 }
 @keyframes slideInLeft { from { transform: translateX(-20px); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
 
-.chip-img { width: 36px; height: 36px; border-radius: 50%; object-fit: cover; border: 1px solid #555; }
+.chip-img { width: 32px; height: 32px; border-radius: 50%; object-fit: cover; }
 .chip-info { display: flex; flex-direction: column; }
-.chip-name { font-size: 14px; color: white; font-weight: 600; }
-.chip-status { font-size: 11px; color: var(--accent); }
+.chip-name { font-size: 13px; color: white; font-weight: 600; }
+.chip-status { font-size: 10px; color: var(--accent); }
 
-/* ZONE 2: THE MAIN STAGE (RIGHT 80%) */
-.lounge-main {
-    flex: 1;                /* Takes all remaining width */
-    position: relative; 
-    display: flex; 
-    flex-direction: column;
-    align-items: center; 
-    justify-content: center; 
-    overflow: hidden;
-    background: radial-gradient(circle at center, #1a1a1a 0%, #000 70%);
-}
+.filter-group { background: #000; border-radius: 8px; padding: 3px; display: flex; margin-bottom: 10px; border: 1px solid #333; }
+.filter-opt { flex: 1; text-align: center; padding: 6px 0; font-size: 10px; font-weight: bold; color: #666; cursor: pointer; border-radius: 6px; }
+.filter-opt.active { background: #333; color: white; }
 
-/* Join Button - Anchored at bottom of sidebar */
 .join-btn-large {
-    width: 100%; padding: 16px; border-radius: 12px;
+    width: 100%; padding: 15px; border-radius: 10px;
     background: var(--accent); color: white; font-weight: 800; font-size: 14px;
-    border: none; cursor: pointer; transition: 0.2s;
-    box-shadow: 0 4px 15px rgba(139, 92, 246, 0.3);
+    border: none; cursor: pointer; box-shadow: 0 4px 15px rgba(139, 92, 246, 0.3);
 }
-.join-btn-large:active { transform: scale(0.98); }
 
-/* Radar & Timer */
 .radar-bg {
-    position: absolute; width: 60vw; height: 60vw; max-width: 600px; max-height: 600px;
-    border: 1px solid rgba(139, 92, 246, 0.1); border-radius: 50%; z-index: 1;
+    position: absolute; width: 500px; height: 500px;
+    border: 1px solid rgba(139, 92, 246, 0.1); border-radius: 50%;
 }
 .radar-bg::after {
     content: ''; position: absolute; inset: 0; border-radius: 50%;
     background: conic-gradient(transparent 0deg, rgba(139, 92, 246, 0.1) 60deg, transparent 61deg);
     animation: radarSpin 4s linear infinite;
 }
-@keyframes radarSpin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+.huge-timer { font-size: 100px; font-weight: 900; color: white; line-height: 1; text-shadow: 0 0 40px rgba(139, 92, 246, 0.5); font-variant-numeric: tabular-nums; }
+.timer-label { color: #888; font-size: 14px; letter-spacing: 2px; margin-bottom: 20px; font-weight:bold; }
+.timer-sub { color: var(--accent); font-weight: bold; margin-top: 15px; letter-spacing: 1px; }
 
-.timer-box { z-index: 10; text-align: center; }
-.timer-label { font-size: 14px; color: #888; margin-bottom: 20px; letter-spacing: 3px; font-weight:bold; }
-.huge-timer { font-size: 120px; font-weight: 900; color: white; font-variant-numeric: tabular-nums; line-height: 1; text-shadow: 0 0 50px rgba(139, 92, 246, 0.4); }
-.timer-sub { font-size: 16px; color: var(--accent); margin-top: 20px; font-weight: bold; letter-spacing: 1px;}
-
-/* MOBILE OVERRIDE: Stack them on small screens */
+/* MOBILE RESPONSIVE FIX */
 @media (max-width: 768px) {
-    .lounge-layout { flex-direction: column-reverse; }
-    .lounge-sidebar { 
-        width: 100%; 
-        max-width: none;
-        height: 60%; /* Sidebar takes bottom half on mobile */
-        border-right: none; border-top: 1px solid #333; 
-    }
-    .lounge-main { height: 40%; }
+    .lounge-layout { flex-direction: column-reverse !important; }
+    .lounge-sidebar { width: 100% !important; height: 60% !important; border-top: 1px solid #333; }
+    .lounge-main { height: 40% !important; }
     .huge-timer { font-size: 60px; }
-    .radar-bg { width: 80vw; height: 80vw; }
+    .radar-bg { width: 300px; height: 300px; }
 }
 
 
@@ -733,7 +707,7 @@
 
 
 
-
+        
         
 
         
@@ -2461,6 +2435,7 @@ updateConnectionStatus();
 </script>
 </body>
 </html>
+
 
 
 
