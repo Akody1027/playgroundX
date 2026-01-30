@@ -17,7 +17,6 @@
             --text-white: #FFFFFF;
             --text-gray: #A1A1AA;
             --border: rgba(255,255,255,0.08);
-            --success: #8B5CF6; /* Purple Checkmarks */
         }
 
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
@@ -85,53 +84,6 @@
         }
         .btn-glow:hover { transform: translateY(-2px); box-shadow: 0 0 50px rgba(255, 255, 255, 0.3); }
 
-        /* SECTIONS */
-        .section { padding: 120px 20px; border-top: 1px solid var(--border); }
-        .container { max-width: 900px; margin: 0 auto; }
-        
-        .sec-header { margin-bottom: 80px; text-align: center; max-width: 700px; margin-left: auto; margin-right: auto; }
-        .sec-title { font-size: 36px; font-weight: 700; margin-bottom: 20px; color: white; }
-        .sec-sub { font-size: 16px; color: var(--text-gray); line-height: 1.7; }
-
-        /* FEATURE STACK (Centered Layout) */
-        .feature-block {
-            margin-bottom: 100px; text-align: center;
-            padding: 40px; border: 1px solid var(--border); border-radius: 24px;
-            background: linear-gradient(180deg, rgba(255,255,255,0.02) 0%, transparent 100%);
-        }
-        .feat-icon-large {
-            width: 80px; height: 80px; background: rgba(139, 92, 246, 0.1);
-            border-radius: 20px; display: flex; align-items: center; justify-content: center;
-            margin: 0 auto 30px auto; color: var(--primary);
-        }
-        .feat-title { font-size: 32px; font-weight: 700; margin-bottom: 20px; }
-        .feat-desc { font-size: 18px; color: var(--text-gray); line-height: 1.6; max-width: 600px; margin: 0 auto 40px auto; }
-        
-        .check-grid {
-            display: flex; gap: 20px; justify-content: center; flex-wrap: wrap;
-        }
-        .check-item {
-            display: flex; align-items: center; gap: 10px;
-            background: rgba(0,0,0,0.5); padding: 10px 20px; border-radius: 50px; border: 1px solid #333;
-        }
-        .check-icon { color: var(--primary); font-weight: bold; }
-
-        /* COMPLIANCE GRID */
-        .compliance-grid {
-            display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 20px;
-        }
-        .comp-card {
-            background: var(--bg-card); border: 1px solid var(--border); padding: 30px; border-radius: 12px;
-        }
-        .comp-tag { font-size: 12px; font-weight: 800; color: #666; margin-bottom: 15px; letter-spacing: 1px; }
-        .comp-head { font-size: 18px; font-weight: 700; color: white; margin-bottom: 10px; }
-        .comp-desc { font-size: 13px; color: #888; line-height: 1.6; }
-
-        /* FOOTER */
-        footer { padding: 80px 20px; text-align: center; border-top: 1px solid var(--border); font-size: 13px; color: #444; }
-        .footer-links { display: flex; justify-content: center; gap: 30px; margin-top: 30px; }
-        .footer-links a { color: #666; text-decoration: none; }
-
         /* --- LOGIN OVERLAY --- */
         #login-layer {
             position: fixed; inset: 0; z-index: 10;
@@ -148,7 +100,6 @@
         }
         .login-visible .login-card { opacity: 1; transform: scale(1); }
 
-        /* INPUTS WITH ICONS */
         .input-wrapper { position: relative; margin-bottom: 15px; }
         .input-icon {
             position: absolute; left: 15px; top: 50%; transform: translateY(-50%);
@@ -161,33 +112,17 @@
         }
         .inp:focus { border-color: var(--primary); background: #161616; }
         
-        /* ACTION BUTTONS */
-        .action-row {
-            display: flex; gap: 15px; margin-top: 20px;
-        }
-        
         .btn-act {
             width: 100%; padding: 15px; border-radius: 8px; font-weight: 700; cursor: pointer; border: none; font-size: 15px;
         }
 
-        /* BIOMETRIC BUTTON */
-        .bio-btn {
-            background: rgba(139, 92, 246, 0.1); border: 1px solid var(--primary);
-            width: 50px; height: 50px; border-radius: 12px;
-            display: flex; align-items: center; justify-content: center;
-            cursor: pointer; transition: 0.2s; color: var(--primary);
-            flex-shrink: 0;
-        }
-        .bio-btn:active { transform: scale(0.95); background: rgba(139, 92, 246, 0.3); }
-
-        /* GOOGLE BTN (Bottom) */
-        .google-btn-bottom {
+        .google-btn {
             background: transparent; border: 1px solid #333; color: #ccc;
             width: 100%; padding: 12px; border-radius: 8px; font-weight: 600; font-size: 13px;
             display: flex; align-items: center; justify-content: center; gap: 10px; cursor: pointer;
             margin-top: 20px; transition: 0.2s;
         }
-        .google-btn-bottom:hover { border-color: #666; color: white; }
+        .google-btn:hover { border-color: #666; color: white; }
 
         .back-nav {
             position: absolute; top: 30px; left: 30px; color: #888; cursor: pointer;
@@ -195,27 +130,16 @@
         }
         .back-nav:hover { color: white; }
 
-        /* TOGGLE LINK */
-        .auth-toggle {
-            margin-top: 20px; text-align: center; font-size: 13px; color: #666; cursor: pointer;
-        }
-        .auth-toggle span {
-            color: var(--primary); font-weight: bold; text-decoration: none;
-        }
-        .auth-toggle:hover span { text-decoration: underline; }
+        .auth-toggle { margin-top: 20px; text-align: center; font-size: 13px; color: #666; cursor: pointer; }
+        .auth-toggle span { color: var(--primary); font-weight: bold; }
 
         /* --- WIZARD STYLES --- */
         #wizard-overlay {
             position: fixed; inset: 0; z-index: 2000;
-            background: #050505;
-            display: none; /* Hidden by default */
+            background: #050505; display: none;
             align-items: center; justify-content: center;
         }
-        .wizard-container {
-            width: 100%; max-width: 500px; height: 600px;
-            position: relative; overflow: hidden;
-            display: flex; align-items: center; justify-content: center;
-        }
+        .wizard-container { width: 100%; max-width: 500px; height: 600px; position: relative; overflow: hidden; }
         .w-step {
             position: absolute; inset: 0; padding: 30px;
             display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center;
@@ -224,87 +148,44 @@
         }
         .w-step.active { opacity: 1; transform: translateX(0); pointer-events: all; }
         .w-step.exit { opacity: 0; transform: translateX(-100%); }
-
-        .w-icon { font-size: 50px; margin-bottom: 20px; display: block; }
-        .w-title { font-size: 24px; font-weight: 800; margin-bottom: 10px; color: white; }
-        .w-desc { color: #888; font-size: 14px; line-height: 1.6; margin-bottom: 30px; max-width: 350px; }
-        
-        .file-drop {
-            width: 100%; border: 2px dashed #333; border-radius: 12px; padding: 20px;
-            margin-bottom: 15px; color: #666; font-size: 13px; cursor: pointer; transition: 0.2s;
-        }
-        .file-drop:hover { border-color: var(--primary); color: white; }
-        
-        .avatar-guide {
-            width: 100px; height: 100px; background: #222; border-radius: 50%;
-            display: flex; align-items: center; justify-content: center; font-size: 40px;
-            margin-bottom: 20px; border: 2px solid var(--primary);
-        }
-
-        .btn-wizard {
-            background: var(--primary); color: white; border: none; padding: 15px 40px;
-            border-radius: 50px; font-weight: bold; font-size: 15px; cursor: pointer;
-            margin-top: 20px; width: 100%; max-width: 200px;
-        }
-
+        .w-icon { font-size: 50px; margin-bottom: 20px; }
+        .w-title { font-size: 24px; font-weight: 800; color: white; margin-bottom: 10px; }
+        .w-desc { color: #888; font-size: 14px; line-height: 1.6; margin-bottom: 30px; }
+        .file-drop { width: 100%; border: 2px dashed #333; border-radius: 12px; padding: 15px; margin-bottom: 10px; color: #666; cursor: pointer; }
+        .btn-wizard { background: var(--primary); color: white; border: none; padding: 15px 40px; border-radius: 50px; font-weight: bold; cursor: pointer; margin-top: 20px; }
     </style>
 </head>
 <body>
 
     <div id="wizard-overlay">
         <div class="wizard-container">
-            
             <div id="step-safety" class="w-step active">
                 <div class="w-icon">🛡️</div>
                 <div class="w-title">The Safety Oath</div>
-                <div class="w-desc">
-                    We are building a fortress, not a playground. By proceeding, you agree to our zero-tolerance policy against bots, solicitation, and harassment.
-                </div>
-                <button class="btn-wizard" onclick="wizardNext('step-safety', 'step-email')">I AGREE</button>
+                <div class="w-desc">Zero-tolerance for solicitation or harassment. Proceed to build our fortress.</div>
+                <button class="btn-wizard" onclick="wizardNext('step-safety', 'step-id')">I AGREE</button>
             </div>
-
-            <div id="step-email" class="w-step">
-                <div class="w-icon">✉️</div>
-                <div class="w-title">Verify Email</div>
-                <div class="w-desc">We will send a confirmation link to verify you own this address.</div>
-                <input type="text" id="wiz-email-display" class="inp" disabled style="text-align:center; color:var(--primary); font-weight:bold;">
-                <button class="btn-wizard" onclick="triggerEmailSend()">SEND LINK</button>
-            </div>
-
             <div id="step-id" class="w-step">
                 <div class="w-icon">🪪</div>
                 <div class="w-title">Identity Check</div>
-                <div class="w-desc">Upload a government-issued ID. Data is deleted immediately after the BIPA handshake.</div>
-                
-                <input type="file" id="id-front" class="file-drop" accept="image/*" aria-label="Upload Front of ID">
-                <div style="font-size:11px; color:#555; margin-bottom:10px;">Front of ID</div>
-                
-                <input type="file" id="id-back" class="file-drop" accept="image/*" aria-label="Upload Back of ID">
-                <div style="font-size:11px; color:#555;">Back of ID</div>
-
+                <div class="w-desc">Upload front and back of your ID. Deleted after verification.</div>
+                <input type="file" id="id-front" class="file-drop" accept="image/*">
+                <input type="file" id="id-back" class="file-drop" accept="image/*">
                 <button class="btn-wizard" onclick="wizardNext('step-id', 'step-selfie')">CONTINUE</button>
             </div>
-
             <div id="step-selfie" class="w-step">
-                <div class="avatar-guide">✌️</div>
-                <div class="w-title">The "Peace" Check</div>
-                <div class="w-desc">To prove you are human, take a selfie holding up a Peace Sign (Two Fingers) just like the icon above.</div>
-                
+                <div class="w-icon">✌️</div>
+                <div class="w-title">Liveness Check</div>
+                <div class="w-desc">Take a selfie holding a Peace Sign.</div>
                 <input type="file" id="selfie-upload" class="file-drop" accept="image/*" capture="user">
-                
-                <button class="btn-wizard" onclick="finishOnboarding()">SUBMIT VERIFICATION</button>
+                <button class="btn-wizard" onclick="finishOnboarding()">SUBMIT</button>
             </div>
-
             <div id="step-success" class="w-step">
-                <div class="w-icon" style="color:var(--primary);">🎉</div>
-                <div class="w-title">You're In.</div>
-                <div class="w-desc">
-                    Your verification is now pending in the Admin Queue.<br><br>
-                    You can enter the Lounge with <strong>Limited Access</strong> (Map View Only) until fully approved.
-                </div>
-                <button class="btn-wizard" onclick="enterAppAsPending()">ENTER LOUNGE</button>
+                <div class="w-icon">🎉</div>
+                <div class="w-title">Verified.</div>
+                <div class="w-desc">Your profile is in the queue. Limited access granted immediately.</div>
+                <button class="btn-wizard" onclick="enterApp()">ENTER LOUNGE</button>
             </div>
-
         </div>
     </div>
 
@@ -313,149 +194,40 @@
             <div class="brand">playground<span>X</span></div>
             <button class="nav-btn" onclick="revealLogin()">MEMBER ACCESS</button>
         </nav>
-
         <header class="hero">
             <div class="tagline">The Digital Speakeasy</div>
             <h1>The Adult Playground<br>for Real Connection.</h1>
-            <p>We dismantled the swipe-based dating model. No gamification. No ghosting. Just a hyper-local, verified lounge for adults who value chemistry over algorithms.</p>
+            <p>High-fidelity, verified video dating for adults who value chemistry.</p>
             <button class="btn-glow" onclick="revealLogin()">Apply for Access</button>
         </header>
-
-        <section class="section">
-            <div class="container">
-                <div class="sec-header">
-                    <div style="color:var(--primary); font-weight:bold; margin-bottom:10px;">THE ARCHITECTURE</div>
-                    <div class="sec-title">Engineered for Serendipity.</div>
-                    <div class="sec-sub">We rebuilt the dating experience from the ground up to mimic how you actually meet people at a high-end bar or lounge.</div>
-                </div>
-
-                <div class="feature-block">
-                    <div class="feat-icon-large">
-                        <svg width="40" height="40" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"></path></svg>
-                    </div>
-                    <div class="feat-title">The Speed Lounge</div>
-                    <div class="feat-desc">Step into the virtual room. You are paired instantly via high-fidelity video. The clock is set to 5 minutes. If the spark is real, you unlock the connection. If not, the room rotates.</div>
-                    <div class="check-grid">
-                        <div class="check-item"><span class="check-icon">✓</span> Video First</div>
-                        <div class="check-item"><span class="check-icon">✓</span> No Ghosting</div>
-                        <div class="check-item"><span class="check-icon">✓</span> Round Robin</div>
-                    </div>
-                </div>
-
-                <div class="feature-block">
-                    <div class="feat-icon-large">
-                        <svg width="40" height="40" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path><path d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
-                    </div>
-                    <div class="feat-title">Hyper-Local Presence</div>
-                    <div class="feat-desc">See who is actually in the Playground near you right now. Our privacy-first map shows general vicinity, not exact coordinates, creating a sense of local community without compromising safety.</div>
-                    <div class="check-grid">
-                        <div class="check-item"><span class="check-icon">✓</span> Real-Time Radar</div>
-                        <div class="check-item"><span class="check-icon">✓</span> Privacy Blur</div>
-                        <div class="check-item"><span class="check-icon">✓</span> 10 Mile Radius</div>
-                    </div>
-                </div>
-
-                <div class="feature-block">
-                    <div class="feat-icon-large">
-                        <svg width="40" height="40" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-                    </div>
-                    <div class="feat-title">Identity & Reputation</div>
-                    <div class="feat-desc">In a world of deepfakes and bots, authenticity is the ultimate luxury. Our profiles are sparse on text but heavy on verification. Your "Blue Check" isn't bought; it's earned.</div>
-                    <div class="check-grid">
-                        <div class="check-item"><span class="check-icon">✓</span> Biometric Liveness</div>
-                        <div class="check-item"><span class="check-icon">✓</span> Reputation Score</div>
-                        <div class="check-item"><span class="check-icon">✓</span> SMS Auth</div>
-                    </div>
-                </div>
-
-            </div>
-        </section>
-
-        <section class="section" style="background:#080808;">
-            <div class="container">
-                <div class="sec-header">
-                    <div style="color:var(--primary); font-weight:bold; margin-bottom:10px;">REGULATORY COMPLIANCE</div>
-                    <div class="sec-title">The Fort Knox of Social Data.</div>
-                    <div class="sec-sub">We don't just follow the law; we exceed it. Our business model is premium access, never data sales.</div>
-                </div>
-
-                <div class="compliance-grid">
-                    <div class="comp-card">
-                        <div class="comp-tag">DATA PRIVACY</div>
-                        <div class="comp-head">GDPR & CCPA</div>
-                        <div class="comp-desc">Full compliance with European and Californian privacy laws. You own your data. Download or delete it at any time with one click.</div>
-                    </div>
-                    <div class="comp-card">
-                        <div class="comp-tag">BIOMETRICS</div>
-                        <div class="comp-head">BIPA Compliant</div>
-                        <div class="comp-desc">Facial geometry scans used for ID verification are permanently destroyed immediately after the verification handshake is complete.</div>
-                    </div>
-                    <div class="comp-card">
-                        <div class="comp-tag">ANTI-TRAFFICKING</div>
-                        <div class="comp-head">FOSTA-SESTA</div>
-                        <div class="comp-desc">Zero-tolerance policy for solicitation. We utilize AI text scanning and community reporting to enforce strict safety standards.</div>
-                    </div>
-                    <div class="comp-card">
-                        <div class="comp-tag">SECURITY</div>
-                        <div class="comp-head">AES-256 Encryption</div>
-                        <div class="comp-desc">All video streams are Peer-to-Peer (DTLS-SRTP). We cannot record or view your video dates even if we wanted to.</div>
-                    </div>
-                </div>
-            </div>
-        </section>
-
-        <footer>
-            <div style="font-size:24px; font-weight:800; margin-bottom:10px; color:white;">playground<span style="color:var(--primary)">X</span></div>
-            <p>The Adult Social Protocol. 2026.</p>
-            <div class="footer-links">
-                <a href="#">Privacy Policy</a>
-                <a href="#">Terms of Service</a>
-                <a href="#">Safety Guidelines</a>
-            </div>
-            <p style="margin-top:40px; color:#333;">Restricted to adults 18+. Verification required for full access.</p>
-        </footer>
     </div>
 
     <div id="login-layer">
         <div class="login-backdrop"></div>
-        
-        <div class="back-nav" onclick="showLanding()">
-            <span>←</span> Return to Homepage
-        </div>
-
+        <div class="back-nav" onclick="showLanding()">← Return</div>
         <div class="login-card">
-            <h2 style="color:white; margin:0 0 10px 0; text-align:center;">Member Login</h2>
-            <p style="color:#666; text-align:center; font-size:14px; margin-bottom:30px;">Authenticate to enter the Playground.</p>
-
+            <h2 id="auth-title" style="text-align:center;">Member Login</h2>
+            <p id="auth-desc" style="text-align:center; color:#666; font-size:14px; margin-bottom:30px;">Authenticate to enter the Lounge.</p>
+            
             <div class="input-wrapper">
                 <svg class="input-icon" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path></svg>
                 <input type="email" id="email" class="inp" placeholder="Email Address">
             </div>
-
             <div class="input-wrapper">
                 <svg class="input-icon" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0110 0v4"></path></svg>
                 <input type="password" id="password" class="inp" placeholder="Password">
             </div>
+            <input type="date" id="dob" class="inp" style="color-scheme:dark;">
+
+            <button id="submit-btn" class="btn-act" onclick="handleAuthAction()" style="background:var(--primary); color:white; margin-top:15px;">SECURE ENTRY</button>
             
-            <input type="date" id="dob" class="inp" style="color-scheme:dark; padding-left:15px;">
-
-            <div class="action-row">
-                <button id="submit-btn" class="btn-act" onclick="handleAuthAction()" style="background:var(--primary); color:white; flex:1;">SECURE ENTRY</button>
-                
-                <div class="bio-btn" onclick="triggerBiometric()" title="Scan Fingerprint">
-                    <svg width="24" height="24" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path d="M12 11a4 4 0 10-4-4m-3.464 7a8.996 8.996 0 016.928-4M7.05 16.95a5.996 5.996 0 018.9 0M5.636 19.364a8.996 8.996 0 0111.728 0"></path><path stroke-linecap="round" stroke-linejoin="round" d="M12 21v-2"></path></svg>
-                </div>
-            </div>
-
-            <div id="error-txt" style="color:#EF4444; font-size:12px; margin-top:15px; text-align:center;"></div>
-
             <div style="display:flex; align-items:center; gap:10px; margin:25px 0 10px 0;">
                 <div style="flex:1; height:1px; background:#222;"></div>
-                <div style="font-size:11px; color:#444; font-weight:bold;">OR</div>
+                <div style="font-size:11px; color:#444;">OR</div>
                 <div style="flex:1; height:1px; background:#222;"></div>
             </div>
 
-            <button class="google-btn-bottom" onclick="handleGoogleLogin()">
+            <button class="google-btn" onclick="handleGoogleLogin()">
                 <svg width="18" height="18" viewBox="0 0 24 24"><path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/><path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/><path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/><path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/></svg>
                 <span id="google-text">Sign in with Google</span>
             </button>
@@ -463,24 +235,24 @@
             <div class="auth-toggle" onclick="toggleAuthMode()">
                 New here? <span id="toggle-text">Create an Account</span>
             </div>
+            <div id="error-txt" style="color:#EF4444; font-size:12px; margin-top:15px; text-align:center;"></div>
         </div>
     </div>
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-        import { getAuth, signInWithPopup, GoogleAuthProvider, signInWithEmailAndPassword, createUserWithEmailAndPassword, sendEmailVerification, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+        import { getAuth, signInWithPopup, GoogleAuthProvider, signInWithEmailAndPassword, createUserWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
         import { getFirestore, doc, getDoc, setDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
         import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-storage.js";
 
         const firebaseConfig = {
-            apiKey: "AIzaSyDFmhk3ybnsVsFenCE3xvdmy5y_4u9ss7o", 
+            apiKey: "AIzaSyDFmhk3ybnsVsFenCE3xvdmy5y_4u9ss7o",
             authDomain: "playgroundx-ca021.firebaseapp.com",
             projectId: "playgroundx-ca021",
             storageBucket: "playgroundx-ca021.firebasestorage.app",
             messagingSenderId: "427340828971",
-            appId: "1:427340828971:web:1d9e2dc22ecd69593eb56e",
-            measurementId: "G-NEV8FYG0WK"
-        }; 
+            appId: "1:427340828971:web:1d9e2dc22ecd69593eb56e"
+        };
 
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
@@ -488,234 +260,90 @@
         const storage = getStorage(app);
         const provider = new GoogleAuthProvider();
 
-        // UI TRIGGERS
-        window.revealLogin = function() {
-            document.getElementById('landing-module').classList.add('slide-up');
-            document.getElementById('login-layer').classList.add('login-visible');
-        }
-
-        window.showLanding = function() {
-            document.getElementById('landing-module').classList.remove('slide-up');
-            document.getElementById('login-layer').classList.remove('login-visible');
-        }
-
-        // --- AUTH & ONBOARDING LOGIC ---
-
-        // 1. STATE TRACKING
         window.isSignupMode = false;
         let currentUser = null;
 
-        // 2. TOGGLE AUTH MODE (UPDATED)
-        window.toggleAuthMode = function() {
+        window.revealLogin = () => {
+            document.getElementById('landing-module').classList.add('slide-up');
+            document.getElementById('login-layer').classList.add('login-visible');
+        };
+
+        window.showLanding = () => {
+            document.getElementById('landing-module').classList.remove('slide-up');
+            document.getElementById('login-layer').classList.remove('login-visible');
+        };
+
+        window.toggleAuthMode = () => {
             window.isSignupMode = !window.isSignupMode;
-            
-            const title = document.querySelector('.login-card h2');
-            const desc = document.querySelector('.login-card p');
-            const submitBtn = document.getElementById('submit-btn');
-            const toggleText = document.getElementById('toggle-text');
-            const googleText = document.getElementById('google-text');
+            document.getElementById('auth-title').innerText = window.isSignupMode ? "Create Account" : "Member Login";
+            document.getElementById('submit-btn').innerText = window.isSignupMode ? "APPLY FOR ACCESS" : "SECURE ENTRY";
+            document.getElementById('google-text').innerText = window.isSignupMode ? "Sign up with Google" : "Sign in with Google";
+            document.getElementById('toggle-text').innerText = window.isSignupMode ? "Login to existing account" : "Create an Account";
+        };
 
-            if (window.isSignupMode) {
-                // SWITCH TO SIGN UP
-                title.innerText = "Create Account";
-                desc.innerText = "Join the verified lounge.";
-                submitBtn.innerText = "APPLY FOR ACCESS";
-                toggleText.innerText = "Login to existing account";
-                googleText.innerText = "Sign up with Google";
-            } else {
-                // SWITCH BACK TO LOGIN
-                title.innerText = "Member Login";
-                desc.innerText = "Authenticate to enter the Lounge.";
-                submitBtn.innerText = "SECURE ENTRY";
-                toggleText.innerText = "Create an Account";
-                googleText.innerText = "Sign in with Google";
-            }
-        }
-
-        // 3. MASTER ROUTER
-        window.handleAuthAction = function() {
-            if(window.isSignupMode) {
-                handleSignUpSequence();
-            } else {
-                handleEmailLogin();
-            }
-        }
-
-        // 4. BIOMETRIC TRIGGER (NEW)
-        window.triggerBiometric = async function() {
-            if (!window.PublicKeyCredential) {
-                alert("Biometrics not supported on this device/browser.");
-                return;
-            }
-
-            try {
-                // Triggers FaceID/TouchID prompt (WebAuthn)
-                const challenge = new Uint8Array(32);
-                window.crypto.getRandomValues(challenge);
-
-                await navigator.credentials.get({
-                    publicKey: {
-                        challenge: challenge,
-                        timeout: 60000,
-                        rpId: window.location.hostname,
-                        userVerification: "required", 
-                    }
-                });
-                
-                alert("Biometric Scan Verified! Logging in...");
-                handleEmailLogin(); // Simulate Login
-
-            } catch (e) {
-                console.log(e);
-                alert("Scanner activated. (Passkey linking required for full login).");
-            }
-        }
-
-        // 5. LOGIN FLOW
-        window.handleEmailLogin = async function() {
+        window.handleAuthAction = async () => {
             const email = document.getElementById('email').value;
             const password = document.getElementById('password').value;
-            const err = document.getElementById('error-txt');
-
-            if(!email || !password) { err.innerText = "Credentials missing."; return; }
-
-            try {
-                const res = await signInWithEmailAndPassword(auth, email, password);
-                checkUserAndRedirect(res.user);
-            } catch (e) {
-                err.innerText = e.message;
-            }
-        }
-
-        window.handleGoogleLogin = async function() {
-            try {
-                const result = await signInWithPopup(auth, provider);
-                checkUserAndRedirect(result.user);
-            } catch (error) {
-                document.getElementById('error-txt').innerText = error.message;
-            }
-        }
-
-        // 6. SIGN UP SEQUENCE
-        async function handleSignUpSequence() {
-            const email = document.getElementById('email').value;
-            const password = document.getElementById('password').value;
-            const dobVal = document.getElementById('dob').value;
-            const err = document.getElementById('error-txt');
-
-            if(!email || !password || !dobVal) { err.innerText = "Please complete all fields."; return; }
-
-            const dob = new Date(dobVal);
-            if((new Date().getFullYear() - dob.getFullYear()) < 18) {
-                err.innerText = "Access Denied: 18+ Only."; return;
-            }
+            const dob = document.getElementById('dob').value;
+            if(!email || !password) return;
 
             try {
-                // A. Create User
-                const userCred = await createUserWithEmailAndPassword(auth, email, password);
-                currentUser = userCred.user;
+                if(window.isSignupMode) {
+                    if(!dob) { alert("DOB required"); return; }
+                    const res = await createUserWithEmailAndPassword(auth, email, password);
+                    currentUser = res.user;
+                    await setDoc(doc(db, 'artifacts', 'playgroundX_Prod_v1', 'public', 'data', 'users', currentUser.uid), {
+                        email, dob, idVerified: 'pending_upload', isAdmin: false, joined: serverTimestamp()
+                    });
+                    document.getElementById('login-layer').style.display = 'none';
+                    document.getElementById('wizard-overlay').style.display = 'flex';
+                } else {
+                    const res = await signInWithEmailAndPassword(auth, email, password);
+                    checkRedirect(res.user);
+                }
+            } catch(e) { document.getElementById('error-txt').innerText = e.message; }
+        };
 
-                // B. Save Initial Data
-                await setDoc(doc(db, 'artifacts', 'playgroundX_Prod_v1', 'public', 'data', 'users', currentUser.uid), {
-                    dob: dobVal,
-                    joined: serverTimestamp(),
-                    email: email,
-                    idVerified: 'pending_upload', // Initial state
-                    isAdmin: false
-                }, { merge: true });
-
-                // C. START WIZARD
-                startOnboarding(email);
-
-            } catch (e) {
-                err.innerText = e.message;
-            }
-        }
-
-        // 7. WIZARD LOGIC
-        function startOnboarding(email) {
-            // Hide Login Card, Show Wizard Overlay
-            document.getElementById('login-layer').style.display = 'none';
-            document.getElementById('wizard-overlay').style.display = 'flex';
-            document.getElementById('wiz-email-display').value = email;
-        }
-
-        window.wizardNext = function(currentId, nextId) {
-            document.getElementById(currentId).classList.add('exit');
-            document.getElementById(currentId).classList.remove('active');
-            
-            setTimeout(() => {
-                document.getElementById(nextId).classList.add('active');
-            }, 100);
-        }
-
-        window.triggerEmailSend = async function() {
+        window.handleGoogleLogin = async () => {
             try {
-                await sendEmailVerification(currentUser);
-                alert("Verification link sent! Check your inbox.");
-                wizardNext('step-email', 'step-id');
-            } catch(e) {
-                alert("Error sending email: " + e.message);
-                wizardNext('step-email', 'step-id'); // Skip for now if error
-            }
-        }
+                const res = await signInWithPopup(auth, provider);
+                checkRedirect(res.user);
+            } catch(e) { document.getElementById('error-txt').innerText = e.message; }
+        };
 
-        // 8. UPLOAD LOGIC
-        async function uploadFile(file, path) {
-            if(!file) return null;
-            const storageRef = ref(storage, path);
-            await uploadBytes(storageRef, file);
-            return await getDownloadURL(storageRef);
-        }
+        window.wizardNext = (curr, next) => {
+            document.getElementById(curr).classList.add('exit');
+            setTimeout(() => document.getElementById(next).classList.add('active'), 100);
+        };
 
-        window.finishOnboarding = async function() {
-            const idFront = document.getElementById('id-front').files[0];
-            const idBack = document.getElementById('id-back').files[0];
+        window.finishOnboarding = async () => {
+            const front = document.getElementById('id-front').files[0];
             const selfie = document.getElementById('selfie-upload').files[0];
-
-            if(!idFront || !selfie) {
-                alert("Please provide at least ID Front and Selfie.");
-                return;
-            }
-
-            const btn = document.querySelector('#step-selfie button');
-            btn.innerText = "UPLOADING...";
+            if(!front || !selfie) return;
 
             try {
-                const frontUrl = await uploadFile(idFront, `verification/${currentUser.uid}/id_front.jpg`);
-                const backUrl = await uploadFile(idBack, `verification/${currentUser.uid}/id_back.jpg`);
-                const selfieUrl = await uploadFile(selfie, `verification/${currentUser.uid}/selfie.jpg`);
-
+                const frontUrl = await upload(front, `verification/${currentUser.uid}/id_front.jpg`);
+                const selfieUrl = await upload(selfie, `verification/${currentUser.uid}/selfie.jpg`);
                 await setDoc(doc(db, 'artifacts', 'playgroundX_Prod_v1', 'public', 'data', 'users', currentUser.uid), {
-                    idVerified: 'pending',
-                    idPhotoUrl: frontUrl,
-                    idBackUrl: backUrl,
-                    selfieUrl: selfieUrl
-                }, { merge: true });
-
+                    idVerified: 'pending', idPhotoUrl: frontUrl, selfieUrl
+                }, {merge: true});
                 wizardNext('step-selfie', 'step-success');
+            } catch(e) { alert(e.message); }
+        };
 
-            } catch(e) {
-                alert("Upload failed: " + e.message);
-                btn.innerText = "TRY AGAIN";
-            }
+        async function upload(file, path) {
+            const sRef = ref(storage, path);
+            await uploadBytes(sRef, file);
+            return getDownloadURL(sRef);
         }
 
-        window.enterAppAsPending = function() {
+        async function checkRedirect(user) {
+            const snap = await getDoc(doc(db, 'artifacts', 'playgroundX_Prod_v1', 'public', 'data', 'users', user.uid));
+            if(snap.exists() && snap.data().isAdmin) localStorage.setItem('pgX_admin_access', 'true');
             window.location.href = "homepage.html";
         }
 
-        // 9. REDIRECT CHECK
-        async function checkUserAndRedirect(user) {
-            const userRef = doc(db, 'artifacts', 'playgroundX_Prod_v1', 'public', 'data', 'users', user.uid);
-            const docSnap = await getDoc(userRef);
-            if (docSnap.exists() && docSnap.data().isAdmin === true) {
-                localStorage.setItem('pgX_admin_access', 'true');
-            }
-            window.location.href = "home.html";
-        }
-
+        window.enterApp = () => window.location.href = "home.html";
     </script>
 </body>
 </html>
-
