@@ -2408,8 +2408,112 @@ updateConnectionStatus();
 
 
 
+// --- MISSING FUNCTIONS FIX ---
+
+window.adminCreateUser = async function() {
+    const alias = document.getElementById('admin-fake-alias').value;
+    const age = document.getElementById('admin-fake-age').value;
+    const img = document.getElementById('admin-fake-img').value;
+    
+    if(!alias || !age) return alert("Fill out fields");
+    
+    const fakeCol = window.fbase.collection(window.db, 'artifacts', window.APP_ID, 'public', 'data', 'users');
+    await window.fbase.addDoc(fakeCol, {
+        alias: alias,
+        age: parseInt(age),
+        img: img || "https://via.placeholder.com/150",
+        bio: "Bot Generated",
+        isAdmin: false
+    });
+    alert("Fake user injected!");
+    window.renderDeck(); // Refresh deck
+}
+
+window.handleLiveEnter = function(e) {
+    if(e.key === 'Enter') window.sendLiveMessage();
+}
+
+window.sendLiveMessage = function() {
+    const input = document.getElementById('live-msg-input');
+    const txt = input.value;
+    if(!txt) return;
+    
+    // Add visual bubble immediately for demo
+    const feed = document.getElementById('live-chat-feed');
+    const row = document.createElement('div');
+    row.className = 'live-msg-row host';
+    row.innerHTML = `<div class="live-msg-bubble-host">${txt}</div>`;
+    feed.appendChild(row);
+    feed.scrollTop = feed.scrollHeight;
+    input.value = "";
+}
+
+window.sendLiveGift = function() {
+    // Visual effect only
+    const zone = document.getElementById('live-anim-zone');
+    const gift = document.createElement('div');
+    gift.className = 'floating-gift';
+    gift.innerHTML = '🎁';
+    zone.appendChild(gift);
+    setTimeout(() => gift.remove(), 4000);
+}
+
+window.startLiveSimulation = function() {
+    console.log("Simulating viewers...");
+    // Update viewer count randomly
+    setInterval(() => {
+        document.getElementById('live-viewer-count').innerText = Math.floor(Math.random() * 50) + 10;
+    }, 3000);
+}
+
+window.buyTokens = function(amount, price) {
+    alert(`Payment Gateway Demo:\nBuying ${amount} coins for $${price}`);
+    const balEl = document.getElementById('wallet-balance');
+    balEl.innerText = parseInt(balEl.innerText) + amount;
+}
+
+window.tipUser = function(id) {
+    alert(`Tipped 10 coins to user ${id}!`);
+}
+
+window.reportContent = function(type, id) {
+    alert(`Report submitted for ID: ${id}`);
+}
+
+window.sendWink = function(id) {
+    alert("Wink sent!");
+}
 
 
+
+
+
+
+
+
+    
+
+
+
+// Add this helper function
+async function checkAdminStatus(uid) {
+    try {
+        const userRef = window.fbase.doc(window.db, 'artifacts', window.APP_ID, 'public', 'data', 'users', uid);
+        const snap = await window.fbase.getDoc(userRef);
+        
+        if (snap.exists() && snap.data().isAdmin === true) {
+            document.getElementById('admin-panel-btn').style.display = 'block';
+            console.log("GOD MODE ACTIVATED ⚡️");
+        }
+    } catch (e) {
+        console.error("Admin check failed", e);
+    }
+}
+
+// UPDATE your initBackend function to call it:
+// Find the line: currentUserUid = userCred.user.uid;
+// Add this right after:
+checkAdminStatus(currentUserUid);
 
     
 
@@ -2427,6 +2531,7 @@ updateConnectionStatus();
 </script>
 </body>
 </html>
+
 
 
 
