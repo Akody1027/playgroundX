@@ -340,10 +340,11 @@
         async function checkRedirect(user) {
             const snap = await getDoc(doc(db, 'artifacts', 'playgroundX_Prod_v1', 'public', 'data', 'users', user.uid));
             if(snap.exists() && snap.data().isAdmin) localStorage.setItem('pgX_admin_access', 'true');
-            window.location.href = "homepage.html";
+            window.location.href = "home.html";
         }
 
         window.enterApp = () => window.location.href = "home.html";
     </script>
 </body>
 </html>
+
