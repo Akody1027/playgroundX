@@ -1032,7 +1032,7 @@ body.guest-mode .live-preview-container {
             <div style="text-align:center; color:#666; padding:20px;">Click Refresh to load pending users...</div>
         </div>
     </div>
-</div>
+
 
 
 
@@ -3170,64 +3170,22 @@ async function uploadToSlot(file, slotName) {
 
 
 
-  // --- MONETIZATION, WALLET & LIMITS ---
+
     
-    // 1. TIER SELECTION (Visual Only)
-    window.selectTier = function(tier) {
-        document.querySelectorAll('.tier-card').forEach(el => el.classList.remove('active'));
-        const target = document.getElementById('tier-' + tier);
-        if(target) target.classList.add('active');
-    }
 
-    // 2. START UPGRADE PROCESS
-    window.initUpgrade = function(tier, price) {
-        window.pendingTier = tier; // Remembers what they are buying
-        window.initPayment(price, tier.toUpperCase() + " Membership");
-    }
-
-    // 3. OPEN PAYMENT MODAL
-    window.initPayment = function(price, desc) {
-        document.getElementById('stripe-modal').style.display = 'flex';
-        document.getElementById('pay-amount').innerText = "$" + price;
-        document.getElementById('pay-desc').innerText = desc;
-    }
-
-    // 4. PROCESS FAKE PAYMENT
-    window.processFakePayment = async function() {
-        const btn = document.querySelector('#stripe-modal button[onclick="processFakePayment()"]');
-        btn.innerText = "Processing...";
         
-        setTimeout(async () => {
-            // Success
-            document.getElementById('stripe-modal').style.display = 'none';
-            btn.innerText = "Pay Now";
-            alert("Payment Successful!");
-
-            // Apply Upgrade if pending
-            if (window.pendingTier && currentUserUid) {
-                const userRef = window.fbase.doc(window.db, 'artifacts', window.APP_ID, 'public', 'data', 'users', currentUserUid);
-                await window.fbase.updateDoc(userRef, { tier: window.pendingTier });
-                alert("Welcome to " + window.pendingTier.toUpperCase() + "!");
-                window.pendingTier = null;
-                location.reload(); // Refresh to update UI
-            }
-        }, 2000);
-    }
-
-    // 5. DAILY LIMIT CHECKER (The Hook)
+    // --- MONETIZATION & LIMITS ---
     window.checkDailyLimit = async function(actionType) {
         if (!currentUserUid) return false;
 
         const userRef = window.fbase.doc(window.db, 'artifacts', window.APP_ID, 'public', 'data', 'users', currentUserUid);
         const snap = await window.fbase.getDoc(userRef);
         
-        if (!snap.exists()) return true;
+        if (!snap.exists()) return true; 
         const u = snap.data();
         
-        // Premium Users have no limits
         if (u.tier === 'premium' || u.tier === 'upgraded') return true;
 
-        // Reset Day if needed
         const today = new Date().toDateString();
         if (u.lastActionDate !== today) {
             await window.fbase.updateDoc(userRef, {
@@ -3238,7 +3196,6 @@ async function uploadToSlot(file, slotName) {
             return true;
         }
 
-        // Check Message Limit (3/day)
         if (actionType === 'message') {
             if ((u.dailyMsgCount || 0) >= 3) {
                 alert("Daily Limit Reached! Upgrade to keep chatting.");
@@ -3249,7 +3206,6 @@ async function uploadToSlot(file, slotName) {
             await window.fbase.updateDoc(userRef, { dailyMsgCount: window.fbase.increment(1) });
         }
 
-        // Check Speed Date Limit (1/day)
         if (actionType === 'speed_date') {
             if ((u.dailySpeedDateCount || 0) >= 1) {
                 alert("You used your 1 Free Date today! Upgrade for unlimited access.");
@@ -3263,93 +3219,12 @@ async function uploadToSlot(file, slotName) {
         return true;
     }
 
-
-
-    
-
-        
-
-
-
-
- MONETIZATION & LIMITS (PASTE AT BOTTOM OF SCRIPT) ---
-window.checkDailyLimit = async function(actionType) {
-    if (!currentUserUid) return false;
-
-    // 1. Fetch user data
-    const userRef = window.fbase.doc(window.db, 'artifacts', window.APP_ID, 'public', 'data', 'users', currentUserUid);
-    const snap = await window.fbase.getDoc(userRef);
-    
-    if (!snap.exists()) return true; // Safety check
-    const u = snap.data();
-    
-    // 2. PREMIUM / UPGRADED: No Limits
-    if (u.tier === 'premium' || u.tier === 'upgraded') return true;
-
-    // 3. DAY RESET LOGIC
-    const today = new Date().toDateString();
-    if (u.lastActionDate !== today) {
-        // New day? Reset all counters
-        await window.fbase.updateDoc(userRef, {
-            dailyMsgCount: 0,
-            dailySpeedDateCount: 0,
-            lastActionDate: today
-        });
-        return true;
-    }
-
-    // 4. CHECK MSG LIMIT (3 per day)
-    if (actionType === 'message') {
-        if ((u.dailyMsgCount || 0) >= 3) {
-            alert("Daily Limit Reached! Upgrade to keep chatting.");
-            // Open Wallet
-            window.openModal('profile-modal');
-            document.getElementById('tab-btn-wallet').click();
-            return false;
-        }
-        await window.fbase.updateDoc(userRef, { dailyMsgCount: window.fbase.increment(1) });
-    }
-
-    // 5. CHECK SPEED DATE LIMIT (1 per day)
-    if (actionType === 'speed_date') {
-        if ((u.dailySpeedDateCount || 0) >= 1) {
-            alert("You used your 1 Free Date today! Upgrade for unlimited access.");
-            // Open Wallet
-            window.openModal('profile-modal');
-            document.getElementById('tab-btn-wallet').click();
-            return false;
-        }
-        await window.fbase.updateDoc(userRef, { dailySpeedDateCount: window.fbase.increment(1) });
-    }
-
-    return true;
-}
-
-
-
-
-
-    
-        
-
-
-
-    
-    // START
+    // START APP
     initBackend();
 });
-
-
-
-
-
-
-
-
-
-
-    
 </script>
+
+
 
 
 
@@ -3365,6 +3240,7 @@ window.checkDailyLimit = async function(actionType) {
     
 </body>
 </html>
+
 
 
 
