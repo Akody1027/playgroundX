@@ -21,7 +21,7 @@
             --bg-dark: #121212;
             --card-dark: #1E1E1E;
             --text-main: #E5E7EB;
-            --text-dim: #9CA3AF; 
+            --text-dim: #9CA3AF;
             --btn-dim: grey;
             --btnfont: white;
         }
@@ -692,103 +692,14 @@
 
 
 
-/* --- GUEST MODE STYLES --- */
-body.guest-mode #guest-banner { display: block !important; }
-
-/* Blur the Swipe Deck Photos */
-body.guest-mode .swipe-card img,
-body.guest-mode .grid-item img,
-body.guest-mode #view-user-img {
-    filter: blur(15px);
-    pointer-events: none;
-}
-
-/* Disable Interactive Buttons for Guests */
-body.guest-mode .swipe-btn,
-body.guest-mode .msg-icon-wrapper,
-body.guest-mode .buy-btn,
-body.guest-mode .action-btn-main {
-    opacity: 0.5;
-    pointer-events: none;
-    filter: grayscale(1);
-}
-
-/* Hide specific sensitive elements */
-body.guest-mode #map, 
-body.guest-mode .live-preview-container {
-    filter: blur(20px);
-}
 
 
 
 
-
-
-
-/* TIER CARDS */
-.tier-card {
-    background: #111; border: 1px solid #333;
-    padding: 15px; border-radius: 12px; margin-bottom: 10px;
-    cursor: pointer; transition: 0.2s; position: relative;
-}
-.tier-card:hover { border-color: #666; }
-.tier-card.active { border: 2px solid var(--accent); background: rgba(139, 92, 246, 0.1); }
-.tier-card.gold:hover { border-color: #FFD700; }
 
 
 
         
-
-
-
-    
-/* EXPLICIT CONTENT WARNING */
-.explicit-badge {
-    position: absolute; top: 0; right: 0;
-    width: 0; height: 0;
-    border-style: solid;
-    border-width: 0 50px 50px 0;
-    border-color: transparent #EF4444 transparent transparent;
-    z-index: 25; pointer-events: none;
-}
-.explicit-badge::after {
-    content: '!';
-    position: absolute; top: 8px; right: 8px;
-    color: white; font-weight: 900; font-size: 14px;
-}
-
-
-
-        
-
-
-
-
-
-
-        /* FLOATING TIMER BUBBLE */
-#floating-timer-bubble {
-    position: fixed; bottom: 100px; right: 20px;
-    background: rgba(0,0,0,0.9); border: 1px solid var(--accent);
-    padding: 10px 15px; border-radius: 50px;
-    z-index: 8000; cursor: pointer;
-    box-shadow: 0 5px 20px rgba(0,0,0,0.5);
-    display: flex; flex-direction: column; align-items: center;
-    transition: transform 0.2s;
-}
-#floating-timer-bubble:active { transform: scale(0.95); }
-
-/* PULSE ANIMATION */
-.pulse-dot {
-    width: 8px; height: 8px; background: #EF4444; border-radius: 50%;
-    margin-top: 5px; box-shadow: 0 0 10px #EF4444;
-    animation: pulseRed 1s infinite;
-}
-@keyframes pulseRed {
-    0% { opacity: 1; transform: scale(1); }
-    50% { opacity: 0.5; transform: scale(1.5); }
-    100% { opacity: 1; transform: scale(1); }
-}
         
 
         
@@ -841,41 +752,6 @@ body.guest-mode .live-preview-container {
     
 </head>
 <body>
-
-
-<script>
-    // --- IRONCLAD GATEKEEPER & GUEST MODE ---
-    (function() {
-        const isGuest = localStorage.getItem('pgX_guest') === 'true';
-        const uid = localStorage.getItem('pgX_myUid');
-
-        // 1. If no UID and not a Guest -> KICK OUT
-        if (!uid && !isGuest) {
-            window.location.href = "index.html";
-            return;
-        }
-
-        // 2. If Guest -> Apply Visual Blur & Locks
-        if (isGuest) {
-            document.body.classList.add('guest-mode');
-        }
-    })();
-</script>
-
-<div id="guest-banner" style="display:none; background:#8B5CF6; color:white; padding:10px; text-align:center; font-weight:bold; cursor:pointer;" onclick="window.location.href='index.html'">
-    👀 You are in Guest Mode. Tap here to Create an Account & Unlock Full Access.
-</div>
-
-<div id="verify-banner" style="display:none; background:#F59E0B; color:black; padding:10px; text-align:center; font-weight:bold;">
-    ⚠️ Verification Pending. Some features are limited until approved.
-</div>
-
-
-
-
-
-
-    
 
 <div id="age-gate" style="position: fixed; inset: 0; background: rgba(0,0,0,0.9); z-index: 99999; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; backdrop-filter: blur(10px);">
     <h2 style="color: white; margin-bottom: 10px;">Adults Only</h2>
@@ -936,37 +812,85 @@ body.guest-mode .live-preview-container {
 
     <div style="display: flex; align-items: center; gap: 20px;">
         <div id="global-upload-status" class="upload-status">
-        <div class="upload-spinner"></div>
-    </div>
-        
-     <div class="header-icons">
+            <div class="upload-spinner"></div>
+        </div>
 
-                <div onclick="window.openSpeedIntro()" style="cursor: pointer; ">
-                    <img src="speedheart.png" style=" height: 19px; object-fit: contain;">
-                </div>
+
+
+
+        
+ <div class="header-icons">
+
+
+
+<div onclick="window.openSpeedIntro()" style="cursor: pointer; ">
+    <img src="speedheart.png" style=" height: 19px; object-fit: contain;">
+</div>
+
+
+
+
+     
                 <div onclick="openModal('camera-modal')" style="cursor: pointer;">
                     <svg  height="26" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                         <path d="M23 7l-7 5 7 5V7z"></path>
                         <rect x="1" y="5" width="15" height="14" rx="2" ry="2"></rect>
                     </svg>
                 </div>
+
                 <div onclick="openVideoFeed()" style="cursor: pointer;">
                     <svg  height="22" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                         <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
                         <polygon points="10 8 16 12 10 16 10 8"></polygon>
                     </svg>
                 </div>
+
                 <div class="msg-icon-wrapper" onclick="openModal('msg-modal')">
                     <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
                     <div id="msg-badge" class="badge" style="display: none;">0</div>
                 </div>
+
                 <div class="user-icon-wrapper" onclick="toggleUserDropdown()" id="user-icon-trigger">
                     <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
                     <div id="connection-dot" class="connection-dot online"></div>
                 </div>
+            </div>
     </div>
+</div>
+
+
 
     
+
+
+    <button id="admin-panel-btn" onclick="document.getElementById('admin-panel').style.display='block'">GOD</button>
+
+
+
+
+
+    
+    <div id="admin-panel">
+        <div class="admin-header">
+            <h2>Admin God Mode</h2>
+            <button onclick="document.getElementById('admin-panel').style.display='none'" style="background:none; border:none; color:white; font-size:24px;">×</button>
+        </div>
+
+        <div class="admin-section">
+            <h3 style="margin-top:0">Create Fake User</h3>
+            <input type="text" id="admin-fake-alias" class="admin-input" placeholder="Alias (e.g. Sarah)">
+            <input type="number" id="admin-fake-age" class="admin-input" placeholder="Age">
+            <input type="text" id="admin-fake-img" class="admin-input" placeholder="Image URL">
+            <button class="admin-btn" onclick="adminCreateUser()" style="background: var(--accent)">Inject User</button>
+        </div>
+
+        <div class="admin-section">
+            <h3>System Status</h3>
+            <p id="admin-stats">Checking Firestore...</p>
+            <button class="admin-btn" onclick="location.reload()">Emergency Refresh</button>
+        </div>
+    </div>
+
     
     <div id="user-dropdown">
         <a href="#" onclick="openModal('modal-my-profile'); document.getElementById('user-dropdown').style.display='none';">My Profile</a>
@@ -975,52 +899,6 @@ body.guest-mode .live-preview-container {
     
 
 </div>
-
-
-
-    <button id="admin-panel-btn" onclick="document.getElementById('admin-panel').style.display='block'">GOD</button>
-
-
-
-
-        
-<div id="admin-panel">
-    <div class="admin-header">
-        <h2>Admin God Mode</h2>
-        <button onclick="document.getElementById('admin-panel').style.display='none'" style="background:none; border:none; color:white; font-size:24px;">×</button>
-    </div>
-
-    <div class="admin-section">
-        <h3 style="margin-top:0">Create Fake User</h3>
-        <input type="text" id="admin-fake-alias" class="admin-input" placeholder="Alias (e.g. Sarah)">
-        <input type="number" id="admin-fake-age" class="admin-input" placeholder="Age">
-        <input type="text" id="admin-fake-img" class="admin-input" placeholder="Image URL">
-        <button class="admin-btn" onclick="adminCreateUser()" style="background: var(--accent)">Inject User</button>
-    </div>
-
-    <div class="admin-section">
-        <h3>System Status</h3>
-        <p id="admin-stats">Checking Firestore...</p>
-        <button class="admin-btn" onclick="location.reload()">Emergency Refresh</button>
-    </div>
-
-    <div class="admin-section">
-        <div style="display:flex; justify-content:space-between; align-items:center;">
-            <h3 style="margin:0;">👮‍♂️ ID Verification Queue</h3>
-            <button onclick="loadVerificationQueue()" style="background:#333; color:white; border:none; padding:5px 10px; border-radius:5px; cursor:pointer;">↻ Refresh</button>
-        </div>
-        <div id="verify-queue-container" style="margin-top:15px; max-height:400px; overflow-y:auto; display:flex; flex-direction:column; gap:15px;">
-            <div style="text-align:center; color:#666; padding:20px;">Click Refresh to load pending users...</div>
-        </div>
-    </div>
-
-
-</div>
-
-
-</div>
-
-
 
 
 
@@ -1212,101 +1090,34 @@ body.guest-mode .live-preview-container {
         </div>
 
         <div id="profile-tab-wallet" class="tab-pane" style="display:none; padding:0;">
+            <div class="coin-balance">
+                <span id="wallet-balance">0</span> <span style="font-size:14px; color:#888;">COINS</span>
+            </div>
 
+            <div class="filter-label">BUY COIN BUNDLES</div>
+            <div class="coin-bundle">
+                <span>100 Coins</span>
+                <button class="buy-btn" onclick="buyTokens(100, 14.99)">$14.99</button>
+            </div>
+            <div class="coin-bundle">
+                <span>500 Coins</span>
+                <button class="buy-btn" onclick="buyTokens(500, 64.99)">$64.99</button>
+            </div>
+            <div class="coin-bundle">
+                <span>1000 Coins</span>
+                <button class="buy-btn" onclick="buyTokens(1000, 99.99)">$99.99</button>
+            </div>
 
-
-
-
-
-<div style="margin-bottom: 30px; border-bottom: 1px solid #333; padding-bottom: 20px;">
-    <div class="filter-label">YOUR MEMBERSHIP</div>
-    
-    <div class="tier-card active" id="tier-free" onclick="selectTier('free')">
-        <div style="display:flex; justify-content:space-between;">
-            <span style="font-weight:bold; color:white;">Standard (Free)</span>
-            <span style="color:#888;">Active</span>
-        </div>
-        <div style="font-size:11px; color:#666; margin-top:5px;">3 Msgs/Day • Blurred History</div>
-    </div>
-
-    <div class="tier-card" id="tier-upgraded" onclick="initUpgrade('upgraded', 15.99)">
-        <div style="display:flex; justify-content:space-between;">
-            <span style="font-weight:bold; color:var(--accent);">Upgraded</span>
-            <span style="color:white; font-weight:bold;">$15.99/mo</span>
-        </div>
-        <div style="font-size:11px; color:#aaa; margin-top:5px;">Unlimited Msgs • 20 Swipes • Clear Photos</div>
-    </div>
-
-    <div class="tier-card gold" id="tier-premium" onclick="initUpgrade('premium', 19.99)">
-        <div style="display:flex; justify-content:space-between;">
-            <span style="font-weight:bold; color:#FFD700;">Premium Gold</span>
-            <span style="color:white; font-weight:bold;">$19.99/mo</span>
-        </div>
-        <div style="font-size:11px; color:#E5C07B; margin-top:5px;">Ghost Mode • See Likes • VIP Support</div>
-    </div>
-</div>
-
-<div class="coin-balance">
-    <span id="wallet-balance">0</span> <span style="font-size:14px; color:#888;">COINS</span>
-</div>
-
-<div class="filter-label">BUY COIN BUNDLES</div>
-<div class="coin-bundle">
-    <div style="display:flex; align-items:center; gap:10px;">
-        <div style="background:#333; width:30px; height:30px; border-radius:50%;"></div>
-        <span>100 Coins</span>
-    </div>
-    <button class="buy-btn" onclick="initPayment(14.99, '100 Coins')">$14.99</button>
-</div>
-<div class="coin-bundle">
-    <div style="display:flex; align-items:center; gap:10px;">
-        <div style="background:#FFD700; width:30px; height:30px; border-radius:50%;"></div>
-        <span>500 Coins</span>
-    </div>
-    <button class="buy-btn" onclick="initPayment(64.99, '500 Coins')">$64.99</button>
-</div>
-
-<div id="stripe-modal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.95); z-index:9000; padding:20px; align-items:center; justify-content:center;">
-    <div style="background:#111; width:100%; max-width:350px; border-radius:16px; border:1px solid #333; padding:20px; box-shadow:0 20px 50px black;">
-        <div style="display:flex; justify-content:space-between; margin-bottom:20px;">
-            <span style="color:white; font-weight:bold;">Secure Checkout</span>
-            <button onclick="document.getElementById('stripe-modal').style.display='none'" style="background:none; border:none; color:#666; font-size:20px;">✕</button>
-        </div>
-        
-        <div style="text-align:center; margin-bottom:20px;">
-            <div style="font-size:32px; color:white; font-weight:900;" id="pay-amount">$0.00</div>
-            <div style="font-size:12px; color:#888;" id="pay-desc">Item Description</div>
-        </div>
-
-        <div style="background:#000; border:1px solid #333; border-radius:8px; padding:15px; margin-bottom:15px;">
-            <div style="color:#666; font-size:10px; margin-bottom:5px;">CARD INFORMATION</div>
-            <div style="display:flex; gap:10px; align-items:center;">
-                <svg width="24" height="16" viewBox="0 0 24 16" fill="#fff"><rect width="24" height="16" rx="2"/></svg>
-                <input type="text" placeholder="0000 0000 0000 0000" style="background:none; border:none; color:white; width:100%; outline:none;">
+            <div class="filter-label" style="margin-top:30px;">PAYMENT METHOD</div>
+            <div style="background:#111; padding:15px; border-radius:12px; border:1px solid #333;">
+                <input type="text" class="style-input" style="margin-bottom:10px;" placeholder="Card Number">
+                <div style="display:flex; gap:10px;">
+                    <input type="text" class="style-input" placeholder="MM/YY">
+                    <input type="text" class="style-input" placeholder="CVV">
+                </div>
+                <button class="admin-btn" style="background:#444; margin-top:15px; cursor:default;">Save Card (Demo Only)</button>
             </div>
         </div>
-        <div style="display:flex; gap:10px; margin-bottom:20px;">
-            <div style="background:#000; border:1px solid #333; border-radius:8px; padding:15px; flex:1;">
-                <input type="text" placeholder="MM / YY" style="background:none; border:none; color:white; width:100%; outline:none; text-align:center;">
-            </div>
-            <div style="background:#000; border:1px solid #333; border-radius:8px; padding:15px; flex:1;">
-                <input type="text" placeholder="CVC" style="background:none; border:none; color:white; width:100%; outline:none; text-align:center;">
-            </div>
-        </div>
-
-        <button onclick="processFakePayment()" style="width:100%; background:var(--accent); color:white; border:none; padding:15px; border-radius:12px; font-weight:bold; font-size:16px;">Pay Now</button>
-        
-        <div style="text-align:center; margin-top:15px; font-size:10px; color:#444;">
-            <span style="display:flex; align-items:center; justify-content:center; gap:5px;">🔒 Encrypted by Stripe</span>
-        </div>
-    </div>
-</div>
-
-
-
-
-
-        
 
     </div>
 </div>
@@ -1656,174 +1467,85 @@ body.guest-mode .live-preview-container {
     
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
+<script>
+document.addEventListener('DOMContentLoaded', () => {
 
-<script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-    import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-    import { getFirestore, collection, doc, setDoc, getDocs, getDoc, updateDoc, addDoc, query, orderBy, onSnapshot, limit, serverTimestamp, where, increment, deleteDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js"; 
-    import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-storage.js";
+window.handleAge = function(isAdult) {
+    if (isAdult) {
+        const ageGate = document.getElementById('age-gate');
+        const locGate = document.getElementById('location-gate');
 
-    // --- 1. GLOBAL VARIABLES (Accessible everywhere) ---
-    window.activeDeck = [];
-    window.myLocation = null;
-    window.currentUserUid = null;
+        // 1. Show Location Gate FIRST (behind Age Gate)
+        locGate.style.display = 'flex';
+        locGate.style.opacity = '1';
+
+        // 2. Then Fade out Age Gate
+        ageGate.style.transition = "opacity 0.5s";
+        ageGate.style.opacity = "0";
+
+        setTimeout(() => {
+            ageGate.style.display = 'none';
+        }, 500);
+
+    } else {
+        if (history.length > 1) { history.back(); } 
+        else { window.location.href = "https://google.com"; }
+    }
+}
+
+window.requestLocation = function() {
+    // 1. Show Spinner FIRST (Overlaying everything)
+    const loader = document.getElementById('loading-overlay');
+    const locGate = document.getElementById('location-gate');
+
+    loader.style.display = 'flex';
+    loader.style.opacity = '1';
+    loader.innerHTML = '<div class="spinner"></div><div style="color: #666; font-size: 14px; font-weight: bold;">INITIALIZING SECURE CONNECTION...</div>';
+
+    // 2. Hide Location Gate immediately (Loader is covering it)
+    locGate.style.display = 'none';
+
+    // 3. Request Actual Location (Logic remains)
+    if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition((position) => {
+            const lat = position.coords.latitude;
+            const lng = position.coords.longitude;
+            window.myLocation = { lat, lng };
+            if (window.map) {
+                window.map.setView([lat, lng], 13);
+                if(activeDeck) updateMapPins(activeDeck);
+            }
+        }, (err) => console.warn("Location denied", err));
+    }
+
+    // 4. Wait 3.5 seconds, then reveal App
+    setTimeout(() => {
+        loader.style.transition = 'opacity 0.5s';
+        loader.style.opacity = '0';
+        setTimeout(() => {
+            loader.style.display = 'none';
+        }, 500);
+    }, 3500);
+}
+                
+
+
+    // --- CONFIGURATION & GLOBAL STATE ---
+    // MOCKS REMOVED HERE
+    
+    const DATA_REL_TYPE = ['Marriage', 'Long-Term', 'Short-Term', 'Intimacy w/o Connection', 'Friends', 'FWB'];
+
+    let activeDeck = [];
+    let card, startX, currentX, btnLike, btnReject;
     let currentChatUnsubscribe = null; 
     let currentChatId = null; 
     let currentVideoUnsubscribe = null;
-    let currentTargetId = null; 
-    let localStream = null;
-    let currentStreamDocId = null;
-    let liveGridUnsubscribe = null;
-    let loungeInterval = null;
-    let queueSimulator = null;
-    let isQueueJoined = false;
-    let currentVideoView = 'swipe';
+    let currentUserUid = null;
 
-    // --- 2. CONFIGURATION ---
-    const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : {
-        apiKey: "AIzaSyDFmhk3ybnsVsFenCE3xvdmy5y_4u9ss7o", 
-        authDomain: "playgroundx-ca021.firebaseapp.com",
-        projectId: "playgroundx-ca021",
-        storageBucket: "playgroundx-ca021.firebasestorage.app",
-        messagingSenderId: "427340828971",
-        appId: "1:427340828971:web:1d9e2dc22ecd69593eb56e",
-        measurementId: "G-NEV8FYG0WK"
-    }; 
-
-    const app = initializeApp(firebaseConfig);
-    const auth = getAuth(app);
-    const db = getFirestore(app); 
-    const storage = getStorage(app); 
-    const APP_ID = typeof __app_id !== 'undefined' ? __app_id : "playgroundX_Prod_v1";
-
-    window.db = db;
-    window.auth = auth;
-    window.storage = storage;
-    window.APP_ID = APP_ID;
-    
-    window.fbase = {
-        collection, doc, setDoc, getDocs, getDoc, updateDoc, addDoc, query, orderBy, onSnapshot, limit, serverTimestamp, signInAnonymously, onAuthStateChanged, where, increment, deleteDoc,
-        ref, uploadBytes, getDownloadURL 
-    }; 
-
-    console.log("Firebase Global Tools Loaded ✅");
-
-    // --- 3. UI FUNCTIONS (DEFINED FIRST SO BUTTONS ALWAYS WORK) ---
-
-    // AGE GATE
-    window.handleAge = function(isAdult) {
-        if (isAdult) {
-            const ageGate = document.getElementById('age-gate');
-            const locGate = document.getElementById('location-gate');
-            if(locGate) { locGate.style.display = 'flex'; locGate.style.opacity = '1'; }
-            if(ageGate) {
-                ageGate.style.transition = "opacity 0.5s";
-                ageGate.style.opacity = "0";
-                setTimeout(() => { ageGate.style.display = 'none'; }, 500);
-            }
-        } else {
-            window.location.href = "https://google.com";
-        }
-    };
-
-    // LOCATION
-    window.requestLocation = function() {
-        const loader = document.getElementById('loading-overlay');
-        const locGate = document.getElementById('location-gate');
-        if(loader) {
-            loader.style.display = 'flex'; loader.style.opacity = '1';
-            loader.innerHTML = '<div class="spinner"></div><div style="color: #666; font-size: 14px; font-weight: bold;">INITIALIZING SECURE CONNECTION...</div>';
-        }
-        if(locGate) locGate.style.display = 'none';
-        if (navigator.geolocation) {
-            navigator.geolocation.getCurrentPosition((position) => {
-                window.myLocation = { lat: position.coords.latitude, lng: position.coords.longitude };
-                if (window.map) {
-                    window.map.setView([window.myLocation.lat, window.myLocation.lng], 13);
-                    if(window.updateMapPins) window.updateMapPins(window.activeDeck);
-                }
-            }, (err) => console.warn("Location denied", err));
-        }
-        setTimeout(() => {
-            if(loader) {
-                loader.style.transition = 'opacity 0.5s'; loader.style.opacity = '0';
-                setTimeout(() => { loader.style.display = 'none'; }, 500);
-            }
-        }, 3500);
-    };
-
-    // NAVIGATION
-    window.toggleUserDropdown = function() {
-        const menu = document.getElementById('user-dropdown');
-        menu.style.display = (menu.style.display === 'block') ? 'none' : 'block';
-    };
-
-    window.switchView = function(viewId, btn) {
-        document.querySelectorAll('.app-view').forEach(v => v.classList.remove('active'));
-        document.querySelectorAll('.view-btn').forEach(b => b.classList.remove('active'));
-        document.getElementById('view-' + viewId).classList.add('active');
-        btn.classList.add('active');
-        if (viewId === 'map') setTimeout(() => window.map.invalidateSize(), 100);
-    };
-
-    // MODALS
-    window.openModal = function(id) {
-        if (id === 'modal-my-profile') { window.loadMyProfile(); return; }
-        if (id === 'modal-studio' || id === 'camera-modal') {
-            id = 'camera-modal';
-            if(window.initLiveGrid) window.initLiveGrid(); 
-        }
-        const el = document.getElementById(id);
-        if (el) el.style.display = 'block';
-    };
-
-    window.closeModal = function(id) {
-        const el = document.getElementById(id);
-        if (el) el.style.display = 'none';
-    };
-
-    window.closeChat = function() {
-        document.getElementById('msg-modal').style.display = 'none';
-        document.getElementById('msg-list-view').style.display = 'block';
-        document.getElementById('chat-view').style.display = 'none';
-    };
-
-    window.openTab = function(tabId, btn) {
-        document.querySelectorAll('.tab-pane').forEach(t => t.style.display = 'none');
-        document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-        document.getElementById(tabId).style.display = 'block';
-        btn.classList.add('active');
-    };
-
-    window.toggleAccordion = function(id, isChecked) {
-        const el = document.getElementById(id);
-        if(el) el.style.display = isChecked ? 'block' : 'none';
-    };
-
-    window.toggleProfileAcc = function(id) {
-        const el = document.getElementById(id);
-        el.style.display = (el.style.display === 'block') ? 'none' : 'block';
-    };
-
-    window.selectProfileOption = function(displayId, value, accId) {
-        document.getElementById(displayId).innerText = value;
-        document.getElementById(accId).style.display = 'none';
-    };
-
-    window.toggleReportMenu = function() {
-        const menu = document.getElementById('report-menu');
-        menu.style.display = (menu.style.display === 'block') ? 'none' : 'block';
-    };
-
-    // --- 4. DATA LOGIC & DECK RENDERING ---
-
-    const getPublicCollection = (colName) => {
-        return window.fbase.collection(window.db, 'artifacts', window.APP_ID, 'public', 'data', colName);
-    };
-
+    // --- HELPER FOR EMPTY STATES ---
     function getEmptyStateHTML() {
         return `
-            <div class="swipe-card" style="display: flex; align-items: center; justify-content: center; background: #1a1a1a;">
+            <div class="swipe-card" style=" display: flex; align-items: center; justify-content: center; background: #1a1a1a;">
                 <div style="display:flex; flex-direction:column; align-items:center; justify-content:center; height:90%; width:90%;">
                     <img src="nousericon.png" class="empty-throb-img">
                     <div class="empty-throb-text">waiting for new users<span class="loading-dots"></span></div>
@@ -1831,65 +1553,155 @@ body.guest-mode .live-preview-container {
             </div>
         `;
     }
+    
+    // --- FIRESTORE HELPERS (Rule 1 Compliance) ---
+    const getPublicCollection = (colName) => {
+        return window.fbase.collection(window.db, 'artifacts', window.APP_ID, 'public', 'data', colName);
+    };
+
+    // --- 1. CORE BACKEND & INITIALIZATION ---
+
+
+
+
+
+    async function checkAdminStatus(uid) {
+        try {
+            const userRef = window.fbase.doc(window.db, 'artifacts', window.APP_ID, 'public', 'data', 'users', uid);
+            const snap = await window.fbase.getDoc(userRef);
+            
+            if (snap.exists() && snap.data().isAdmin === true) {
+                const btn = document.getElementById('admin-panel-btn');
+                if (btn) {
+                    btn.style.display = 'block';
+                    console.log("Admin Access Granted");
+                }
+            }
+        } catch (e) {
+            console.error("Admin check failed", e);
+        }
+    }
+
+
+
+
+
+    
+
+    window.initBackend = async function() {
+        const loading = document.getElementById('loading-overlay');
+        
+        try {
+            const userCred = await window.fbase.signInAnonymously(window.auth);
+            currentUserUid = userCred.user.uid;
+            console.log("Authenticated as:", currentUserUid);
+            localStorage.setItem('pgX_myUid', currentUserUid); 
+            
+            await checkAdminStatus(currentUserUid); 
+            await ensureUserProfile();
+
+        } catch (error) {
+            console.warn("Auth Failed:", error);
+            currentUserUid = localStorage.getItem('pgX_myUid') || 'anon_offline_' + Date.now();
+            localStorage.setItem('pgX_myUid', currentUserUid);
+            
+            await checkAdminStatus(currentUserUid);
+
+            if (!localStorage.getItem('pgX_alias')) {
+                 localStorage.setItem('pgX_alias', "Guest_" + Math.floor(Math.random()*1000));
+                 localStorage.setItem('my_profile_pic', "https://via.placeholder.com/120");
+            }
+        } finally {
+            renderDeck();
+            loading.style.display = 'none';
+        }
+    }
+
+
+
+
+
+
+
+
+    
+
+    async function ensureUserProfile() {
+        const userRef = window.fbase.doc(window.db, 'artifacts', window.APP_ID, 'public', 'data', 'users', currentUserUid);
+        const storedAlias = localStorage.getItem('pgX_alias');
+        if (!storedAlias) {
+             const defaultAlias = "User_" + Math.floor(Math.random() * 1000);
+             await window.fbase.setDoc(userRef, {
+                 alias: defaultAlias,
+                 age: 21,
+                 bio: "New member",
+                 img: "https://via.placeholder.com/120",
+                 joinedAt: window.fbase.serverTimestamp()
+             }, { merge: true });
+             
+             localStorage.setItem('pgX_alias', defaultAlias);
+             localStorage.setItem('my_profile_pic', "https://via.placeholder.com/120");
+        }
+    }
+
+    // --- 2. DECK & SWIPE LOGIC ---
 
     window.renderDeck = async function() {
         const zone = document.getElementById('swipe-zone');
         const grid = document.getElementById('grid-content');
+
         let realUsers = [];
         
+        // 1. DATA: Fetch Real People from Public Collection
         try {
-            // Fetch users, excluding self
             const snapshot = await window.fbase.getDocs(getPublicCollection("users"));
             snapshot.forEach(doc => {
-                if (doc.id !== window.currentUserUid) {
+                if (doc.id !== currentUserUid) {
                     realUsers.push({ id: doc.id, ...doc.data() });
                 }
             });
-        } catch (e) { console.error("Deck Fetch Error:", e); }
+        } catch (e) {
+            console.error("DB Fetch Error:", e);
+        }
 
-        window.activeDeck = (realUsers.length > 0) ? realUsers : [];
-         
-        const showExplicit = localStorage.getItem('pgX_showExplicit') === 'true';
-
-        if (window.activeDeck.length > 0) {
-            const u = window.activeDeck[0];
-            
-            // Explicit Filter
-            if (u.isExplicit && !showExplicit) {
-                window.activeDeck.shift(); 
-                window.renderDeck();
-                return;
-            }
-
-            const warningBadge = (u.isExplicit && showExplicit) ? `<div class="explicit-badge"></div>` : '';
-
+        // 2. LOGIC: NO MOCKS
+        if (realUsers.length > 0) {
+            activeDeck = realUsers;
+        } else {
+            activeDeck = []; // Ensure empty
+        }
+        
+        // 3. DRAWING: Render Swipe View
+        if (activeDeck.length > 0) {
+            const u = activeDeck[0];
             zone.innerHTML = `
             <div class="swipe-card" id="active-card" onclick="window.openUserProfile('${u.alias}', ${u.age}, '${u.img}', '${u.id}')">
-                ${warningBadge} <img src="${u.img}">
+                <img src="${u.img}">
                 <div class="card-header-overlay">
                     <span class="card-alias">${u.alias}</span>
                     <span class="card-age">${u.age}</span>
                 </div>
             </div>`;
-            
             setTimeout(initSwipeHandlers, 50);
         } else {
             zone.innerHTML = getEmptyStateHTML();
         }
 
-        // Render Grid
+        // 4. DRAWING: Render Grid View
         if (grid) {
-            if (window.activeDeck.length === 0) {
+            if (activeDeck.length === 0) {
                 grid.style.display = 'grid'; 
                 grid.innerHTML = `
                     <div class="grid-item" style="background:#000; display:flex; flex-direction:column; align-items:center; justify-content:center;">
                         <img src="nousericon.png" class="empty-throb-img" style="width:80px; height:80px;">
                         <div class="empty-throb-text" style="font-size:10px; margin-top:5px;">waiting for new users<span class="loading-dots"></span></div>
                     </div>
+                    <div class="grid-item" style="background:#222;"></div>
+                    <div class="grid-item" style="background:#222;"></div>
                 `;
             } else {
                 grid.style.display = 'grid';
-                grid.innerHTML = window.activeDeck.map(u => `
+                grid.innerHTML = activeDeck.map(u => `
                 <div class="grid-item" onclick="window.openUserProfile('${u.alias}', ${u.age}, '${u.img}', '${u.id}')">
                     <img src="${u.img}" style="width:90%; height:90%; object-fit:cover;">
                     <div class="grid-overlay"><span>${u.alias}</span><span>${u.age}</span></div>
@@ -1898,11 +1710,10 @@ body.guest-mode .live-preview-container {
             }
         }
         
-        if(window.updateMapPins) window.updateMapPins(window.activeDeck);
+        // 5. DRAWING: Update Map
+        if(window.updateMapPins) window.updateMapPins(activeDeck);
     }
 
-    // SWIPE HANDLERS
-    let card, startX, currentX, btnLike, btnReject;
     function initSwipeHandlers() {
         card = document.getElementById('active-card');
         btnReject = document.getElementById('btn-reject');
@@ -1924,23 +1735,41 @@ body.guest-mode .live-preview-container {
     }
 
     window.userSwipe = function(dir) {
-        if (document.body.classList.contains('guest-mode')) { alert("Sign Up to Match & Chat!"); return; }
         if (!card) return;
         
+        // 1. Animate
         card.style.transition = 'transform 0.5s ease-in';
         card.style.transform = `translateX(${dir === 'right' ? 1000 : -1000}px)`;
-        
-        window.activeDeck.shift(); // Remove from global deck
 
+        // 2. Logic: Remove from local deck array
+        activeDeck.shift();
+
+        // 3. Feedback
         if (dir === 'right') {
             document.getElementById('wink-txt').classList.add('show');
             setTimeout(() => document.getElementById('wink-txt').classList.remove('show'), 1000);
         }
 
+        // 4. Reload Deck
         setTimeout(() => { 
             resetButtons(); 
-            // Refresh Deck (Call renderDeck again to get next card)
-            window.renderDeck();
+            // Re-render the next card from the array we just shifted
+            if (activeDeck.length > 0) {
+                const u = activeDeck[0];
+                const zone = document.getElementById('swipe-zone');
+                zone.innerHTML = `
+                <div class="swipe-card" id="active-card" onclick="window.openUserProfile('${u.alias}', ${u.age}, '${u.img}', '${u.id}')">
+                    <img src="${u.img}">
+                    <div class="card-header-overlay">
+                        <span class="card-alias">${u.alias}</span>
+                        <span class="card-age">${u.age}</span>
+                    </div>
+                </div>`;
+                setTimeout(initSwipeHandlers, 50);
+            } else {
+                // Show empty state
+                document.getElementById('swipe-zone').innerHTML = getEmptyStateHTML();
+            }
         }, 300);
     }
 
@@ -1949,115 +1778,321 @@ body.guest-mode .live-preview-container {
         if (btnReject) btnReject.style.background = 'rgba(0,0,0,0.6)';
     }
 
-    // --- 5. INITIALIZATION ---
-
-    window.initBackend = async function() {
-        const loading = document.getElementById('loading-overlay');
-        const isGuest = localStorage.getItem('pgX_guest') === 'true';
-        
-        if (isGuest) {
-            console.log("Logged in as Guest");
-            document.body.classList.add('guest-mode');
-            if(loading) loading.style.display = 'none';
-            window.renderDeck();
-            return;
-        }
-
-        try {
-            let uid = localStorage.getItem('pgX_myUid');
-            
-            // AUTO-CREATE DEV USER IF MISSING (Prevents Empty Page)
-            if (!uid) {
-                console.log("⚠️ Creating Dev User...");
-                uid = "dev_user_" + Math.floor(Math.random() * 9999);
-                localStorage.setItem('pgX_myUid', uid);
-                localStorage.setItem('pgX_alias', "Dev");
-                // Save to DB so it persists
-                await window.fbase.setDoc(window.fbase.doc(window.db, 'artifacts', window.APP_ID, 'public', 'data', 'users', uid), {
-                    alias: "Dev", age: 25, img: "https://via.placeholder.com/150",
-                    joinedAt: window.fbase.serverTimestamp()
-                }, { merge: true });
-            }
-
-            window.currentUserUid = uid;
-            console.log("Authenticated:", window.currentUserUid);
-            
-            const userRef = window.fbase.doc(window.db, 'artifacts', window.APP_ID, 'public', 'data', 'users', window.currentUserUid);
-            const snap = await window.fbase.getDoc(userRef);
-            
-            if (snap.exists()) {
-                const data = snap.data();
-                if (data.isAdmin) document.getElementById('admin-panel-btn').style.display = 'block';
-                if (data.verificationStatus === 'pending') document.getElementById('verify-banner').style.display = 'block';
-            }
-
-        } catch (error) {
-            console.error("Init Error:", error);
-        } finally {
-            window.renderDeck(); // Always render deck
-            if(loading) loading.style.display = 'none';
-        }
-    }
-
-    // --- 6. OTHER FEATURES (Map, Chat, etc) ---
-    
-    // MAP
+    // --- 3. MAP ---
+    // Initialize map with a placeholder view, updated by geolocation later
     window.map = L.map('map', {zoomControl: false}).setView([40.7128, -74.0060], 13);
     L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png').addTo(window.map);
 
     window.updateMapPins = function(users) {
         window.map.eachLayer((layer) => { if(layer instanceof L.Marker) window.map.removeLayer(layer); });
+
         users.forEach(u => {
             if(u.lat && u.lng) {
-                const icon = L.divIcon({ className: 'custom-pin', html: `<div class="user-dot-pin" style="width:12px; height:12px;"></div>` });
-                L.marker([u.lat, u.lng], {icon: icon}).addTo(window.map).bindPopup(`<b>${u.alias}</b><br>${u.age}`);
+                const icon = L.divIcon({
+                    className: 'custom-pin',
+                    html: `<div class="user-dot-pin" style="width:12px; height:12px;"></div>`
+                });
+                L.marker([u.lat, u.lng], {icon: icon})
+                  .addTo(window.map)
+                  .bindPopup(`<b>${u.alias}</b><br>${u.age}`);
             }
         });
+        
+        // Use REAL location if available
+        let myLat = 40.7128;
+        let myLng = -74.0060;
         if (window.myLocation) {
-            const myIcon = L.divIcon({ className: 'my-pin', html: `<div class="my-location-pin" style="width:20px; height:20px;"></div>` });
-            L.marker([window.myLocation.lat, window.myLocation.lng], {icon: myIcon}).addTo(window.map);
+            myLat = window.myLocation.lat;
+            myLng = window.myLocation.lng;
         }
+        
+        const myIcon = L.divIcon({ className: 'my-pin', html: `<div class="my-location-pin" style="width:20px; height:20px;"></div>` });
+        L.marker([myLat, myLng], {icon: myIcon}).addTo(window.map);
     }
 
-    // CHAT
+    // --- 4. REAL-TIME MESSAGING ---
+
     window.openChat = function(name, targetUid) {
         document.getElementById('msg-list-view').style.display = 'none';
         document.getElementById('chat-view').style.display = 'flex';
         document.getElementById('chat-target-name').innerText = name;
+        
         const chatBody = document.getElementById('chat-body');
         chatBody.innerHTML = ''; 
         currentChatId = targetUid; 
-        if (window.currentUserUid && targetUid) {
-            const chatId = [window.currentUserUid, targetUid].sort().join('_');
+
+        if (currentUserUid && targetUid) {
+            // Composite ID for public chat collection
+            const chatId = [currentUserUid, targetUid].sort().join('_');
             const msgCollection = window.fbase.collection(window.db, 'artifacts', window.APP_ID, 'public', 'data', `chat_${chatId}`);
             const q = window.fbase.query(msgCollection, window.fbase.orderBy("createdAt"), window.fbase.limit(50));
+            
             if(currentChatUnsubscribe) currentChatUnsubscribe(); 
+
             currentChatUnsubscribe = window.fbase.onSnapshot(q, (snapshot) => {
                 chatBody.innerHTML = ''; 
                 snapshot.forEach((doc) => {
                     const msg = doc.data();
-                    const isMe = msg.senderId === window.currentUserUid;
+                    const isMe = msg.senderId === currentUserUid;
                     const bubble = document.createElement('div');
                     bubble.className = `chat-bubble ${isMe ? 'me' : 'them'}`;
                     bubble.innerText = msg.text;
                     chatBody.appendChild(bubble);
                 });
                 chatBody.scrollTop = chatBody.scrollHeight;
-            });
+            }, (error) => console.error("Chat Error:", error));
         }
     }
 
-    // PROFILE
+    async function sendMessage() {
+        const input = document.querySelector('.chat-input');
+        const text = input.value.trim();
+        if (!text) return;
+
+        if (currentUserUid && currentChatId) {
+            const chatId = [currentUserUid, currentChatId].sort().join('_');
+            const msgCollection = window.fbase.collection(window.db, 'artifacts', window.APP_ID, 'public', 'data', `chat_${chatId}`);
+
+            try {
+                await window.fbase.addDoc(msgCollection, {
+                    text: text,
+                    senderId: currentUserUid,
+                    createdAt: window.fbase.serverTimestamp()
+                });
+                input.value = '';
+            } catch (e) {
+                console.error("Send failed", e);
+                alert("Could not send message. Check console.");
+            }
+        }
+    }
+
+    // --- 5. UI CONTROLS ---
+
+    let currentVideoView = 'swipe';
+
+
+window.openVideoFeed = function() {
+    const modal = document.getElementById('video-modal');
+    if(modal) {
+        modal.style.display = 'block';
+        window.renderVideoFeed(); 
+    } else {
+        console.error("Video modal not found");
+    }
+}
+
+    
+    window.setVideoMode = function(mode) {
+        currentVideoView = mode;
+        // Re-render container class immediately
+        const container = document.getElementById('video-feed-content');
+        container.className = ''; 
+        if (currentVideoView === 'grid') container.classList.add('feed-layout-grid');
+        else container.classList.add('feed-layout-swipe');
+    }
+
+    window.handleVideoUpload = async function(event) {
+        const file = event.target.files[0];
+        if (!file) return;
+        
+        const videoCollection = getPublicCollection('videos');
+        await window.fbase.addDoc(videoCollection, {
+            user: localStorage.getItem('pgX_alias') || "Anon",
+            // We use a sample video URL because we can't upload binary to Firestore
+            url: "https://www.w3schools.com/html/mov_bbb.mp4", 
+            timestamp: window.fbase.serverTimestamp()
+        });
+        
+        alert("Video Metadata Uploaded! (Using sample video for persistence demo)");
+    }
+
+    window.renderVideoFeed = function() {
+        const container = document.getElementById('video-feed-content');
+        container.className = ''; 
+        if (currentVideoView === 'grid') container.classList.add('feed-layout-grid');
+        else container.classList.add('feed-layout-swipe');
+
+        const videoCollection = getPublicCollection('videos');
+        const q = window.fbase.query(videoCollection, window.fbase.orderBy('timestamp', 'desc'), window.fbase.limit(20));
+
+        if(currentVideoUnsubscribe) currentVideoUnsubscribe();
+
+        currentVideoUnsubscribe = window.fbase.onSnapshot(q, (snapshot) => {
+             if (snapshot.empty) {
+                container.innerHTML = `<div style="text-align:center; color:#666; margin-top:50px;">No shared videos yet.<br>Be the first!</div>`;
+                return;
+            }
+            
+            container.innerHTML = '';
+            snapshot.forEach(doc => {
+                const vid = doc.data();
+                const div = document.createElement('div');
+                div.className = 'video-item';
+                div.innerHTML = `
+                    <video src="${vid.url}" controls playsinline loop></video>
+                    <div class="vid-details" style="padding: 10px;">
+                        <span style="color: white; font-weight: bold;">${vid.user}</span>
+                    </div>
+                `;
+                container.appendChild(div);
+            });
+        }, (error) => console.error("Video Sync Error", error));
+    }
+
+    window.toggleUserDropdown = function() {
+        const menu = document.getElementById('user-dropdown');
+        menu.style.display = (menu.style.display === 'block') ? 'none' : 'block';
+    }
+
+const userTrigger = document.getElementById('user-icon-trigger');
+if(userTrigger) {
+    userTrigger.onclick = (e) => { 
+        e.stopPropagation(); 
+        window.toggleUserDropdown(); // FIXED NAME
+    };
+}
+
+    window.switchView = function(viewId, btn) {
+        document.querySelectorAll('.app-view').forEach(v => v.classList.remove('active'));
+        document.querySelectorAll('.view-btn').forEach(b => b.classList.remove('active'));
+        document.getElementById('view-' + viewId).classList.add('active');
+        btn.classList.add('active');
+        if (viewId === 'map') setTimeout(() => window.map.invalidateSize(), 100);
+    }
+
+
+
+
+
+    
+    window.openModal = function(id) {
+        // 1. Handle Profile Redirect
+        if (id === 'modal-my-profile') {
+            window.loadMyProfile();
+            return;
+        }
+        
+        // 2. Handle Studio ID Mismatch & Init Grid
+        if (id === 'modal-studio' || id === 'camera-modal') {
+            id = 'camera-modal';
+            // TRIGGER THE LIVE GRID HERE
+            if(window.initLiveGrid) window.initLiveGrid(); 
+        }
+
+        // 3. Open the Modal
+        const el = document.getElementById(id);
+        if (el) el.style.display = 'block';
+    }
+
+
+
+
+
+
+
+    
+// FIXED: Close Modal Helper
+window.closeModal = function(id) {
+    const el = document.getElementById(id);
+    if (el) el.style.display = 'none';
+}
+
+    window.closeChat = function() {
+        document.getElementById('msg-modal').style.display = 'none';
+        document.getElementById('msg-list-view').style.display = 'block';
+        document.getElementById('chat-view').style.display = 'none';
+    }
+
+    window.openTab = function(tabId, btn) {
+        document.querySelectorAll('.tab-pane').forEach(t => t.style.display = 'none');
+        document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+        document.getElementById(tabId).style.display = 'block';
+        btn.classList.add('active');
+    }
+
+    window.toggleAccordion = function(id, isChecked) {
+        const el = document.getElementById(id);
+        if(el) el.style.display = isChecked ? 'block' : 'none';
+    }
+
+    window.toggleProfileAcc = function(id) {
+        const el = document.getElementById(id);
+        if(el.style.display === 'block') el.style.display = 'none';
+        else el.style.display = 'block';
+    }
+    
+    window.selectProfileOption = function(displayId, value, accId) {
+        document.getElementById(displayId).innerText = value;
+        document.getElementById(accId).style.display = 'none';
+    }
+
     window.previewMainAndGallery = function(event) {
         const file = event.target.files[0];
         if (file) {
             const reader = new FileReader();
             reader.onload = function(e) {
                 const imgUrl = e.target.result;
+                // Update Main
                 document.getElementById('my-main-preview').src = imgUrl;
-                document.getElementById('user-icon-trigger').innerHTML = `<img src="${imgUrl}" style="width:100%; height:100%; border-radius:50%; object-fit:cover;">`;
+                // Update Gallery #1
+                const galleryImg = document.getElementById('g1-preview');
+                galleryImg.src = imgUrl;
+                galleryImg.style.display = 'block';
+                const galleryLabel = document.getElementById('g1-lbl');
+                if(galleryLabel) galleryLabel.style.display = 'none';
+                // Update Header
+                const headerIcon = document.getElementById('user-icon-trigger');
+                headerIcon.innerHTML = `<img src="${imgUrl}" style="width:100%; height:100%; border-radius:50%; object-fit:cover;">`;
             }
             reader.readAsDataURL(file);
+        }
+    }
+    
+    window.previewVideo = function(event) {
+        alert("Video selected!");
+    }
+
+    window.saveProfile = async function() {
+        // 1. Get Values from ORIGINAL Layout
+        const alias = document.getElementById('p-alias').value;
+        const bio = document.getElementById('p-bio').value;
+        const age = document.getElementById('p-age').value;
+        const isExplicit = document.getElementById('p-explicit').checked;
+        
+        // 2. Prepare Updates
+        const updates = {
+            alias: alias || "User",
+            bio: bio,
+            age: parseInt(age) || 18,
+            isExplicit: isExplicit,
+            lastSeen: window.fbase.serverTimestamp()
+        };
+
+        // 3. Handle File Upload (Original 'main-up' ID)
+        const fileInput = document.getElementById('main-up');
+        
+        if (currentUserUid) {
+            try {
+                if (fileInput && fileInput.files[0]) {
+                    const storageRef = window.fbase.ref(window.storage, `profiles/${currentUserUid}_main_${Date.now()}`);
+                    const snap = await window.fbase.uploadBytes(storageRef, fileInput.files[0]);
+                    const url = await window.fbase.getDownloadURL(snap.ref);
+                    updates.p1 = url; // Save URL
+                }
+
+                // 4. Save to Firestore
+                const userRef = window.fbase.doc(window.db, 'artifacts', window.APP_ID, 'public', 'data', 'users', currentUserUid);
+                await window.fbase.setDoc(userRef, updates, { merge: true });
+                
+                alert("Profile Saved!");
+                document.getElementById('profile-modal').style.display = 'none';
+                if(window.renderDeck) renderDeck(); 
+                
+            } catch (e) { 
+                console.error("Save failed", e); 
+                alert("Error saving: " + e.message); 
+            }
         }
     }
 
@@ -2065,81 +2100,453 @@ body.guest-mode .live-preview-container {
         const storedAlias = localStorage.getItem('pgX_alias') || ""; 
         const storedBio = localStorage.getItem('pgX_bio') || "";
         const storedImg = localStorage.getItem('my_profile_pic') || "https://via.placeholder.com/120";
+
         document.getElementById('p-alias').value = storedAlias;
         document.getElementById('p-bio').value = storedBio;
         document.getElementById('my-main-preview').src = storedImg;
+        
+        const galleryImg = document.getElementById('g1-preview');
+        const galleryLabel = document.getElementById('g1-lbl');
+        
+        if (storedImg.includes('data:image') || storedImg.includes('http')) {
+             galleryImg.src = storedImg;
+             galleryImg.style.display = 'block';
+             if(galleryLabel) galleryLabel.style.display = 'none';
+        }
+        
         document.getElementById('profile-modal').style.display = 'block';
         document.getElementById('user-dropdown').style.display = 'none';
     }
 
-    window.openUserProfile = function(alias, age, img, id) {
-        currentTargetId = id; 
+    window.applyFilters = function() {
+        document.getElementById('filter-modal').style.display = 'none';
+        renderDeck();
+    }
+
+window.openUserProfile = function(alias, age, img, id) {
+        currentTargetId = id; // <--- CRITICAL: Links the Tip/Report buttons to this user
+        
         const modal = document.getElementById('view-user-modal');
         document.getElementById('view-user-img').src = img;
         document.getElementById('view-user-img-small').src = img;
         document.getElementById('view-user-name').innerText = alias + ", " + age;
         document.getElementById('view-user-bio').innerText = `${alias} is a ${age} year old member.`;
-        document.getElementById('view-user-chips').innerHTML = `<span class="stat-chip love">Words of Affirmation</span><span class="stat-chip">Non-Smoker</span>`;
+        
+        const chipsContainer = document.getElementById('view-user-chips');
+        // (Optional: You can update this later to show real Vices/Children status)
+        chipsContainer.innerHTML = `<span class="stat-chip love">Words of Affirmation</span><span class="stat-chip">Non-Smoker</span>`;
+        
         modal.style.display = 'block';
     }
 
-    window.saveProfile = async function() {
-        const btn = document.querySelector('#profile-modal button[onclick="saveProfile()"]');
-        btn.innerText = "Saving...";
-        try {
-            const rawAlias = document.getElementById('p-alias').value;
-            const userRef = window.fbase.doc(window.db, 'artifacts', window.APP_ID, 'public', 'data', 'users', window.currentUserUid);
-            
-            // Simple Save Logic for stability
-            await window.fbase.updateDoc(userRef, {
-                alias: rawAlias,
-                lastSeen: window.fbase.serverTimestamp()
-            });
-            localStorage.setItem('pgX_alias', rawAlias);
-            alert("Profile Saved!");
-            document.getElementById('profile-modal').style.display = 'none';
-            btn.innerText = "Save";
-        } catch (e) {
-            console.error(e);
-            alert("Error: " + e.message);
-            btn.innerText = "Save";
-        }
+    window.toggleReportMenu = function() {
+        const menu = document.getElementById('report-menu');
+        menu.style.display = (menu.style.display === 'block') ? 'none' : 'block';
     }
 
-    // --- START APP ---
-    // Start immediately (No DOMContentLoaded wrapper needed for modules)
-    initBackend();
-</script>
+    // --- FIX FOR PROFILE BUTTON: Attach listener immediately ---
+    const profileBtn = document.getElementById('open-my-profile');
+    if(profileBtn) {
+        profileBtn.onclick = (e) => {
+            e.preventDefault(); 
+            window.loadMyProfile();
+        };
+    }
+
+// FIXED: Connection Status Logic
+window.addEventListener('online', updateConnectionStatus);
+window.addEventListener('offline', updateConnectionStatus);
+
+function updateConnectionStatus() {
+    const dot = document.getElementById('connection-dot');
+    if (dot) {
+        dot.className = navigator.onLine ? "connection-dot online" : "connection-dot offline";
+    }
+}
+// Run immediately
+updateConnectionStatus();
 
 
 
 
 
-<div id="floating-timer-bubble" onclick="window.openSpeedIntro()" style="display:none;">
-    <div style="font-size:10px; font-weight:bold; color:#888;">NEXT DATE</div>
-    <div id="mini-timer" style="font-size:18px; font-weight:900; color:white;">00:00</div>
-    <div class="pulse-dot"></div>
-</div>
+    let localStream = null;
+    let currentStreamDocId = null;
 
 
     
+    window.toggleLiveStream = async function() {
+        const toggle = document.getElementById('live-toggle');
+        const videoElement = document.getElementById('local-video');
+        const previewContainer = document.getElementById('live-preview-container');
+
+        if (toggle.checked) {
+            // --- GOING LIVE ---
+            try {
+                // 1. Get the Camera
+                localStream = await navigator.mediaDevices.getUserMedia({ 
+                    video: { facingMode: "user" }, 
+                    audio: true 
+                });
+                videoElement.srcObject = localStream;
+                previewContainer.style.display = 'block';
+
+                // 2. REGISTER STREAM IN FIREBASE
+                if (currentUserUid) {
+                    const streamRef = await window.fbase.addDoc(window.fbase.collection(window.db, 'artifacts', window.APP_ID, 'public', 'data', 'active_streams'), {
+                        hostId: currentUserUid,
+                        hostAlias: localStorage.getItem('pgX_alias') || "Unknown",
+                        hostImg: localStorage.getItem('my_profile_pic') || "https://via.placeholder.com/120",
+                        startedAt: window.fbase.serverTimestamp(),
+                        status: "live",
+                        viewers: 0
+                    });
+                    currentStreamDocId = streamRef.id;
+                    console.log("Stream registered with ID:", currentStreamDocId);
+                }
+
+                // 3. START SIMULATION (This was missing)
+                // 
+                if (window.startLiveSimulation) window.startLiveSimulation();
+
+            } catch (err) { // <--- FIXED: No extra '}' here anymore
+                console.error("Live Error:", err);
+                
+                if(err.code === 'permission-denied') {
+                    alert("Database Locked: You need to update your Firestore Rules in the Firebase Console.");
+                } else {
+                    alert("Could not go live: " + err.message);
+                }
+
+                if (localStream) {
+                    localStream.getTracks().forEach(track => track.stop());
+                    localStream = null;
+                }
+                
+                videoElement.srcObject = null;
+                previewContainer.style.display = 'none';
+                toggle.checked = false;
+            }
+            
+        } else {
+            // --- ENDING STREAM ---
+            if (localStream) {
+                localStream.getTracks().forEach(track => track.stop());
+                localStream = null;
+            }
+            videoElement.srcObject = null;
+            previewContainer.style.display = 'none';
+
+            if (currentStreamDocId) {
+                try {
+                    await window.fbase.deleteDoc(window.fbase.doc(window.db, 'artifacts', window.APP_ID, 'public', 'data', 'active_streams', currentStreamDocId));
+                    console.log("Stream offline. Doc deleted.");
+                    currentStreamDocId = null;
+                } catch (e) {
+                    console.error("Error ending stream in DB:", e);
+                }
+            }
+        }
+    }
+
+
+
+
+    let liveGridUnsubscribe = null;
+
+    window.initLiveGrid = function() {
+        const grid = document.getElementById('live-grid');
+        const streamsRef = window.fbase.collection(window.db, 'artifacts', window.APP_ID, 'public', 'data', 'active_streams');
+        
+        if (liveGridUnsubscribe) liveGridUnsubscribe();
+
+        liveGridUnsubscribe = window.fbase.onSnapshot(streamsRef, (snapshot) => {
+            if (snapshot.empty) {
+                grid.innerHTML = `
+                    <div style="grid-column: 1 / -1; text-align: center; padding: 40px; color: #666;">
+                        <div style="font-size: 24px; margin-bottom: 10px;">😴</div>
+                        <div>No one is live right now.<br>Be the first!</div>
+                    </div>
+                `;
+                return;
+            }
+
+            grid.innerHTML = '';
+            snapshot.forEach(doc => {
+                const s = doc.data();
+                const el = document.createElement('div');
+                el.className = 'grid-item'; 
+                el.style.position = 'relative';
+                el.style.cursor = 'pointer';
+                el.style.border = '2px solid #FF4444'; 
+                
+                el.innerHTML = `
+                    <img src="${s.hostImg}" style="width:100%; height:100%; object-fit:cover;">
+                    <div class="grid-overlay" style="background: linear-gradient(to top, rgba(255,0,0,0.8), transparent);">
+                        <span>${s.hostAlias}</span>
+                        <span style="display:flex; align-items:center; gap:4px;">
+                            <div style="width:8px; height:8px; background:white; border-radius:50%;"></div> LIVE
+                        </span>
+                    </div>
+                `;
+                el.onclick = () => alert(`Joining ${s.hostAlias}'s stream... (Video Player feature coming soon)`);
+                grid.appendChild(el);
+            });
+        });
+    }
+
+
+
+    
+
+
+
+
+
+
+    // --- GLOBAL VARIABLES ---
+    let loungeInterval = null;
+    let queueSimulator = null;
+    let isQueueJoined = false;
+
+    // 1. OPEN LOUNGE
+    window.openSpeedIntro = function() {
+        document.getElementById('speed-lounge').style.display = 'block';
+        startGlobalTimer();
+        startQueueSimulation();
+    }
+
+    // 2. CLOSE LOUNGE
+    window.closeLounge = function() {
+        document.getElementById('speed-lounge').style.display = 'none';
+        if(loungeInterval) clearInterval(loungeInterval);
+        if(queueSimulator) clearInterval(queueSimulator);
+    }
+
+    // 3. GLOBAL TIMER LOGIC (10 Minute Epochs)
+    function startGlobalTimer() {
+        const timerEl = document.getElementById('global-countdown');
+        
+        // Update immediately, then every second
+        updateTimer();
+        loungeInterval = setInterval(updateTimer, 1000);
+
+        function updateTimer() {
+            const now = Date.now();
+            const interval = 10 * 60 * 1000; // 10 Minutes in ms
+            
+            // Calculate next 10-minute mark (e.g. 10:00, 10:10, 10:20)
+            const nextRound = Math.ceil(now / interval) * interval;
+            const diff = nextRound - now;
+
+            if (diff <= 0) {
+                // ROUND START!
+                if(isQueueJoined) {
+                    window.location.href = "speed_dating.html"; // TRIGGER PAGE SWITCH
+                } else {
+                    // Reset Logic if not joined
+                }
+            }
+
+            // Format mm:ss
+            const m = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+            const s = Math.floor((diff % (1000 * 60)) / 1000);
+            timerEl.innerText = `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
+        }
+    }
+
+    // 4. JOIN LOGIC
+    window.joinGlobalQueue = function() {
+        const btn = document.getElementById('btn-join-queue');
+        
+        // Visual Feedback
+        btn.innerText = "WAITING FOR ROUND...";
+        btn.style.background = "#333";
+        btn.style.color = "#aaa";
+        btn.disabled = true;
+        
+        isQueueJoined = true;
+
+        // Add "Me" to the top of the list
+        const list = document.getElementById('lounge-queue');
+        const myChip = document.createElement('div');
+        myChip.className = 'user-chip';
+        myChip.style.border = '1px solid var(--accent)';
+        myChip.innerHTML = `
+            <img src="${localStorage.getItem('my_profile_pic') || 'https://via.placeholder.com/40'}" class="chip-img">
+            <div class="chip-info">
+                <span class="chip-name">You (Pending)</span>
+                <span class="chip-status">Ready to Match</span>
+            </div>
+        `;
+        list.prepend(myChip);
+    }
+
+    // 5. QUEUE SIMULATION (Creates "Fake" Activity)
+    function startQueueSimulation() {
+        const list = document.getElementById('lounge-queue');
+        const countEl = document.getElementById('queue-count');
+        list.innerHTML = ''; // Clear previous
+        
+        let count = Math.floor(Math.random() * 30) + 10; // Start with random number
+        countEl.innerText = count + " Online";
+
+        // Add initial batch
+        for(let i=0; i<5; i++) addRandomUser(list);
+
+        // Add new user every 2-5 seconds
+        queueSimulator = setInterval(() => {
+            if(Math.random() > 0.5) {
+                addRandomUser(list);
+                count++;
+                countEl.innerText = count + " Online";
+            }
+        }, 2000);
+    }
+
+    const FAKE_NAMES = ["Sarah", "Mike", "Jessica", "Davon", "Li", "Aisha", "Tom", "Chloe"];
+    function addRandomUser(list) {
+        const name = FAKE_NAMES[Math.floor(Math.random() * FAKE_NAMES.length)];
+        const chip = document.createElement('div');
+        chip.className = 'user-chip';
+        chip.innerHTML = `
+            <img src="https://i.pravatar.cc/150?u=${Math.random()}" class="chip-img">
+            <div class="chip-info">
+                <span class="chip-name">${name}</span>
+                <span class="chip-status">Just Joined</span>
+            </div>
+        `;
+        list.prepend(chip); // Add to top
+        
+        // Remove old ones to keep DOM clean
+        if(list.children.length > 20) list.lastElementChild.remove();
+    }
+
+    // 6. FILTER TOGGLES
+    window.setLoungeFilter = function(el, type) {
+        // Remove active class from siblings
+        el.parentElement.querySelectorAll('.filter-opt').forEach(d => d.classList.remove('active'));
+        el.classList.add('active');
+        // Visual Reset of Queue to look like it refreshed
+        startQueueSimulation(); 
+    }
+
+    window.setLocationFilter = function(el, type) {
+        el.parentElement.querySelectorAll('.filter-opt').forEach(d => d.classList.remove('active'));
+        el.classList.add('active');
+        startQueueSimulation();
+    }
+
+
+
+
+
+
+// --- MISSING FUNCTIONS FIX ---
+
+window.adminCreateUser = async function() {
+    const alias = document.getElementById('admin-fake-alias').value;
+    const age = document.getElementById('admin-fake-age').value;
+    const img = document.getElementById('admin-fake-img').value;
+    
+    if(!alias || !age) return alert("Fill out fields");
+    
+    const fakeCol = window.fbase.collection(window.db, 'artifacts', window.APP_ID, 'public', 'data', 'users');
+    await window.fbase.addDoc(fakeCol, {
+        alias: alias,
+        age: parseInt(age),
+        img: img || "https://via.placeholder.com/150",
+        bio: "Bot Generated",
+        isAdmin: false
+    });
+    alert("Fake user injected!");
+    window.renderDeck(); // Refresh deck
+}
+
+window.handleLiveEnter = function(e) {
+    if(e.key === 'Enter') window.sendLiveMessage();
+}
+
+window.sendLiveMessage = function() {
+    const input = document.getElementById('live-msg-input');
+    const txt = input.value;
+    if(!txt) return;
+    
+    // Add visual bubble immediately for demo
+    const feed = document.getElementById('live-chat-feed');
+    const row = document.createElement('div');
+    row.className = 'live-msg-row host';
+    row.innerHTML = `<div class="live-msg-bubble-host">${txt}</div>`;
+    feed.appendChild(row);
+    feed.scrollTop = feed.scrollHeight;
+    input.value = "";
+}
+
+window.sendLiveGift = function() {
+    // Visual effect only
+    const zone = document.getElementById('live-anim-zone');
+    const gift = document.createElement('div');
+    gift.className = 'floating-gift';
+    gift.innerHTML = '🎁';
+    zone.appendChild(gift);
+    setTimeout(() => gift.remove(), 4000);
+}
+
+window.startLiveSimulation = function() {
+    console.log("Simulating viewers...");
+    // Update viewer count randomly
+    setInterval(() => {
+        document.getElementById('live-viewer-count').innerText = Math.floor(Math.random() * 50) + 10;
+    }, 3000);
+}
+
+window.buyTokens = function(amount, price) {
+    alert(`Payment Gateway Demo:\nBuying ${amount} coins for $${price}`);
+    const balEl = document.getElementById('wallet-balance');
+    balEl.innerText = parseInt(balEl.innerText) + amount;
+}
+
+window.tipUser = function(id) {
+    alert(`Tipped 10 coins to user ${id}!`);
+}
+
+window.reportContent = function(type, id) {
+    alert(`Report submitted for ID: ${id}`);
+}
+
+window.sendWink = function(id) {
+    alert("Wink sent!");
+}
+
+
+
+
+
+
+
+
+    
+
+
+
+
+
+    
+
+        
+
+
+        
+
+
+
+    
+    // START
+    initBackend();
+});
+</script>
 </body>
 </html>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
