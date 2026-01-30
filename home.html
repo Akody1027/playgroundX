@@ -1561,36 +1561,70 @@ window.requestLocation = function() {
 
     // --- 1. CORE BACKEND & INITIALIZATION ---
 
+
+
+
+
+    async function checkAdminStatus(uid) {
+        try {
+            const userRef = window.fbase.doc(window.db, 'artifacts', window.APP_ID, 'public', 'data', 'users', uid);
+            const snap = await window.fbase.getDoc(userRef);
+            
+            if (snap.exists() && snap.data().isAdmin === true) {
+                const btn = document.getElementById('admin-panel-btn');
+                if (btn) {
+                    btn.style.display = 'block';
+                    console.log("Admin Access Granted");
+                }
+            }
+        } catch (e) {
+            console.error("Admin check failed", e);
+        }
+    }
+
+
+
+
+
+    
+
     window.initBackend = async function() {
         const loading = document.getElementById('loading-overlay');
         
         try {
-            // 1. Authenticate (Rule 3 Compliance: Auth BEFORE queries)
             const userCred = await window.fbase.signInAnonymously(window.auth);
             currentUserUid = userCred.user.uid;
             console.log("Authenticated as:", currentUserUid);
             localStorage.setItem('pgX_myUid', currentUserUid); 
             
-            // 2. Check if Profile Exists in DB, if not create default
+            await checkAdminStatus(currentUserUid); 
             await ensureUserProfile();
-            
-            // 3. GET REAL GEOLOCATION - REMOVED (Handled by UI flow now)
 
         } catch (error) {
-            console.warn("Auth Failed (Offline Mode Activated):", error);
+            console.warn("Auth Failed:", error);
             currentUserUid = localStorage.getItem('pgX_myUid') || 'anon_offline_' + Date.now();
             localStorage.setItem('pgX_myUid', currentUserUid);
             
+            await checkAdminStatus(currentUserUid);
+
             if (!localStorage.getItem('pgX_alias')) {
                  localStorage.setItem('pgX_alias', "Guest_" + Math.floor(Math.random()*1000));
                  localStorage.setItem('my_profile_pic', "https://via.placeholder.com/120");
             }
         } finally {
             renderDeck();
-            // loadMyProfile(); REMOVED TO PREVENT AUTO POPUP
             loading.style.display = 'none';
         }
     }
+
+
+
+
+
+
+
+
+    
 
     async function ensureUserProfile() {
         const userRef = window.fbase.doc(window.db, 'artifacts', window.APP_ID, 'public', 'data', 'users', currentUserUid);
@@ -2495,25 +2529,7 @@ window.sendWink = function(id) {
 
 
 
-// Add this helper function
-async function checkAdminStatus(uid) {
-    try {
-        const userRef = window.fbase.doc(window.db, 'artifacts', window.APP_ID, 'public', 'data', 'users', uid);
-        const snap = await window.fbase.getDoc(userRef);
-        
-        if (snap.exists() && snap.data().isAdmin === true) {
-            document.getElementById('admin-panel-btn').style.display = 'block';
-            console.log("GOD MODE ACTIVATED ⚡️");
-        }
-    } catch (e) {
-        console.error("Admin check failed", e);
-    }
-}
 
-// UPDATE your initBackend function to call it:
-// Find the line: currentUserUid = userCred.user.uid;
-// Add this right after:
-checkAdminStatus(currentUserUid);
 
     
 
@@ -2531,6 +2547,7 @@ checkAdminStatus(currentUserUid);
 </script>
 </body>
 </html>
+
 
 
 
