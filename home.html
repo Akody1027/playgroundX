@@ -1013,21 +1013,25 @@ body.guest-mode .live-preview-container {
             <p id="admin-stats">Checking Firestore...</p>
             <button class="admin-btn" onclick="location.reload()">Emergency Refresh</button>
         </div>
-    </div>
+
+
+
+
+       <div class="admin-section">
+            <div style="display:flex; justify-content:space-between; align-items:center;">
+               <h3 style="margin:0;">👮‍♂️ ID Verification Queue</h3>
+               <button onclick="loadVerificationQueue()" style="background:#333; color:white; border:none; padding:5px 10px; border-radius:5px; cursor:pointer;">↻ Refresh</button>
+           </div>
+           <div id="verify-queue-container" style="margin-top:15px; max-height:400px; overflow-y:auto; display:flex; flex-direction:column; gap:15px;">
+             <div style="text-align:center; color:#666; padding:20px;">Click Refresh to load pending users...</div>
+          </div>
+       </div
+ </div>
 
 
 
 
 
-<div class="admin-section">
-    <div style="display:flex; justify-content:space-between; align-items:center;">
-        <h3 style="margin:0;">👮‍♂️ ID Verification Queue</h3>
-        <button onclick="loadVerificationQueue()" style="background:#333; color:white; border:none; padding:5px 10px; border-radius:5px; cursor:pointer;">↻ Refresh</button>
-    </div>
-    <div id="verify-queue-container" style="margin-top:15px; max-height:400px; overflow-y:auto; display:flex; flex-direction:column; gap:15px;">
-        <div style="text-align:center; color:#666; padding:20px;">Click Refresh to load pending users...</div>
-    </div>
-</div>
 
 
 
@@ -3152,6 +3156,104 @@ async function uploadToSlot(file, slotName) {
 
 
 
+
+
+
+  // --- MONETIZATION, WALLET & LIMITS ---
+    
+    // 1. TIER SELECTION (Visual Only)
+    window.selectTier = function(tier) {
+        document.querySelectorAll('.tier-card').forEach(el => el.classList.remove('active'));
+        const target = document.getElementById('tier-' + tier);
+        if(target) target.classList.add('active');
+    }
+
+    // 2. START UPGRADE PROCESS
+    window.initUpgrade = function(tier, price) {
+        window.pendingTier = tier; // Remembers what they are buying
+        window.initPayment(price, tier.toUpperCase() + " Membership");
+    }
+
+    // 3. OPEN PAYMENT MODAL
+    window.initPayment = function(price, desc) {
+        document.getElementById('stripe-modal').style.display = 'flex';
+        document.getElementById('pay-amount').innerText = "$" + price;
+        document.getElementById('pay-desc').innerText = desc;
+    }
+
+    // 4. PROCESS FAKE PAYMENT
+    window.processFakePayment = async function() {
+        const btn = document.querySelector('#stripe-modal button[onclick="processFakePayment()"]');
+        btn.innerText = "Processing...";
+        
+        setTimeout(async () => {
+            // Success
+            document.getElementById('stripe-modal').style.display = 'none';
+            btn.innerText = "Pay Now";
+            alert("Payment Successful!");
+
+            // Apply Upgrade if pending
+            if (window.pendingTier && currentUserUid) {
+                const userRef = window.fbase.doc(window.db, 'artifacts', window.APP_ID, 'public', 'data', 'users', currentUserUid);
+                await window.fbase.updateDoc(userRef, { tier: window.pendingTier });
+                alert("Welcome to " + window.pendingTier.toUpperCase() + "!");
+                window.pendingTier = null;
+                location.reload(); // Refresh to update UI
+            }
+        }, 2000);
+    }
+
+    // 5. DAILY LIMIT CHECKER (The Hook)
+    window.checkDailyLimit = async function(actionType) {
+        if (!currentUserUid) return false;
+
+        const userRef = window.fbase.doc(window.db, 'artifacts', window.APP_ID, 'public', 'data', 'users', currentUserUid);
+        const snap = await window.fbase.getDoc(userRef);
+        
+        if (!snap.exists()) return true;
+        const u = snap.data();
+        
+        // Premium Users have no limits
+        if (u.tier === 'premium' || u.tier === 'upgraded') return true;
+
+        // Reset Day if needed
+        const today = new Date().toDateString();
+        if (u.lastActionDate !== today) {
+            await window.fbase.updateDoc(userRef, {
+                dailyMsgCount: 0,
+                dailySpeedDateCount: 0,
+                lastActionDate: today
+            });
+            return true;
+        }
+
+        // Check Message Limit (3/day)
+        if (actionType === 'message') {
+            if ((u.dailyMsgCount || 0) >= 3) {
+                alert("Daily Limit Reached! Upgrade to keep chatting.");
+                window.openModal('profile-modal');
+                document.getElementById('tab-btn-wallet').click();
+                return false;
+            }
+            await window.fbase.updateDoc(userRef, { dailyMsgCount: window.fbase.increment(1) });
+        }
+
+        // Check Speed Date Limit (1/day)
+        if (actionType === 'speed_date') {
+            if ((u.dailySpeedDateCount || 0) >= 1) {
+                alert("You used your 1 Free Date today! Upgrade for unlimited access.");
+                window.openModal('profile-modal');
+                document.getElementById('tab-btn-wallet').click();
+                return false;
+            }
+            await window.fbase.updateDoc(userRef, { dailySpeedDateCount: window.fbase.increment(1) });
+        }
+
+        return true;
+    }
+
+
+
     
 
         
@@ -3244,6 +3346,7 @@ window.checkDailyLimit = async function(actionType) {
     
 </body>
 </html>
+
 
 
 
