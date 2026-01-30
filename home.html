@@ -692,14 +692,103 @@
 
 
 
+/* --- GUEST MODE STYLES --- */
+body.guest-mode #guest-banner { display: block !important; }
+
+/* Blur the Swipe Deck Photos */
+body.guest-mode .swipe-card img,
+body.guest-mode .grid-item img,
+body.guest-mode #view-user-img {
+    filter: blur(15px);
+    pointer-events: none;
+}
+
+/* Disable Interactive Buttons for Guests */
+body.guest-mode .swipe-btn,
+body.guest-mode .msg-icon-wrapper,
+body.guest-mode .buy-btn,
+body.guest-mode .action-btn-main {
+    opacity: 0.5;
+    pointer-events: none;
+    filter: grayscale(1);
+}
+
+/* Hide specific sensitive elements */
+body.guest-mode #map, 
+body.guest-mode .live-preview-container {
+    filter: blur(20px);
+}
 
 
 
 
+
+
+
+/* TIER CARDS */
+.tier-card {
+    background: #111; border: 1px solid #333;
+    padding: 15px; border-radius: 12px; margin-bottom: 10px;
+    cursor: pointer; transition: 0.2s; position: relative;
+}
+.tier-card:hover { border-color: #666; }
+.tier-card.active { border: 2px solid var(--accent); background: rgba(139, 92, 246, 0.1); }
+.tier-card.gold:hover { border-color: #FFD700; }
 
 
 
         
+
+
+
+    
+/* EXPLICIT CONTENT WARNING */
+.explicit-badge {
+    position: absolute; top: 0; right: 0;
+    width: 0; height: 0;
+    border-style: solid;
+    border-width: 0 50px 50px 0;
+    border-color: transparent #EF4444 transparent transparent;
+    z-index: 25; pointer-events: none;
+}
+.explicit-badge::after {
+    content: '!';
+    position: absolute; top: 8px; right: 8px;
+    color: white; font-weight: 900; font-size: 14px;
+}
+
+
+
+        
+
+
+
+
+
+
+        /* FLOATING TIMER BUBBLE */
+#floating-timer-bubble {
+    position: fixed; bottom: 100px; right: 20px;
+    background: rgba(0,0,0,0.9); border: 1px solid var(--accent);
+    padding: 10px 15px; border-radius: 50px;
+    z-index: 8000; cursor: pointer;
+    box-shadow: 0 5px 20px rgba(0,0,0,0.5);
+    display: flex; flex-direction: column; align-items: center;
+    transition: transform 0.2s;
+}
+#floating-timer-bubble:active { transform: scale(0.95); }
+
+/* PULSE ANIMATION */
+.pulse-dot {
+    width: 8px; height: 8px; background: #EF4444; border-radius: 50%;
+    margin-top: 5px; box-shadow: 0 0 10px #EF4444;
+    animation: pulseRed 1s infinite;
+}
+@keyframes pulseRed {
+    0% { opacity: 1; transform: scale(1); }
+    50% { opacity: 0.5; transform: scale(1.5); }
+    100% { opacity: 1; transform: scale(1); }
+}
         
 
         
@@ -752,6 +841,41 @@
     
 </head>
 <body>
+
+
+<script>
+    // --- IRONCLAD GATEKEEPER & GUEST MODE ---
+    (function() {
+        const isGuest = localStorage.getItem('pgX_guest') === 'true';
+        const uid = localStorage.getItem('pgX_myUid');
+
+        // 1. If no UID and not a Guest -> KICK OUT
+        if (!uid && !isGuest) {
+            window.location.href = "index.html";
+            return;
+        }
+
+        // 2. If Guest -> Apply Visual Blur & Locks
+        if (isGuest) {
+            document.body.classList.add('guest-mode');
+        }
+    })();
+</script>
+
+<div id="guest-banner" style="display:none; background:#8B5CF6; color:white; padding:10px; text-align:center; font-weight:bold; cursor:pointer;" onclick="window.location.href='index.html'">
+    👀 You are in Guest Mode. Tap here to Create an Account & Unlock Full Access.
+</div>
+
+<div id="verify-banner" style="display:none; background:#F59E0B; color:black; padding:10px; text-align:center; font-weight:bold;">
+    ⚠️ Verification Pending. Some features are limited until approved.
+</div>
+
+
+
+
+
+
+    
 
 <div id="age-gate" style="position: fixed; inset: 0; background: rgba(0,0,0,0.9); z-index: 99999; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; backdrop-filter: blur(10px);">
     <h2 style="color: white; margin-bottom: 10px;">Adults Only</h2>
@@ -891,6 +1015,25 @@
         </div>
     </div>
 
+
+
+
+
+<div class="admin-section">
+    <div style="display:flex; justify-content:space-between; align-items:center;">
+        <h3 style="margin:0;">👮‍♂️ ID Verification Queue</h3>
+        <button onclick="loadVerificationQueue()" style="background:#333; color:white; border:none; padding:5px 10px; border-radius:5px; cursor:pointer;">↻ Refresh</button>
+    </div>
+    <div id="verify-queue-container" style="margin-top:15px; max-height:400px; overflow-y:auto; display:flex; flex-direction:column; gap:15px;">
+        <div style="text-align:center; color:#666; padding:20px;">Click Refresh to load pending users...</div>
+    </div>
+</div>
+
+
+
+
+
+    
     
     <div id="user-dropdown">
         <a href="#" onclick="openModal('modal-my-profile'); document.getElementById('user-dropdown').style.display='none';">My Profile</a>
@@ -1090,34 +1233,101 @@
         </div>
 
         <div id="profile-tab-wallet" class="tab-pane" style="display:none; padding:0;">
-            <div class="coin-balance">
-                <span id="wallet-balance">0</span> <span style="font-size:14px; color:#888;">COINS</span>
-            </div>
 
-            <div class="filter-label">BUY COIN BUNDLES</div>
-            <div class="coin-bundle">
-                <span>100 Coins</span>
-                <button class="buy-btn" onclick="buyTokens(100, 14.99)">$14.99</button>
-            </div>
-            <div class="coin-bundle">
-                <span>500 Coins</span>
-                <button class="buy-btn" onclick="buyTokens(500, 64.99)">$64.99</button>
-            </div>
-            <div class="coin-bundle">
-                <span>1000 Coins</span>
-                <button class="buy-btn" onclick="buyTokens(1000, 99.99)">$99.99</button>
-            </div>
 
-            <div class="filter-label" style="margin-top:30px;">PAYMENT METHOD</div>
-            <div style="background:#111; padding:15px; border-radius:12px; border:1px solid #333;">
-                <input type="text" class="style-input" style="margin-bottom:10px;" placeholder="Card Number">
-                <div style="display:flex; gap:10px;">
-                    <input type="text" class="style-input" placeholder="MM/YY">
-                    <input type="text" class="style-input" placeholder="CVV">
-                </div>
-                <button class="admin-btn" style="background:#444; margin-top:15px; cursor:default;">Save Card (Demo Only)</button>
+
+
+
+
+<div style="margin-bottom: 30px; border-bottom: 1px solid #333; padding-bottom: 20px;">
+    <div class="filter-label">YOUR MEMBERSHIP</div>
+    
+    <div class="tier-card active" id="tier-free" onclick="selectTier('free')">
+        <div style="display:flex; justify-content:space-between;">
+            <span style="font-weight:bold; color:white;">Standard (Free)</span>
+            <span style="color:#888;">Active</span>
+        </div>
+        <div style="font-size:11px; color:#666; margin-top:5px;">3 Msgs/Day • Blurred History</div>
+    </div>
+
+    <div class="tier-card" id="tier-upgraded" onclick="initUpgrade('upgraded', 15.99)">
+        <div style="display:flex; justify-content:space-between;">
+            <span style="font-weight:bold; color:var(--accent);">Upgraded</span>
+            <span style="color:white; font-weight:bold;">$15.99/mo</span>
+        </div>
+        <div style="font-size:11px; color:#aaa; margin-top:5px;">Unlimited Msgs • 20 Swipes • Clear Photos</div>
+    </div>
+
+    <div class="tier-card gold" id="tier-premium" onclick="initUpgrade('premium', 19.99)">
+        <div style="display:flex; justify-content:space-between;">
+            <span style="font-weight:bold; color:#FFD700;">Premium Gold</span>
+            <span style="color:white; font-weight:bold;">$19.99/mo</span>
+        </div>
+        <div style="font-size:11px; color:#E5C07B; margin-top:5px;">Ghost Mode • See Likes • VIP Support</div>
+    </div>
+</div>
+
+<div class="coin-balance">
+    <span id="wallet-balance">0</span> <span style="font-size:14px; color:#888;">COINS</span>
+</div>
+
+<div class="filter-label">BUY COIN BUNDLES</div>
+<div class="coin-bundle">
+    <div style="display:flex; align-items:center; gap:10px;">
+        <div style="background:#333; width:30px; height:30px; border-radius:50%;"></div>
+        <span>100 Coins</span>
+    </div>
+    <button class="buy-btn" onclick="initPayment(14.99, '100 Coins')">$14.99</button>
+</div>
+<div class="coin-bundle">
+    <div style="display:flex; align-items:center; gap:10px;">
+        <div style="background:#FFD700; width:30px; height:30px; border-radius:50%;"></div>
+        <span>500 Coins</span>
+    </div>
+    <button class="buy-btn" onclick="initPayment(64.99, '500 Coins')">$64.99</button>
+</div>
+
+<div id="stripe-modal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.95); z-index:9000; padding:20px; align-items:center; justify-content:center;">
+    <div style="background:#111; width:100%; max-width:350px; border-radius:16px; border:1px solid #333; padding:20px; box-shadow:0 20px 50px black;">
+        <div style="display:flex; justify-content:space-between; margin-bottom:20px;">
+            <span style="color:white; font-weight:bold;">Secure Checkout</span>
+            <button onclick="document.getElementById('stripe-modal').style.display='none'" style="background:none; border:none; color:#666; font-size:20px;">✕</button>
+        </div>
+        
+        <div style="text-align:center; margin-bottom:20px;">
+            <div style="font-size:32px; color:white; font-weight:900;" id="pay-amount">$0.00</div>
+            <div style="font-size:12px; color:#888;" id="pay-desc">Item Description</div>
+        </div>
+
+        <div style="background:#000; border:1px solid #333; border-radius:8px; padding:15px; margin-bottom:15px;">
+            <div style="color:#666; font-size:10px; margin-bottom:5px;">CARD INFORMATION</div>
+            <div style="display:flex; gap:10px; align-items:center;">
+                <svg width="24" height="16" viewBox="0 0 24 16" fill="#fff"><rect width="24" height="16" rx="2"/></svg>
+                <input type="text" placeholder="0000 0000 0000 0000" style="background:none; border:none; color:white; width:100%; outline:none;">
             </div>
         </div>
+        <div style="display:flex; gap:10px; margin-bottom:20px;">
+            <div style="background:#000; border:1px solid #333; border-radius:8px; padding:15px; flex:1;">
+                <input type="text" placeholder="MM / YY" style="background:none; border:none; color:white; width:100%; outline:none; text-align:center;">
+            </div>
+            <div style="background:#000; border:1px solid #333; border-radius:8px; padding:15px; flex:1;">
+                <input type="text" placeholder="CVC" style="background:none; border:none; color:white; width:100%; outline:none; text-align:center;">
+            </div>
+        </div>
+
+        <button onclick="processFakePayment()" style="width:100%; background:var(--accent); color:white; border:none; padding:15px; border-radius:12px; font-weight:bold; font-size:16px;">Pay Now</button>
+        
+        <div style="text-align:center; margin-top:15px; font-size:10px; color:#444;">
+            <span style="display:flex; align-items:center; justify-content:center; gap:5px;">🔒 Encrypted by Stripe</span>
+        </div>
+    </div>
+</div>
+
+
+
+
+
+        
 
     </div>
 </div>
@@ -1588,39 +1798,180 @@ window.requestLocation = function() {
 
     
 
-    window.initBackend = async function() {
-        const loading = document.getElementById('loading-overlay');
-        
-        try {
-            const userCred = await window.fbase.signInAnonymously(window.auth);
-            currentUserUid = userCred.user.uid;
-            console.log("Authenticated as:", currentUserUid);
-            localStorage.setItem('pgX_myUid', currentUserUid); 
-            
-            await checkAdminStatus(currentUserUid); 
-            await ensureUserProfile();
-
-        } catch (error) {
-            console.warn("Auth Failed:", error);
-            currentUserUid = localStorage.getItem('pgX_myUid') || 'anon_offline_' + Date.now();
-            localStorage.setItem('pgX_myUid', currentUserUid);
-            
-            await checkAdminStatus(currentUserUid);
-
-            if (!localStorage.getItem('pgX_alias')) {
-                 localStorage.setItem('pgX_alias', "Guest_" + Math.floor(Math.random()*1000));
-                 localStorage.setItem('my_profile_pic', "https://via.placeholder.com/120");
-            }
-        } finally {
-            renderDeck();
-            loading.style.display = 'none';
-        }
+window.initBackend = async function() {
+    const loading = document.getElementById('loading-overlay');
+    const isGuest = localStorage.getItem('pgX_guest') === 'true';
+    
+    // GUEST PATH
+    if (isGuest) {
+        console.log("Logged in as Guest");
+        document.body.classList.add('guest-mode');
+        loading.style.display = 'none';
+        renderDeck();
+        return;
     }
 
+    // USER PATH
+    try {
+        // Check if we have a stored UID
+        currentUserUid = localStorage.getItem('pgX_myUid');
+        
+        if (!currentUserUid) {
+            // No User found -> Kick to Index
+            window.location.href = "index.html"; 
+            return;
+        }
+
+        console.log("Authenticated as:", currentUserUid);
+        
+        // CHECK VERIFICATION STATUS
+        const userRef = window.fbase.doc(window.db, 'artifacts', window.APP_ID, 'public', 'data', 'users', currentUserUid);
+        const snap = await window.fbase.getDoc(userRef);
+        
+        if (snap.exists()) {
+            const data = snap.data();
+            
+            // Show Admin Button
+            if (data.isAdmin) document.getElementById('admin-panel-btn').style.display = 'block';
+            
+            // Check Verification
+            if (data.verificationStatus === 'pending') {
+                document.getElementById('verify-banner').style.display = 'block';
+            }
+        }
+
+        await ensureUserProfile();
+
+    } catch (error) {
+        console.warn("Auth Error:", error);
+    } finally {
+        renderDeck();
+        loading.style.display = 'none';
+    }
+}
 
 
 
 
+
+
+
+
+// --- ADMIN: LOAD VERIFICATION QUEUE ---
+window.loadVerificationQueue = async function() {
+    const container = document.getElementById('verify-queue-container');
+    container.innerHTML = '<div class="upload-spinner" style="margin:0 auto;"></div>';
+
+    try {
+        // 1. Query users where verificationStatus == 'pending'
+        // Note: You might need to create an index in Firebase Console for this query to work perfectly.
+        const usersRef = window.fbase.collection(window.db, 'artifacts', window.APP_ID, 'public', 'data', 'users');
+        const q = window.fbase.query(usersRef, window.fbase.where('verificationStatus', '==', 'pending'));
+        
+        const snapshot = await window.fbase.getDocs(q);
+
+        if (snapshot.empty) {
+            container.innerHTML = '<div style="text-align:center; color:#888;">No pending verifications.</div>';
+            return;
+        }
+
+        container.innerHTML = '';
+        snapshot.forEach(doc => {
+            const u = doc.data();
+            const legal = u.legal || {};
+            
+            const card = document.createElement('div');
+            card.style.background = '#000';
+            card.style.border = '1px solid #333';
+            card.style.padding = '10px';
+            card.style.borderRadius = '8px';
+            
+            card.innerHTML = `
+                <div style="display:flex; justify-content:space-between; margin-bottom:10px;">
+                    <strong style="color:white;">${u.alias}</strong>
+                    <span style="color:#F59E0B; font-size:12px;">PENDING</span>
+                </div>
+                
+                <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:5px; margin-bottom:10px;">
+                    <div style="text-align:center;">
+                        <img src="${legal.urlSelfie || ''}" style="width:100%; height:80px; object-fit:cover; border-radius:4px;" onclick="window.open(this.src)">
+                        <span style="font-size:10px; color:#888;">Selfie</span>
+                    </div>
+                    <div style="text-align:center;">
+                        <img src="${legal.urlFront || ''}" style="width:100%; height:80px; object-fit:cover; border-radius:4px;" onclick="window.open(this.src)">
+                        <span style="font-size:10px; color:#888;">ID Front</span>
+                    </div>
+                    <div style="text-align:center;">
+                        <img src="${legal.urlBack || ''}" style="width:100%; height:80px; object-fit:cover; border-radius:4px;" onclick="window.open(this.src)">
+                        <span style="font-size:10px; color:#888;">ID Back</span>
+                    </div>
+                </div>
+
+                <div style="font-size:12px; color:#ccc; margin-bottom:10px; background:#111; padding:5px;">
+                    <div><strong>Name:</strong> ${legal.fullName || 'N/A'}</div>
+                    <div><strong>Addr:</strong> ${legal.address || 'N/A'}</div>
+                    <div><strong>Phone:</strong> ${legal.phone || 'N/A'}</div>
+                </div>
+
+                <div style="display:flex; gap:10px;">
+                    <button onclick="adminDecision('${doc.id}', true)" style="flex:1; background:#10B981; color:white; border:none; padding:8px; border-radius:4px; font-weight:bold; cursor:pointer;">VERIFY & DELETE DATA</button>
+                    <button onclick="adminDecision('${doc.id}', false)" style="flex:1; background:#EF4444; color:white; border:none; padding:8px; border-radius:4px; font-weight:bold; cursor:pointer;">DENY</button>
+                </div>
+            `;
+            container.appendChild(card);
+        });
+
+    } catch (e) {
+        console.error("Admin Queue Error:", e);
+        container.innerHTML = `<div style="color:red;">Error loading queue: ${e.message}</div>`;
+    }
+}
+
+// --- ADMIN: DECISION HANDLER ---
+window.adminDecision = async function(uid, isApproved) {
+    if (!confirm(isApproved ? "Approve user? This will PERMANENTLY DELETE their ID photos and legal address from the server." : "Deny and block user?")) return;
+
+    try {
+        const userRef = window.fbase.doc(window.db, 'artifacts', window.APP_ID, 'public', 'data', 'users', uid);
+        
+        if (isApproved) {
+            // 1. Mark as Verified
+            // 2. DELETE the 'legal' object (Privary Fortress)
+            await window.fbase.updateDoc(userRef, {
+                verificationStatus: 'verified',
+                isVerified: true,
+                legal: window.fbase.deleteField() // This deletes the data field from Firestore
+            });
+            alert("User Verified. Sensitive data wiped.");
+        } else {
+            // Deny Logic
+            await window.fbase.updateDoc(userRef, {
+                verificationStatus: 'denied',
+                isBlocked: true
+            });
+            alert("User Denied.");
+        }
+
+        // Refresh Queue
+        loadVerificationQueue();
+
+    } catch (e) {
+        alert("Action failed: " + e.message);
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+    
 
 
 
@@ -1671,18 +2022,48 @@ window.requestLocation = function() {
             activeDeck = []; // Ensure empty
         }
         
-        // 3. DRAWING: Render Swipe View
-        if (activeDeck.length > 0) {
-            const u = activeDeck[0];
-            zone.innerHTML = `
-            <div class="swipe-card" id="active-card" onclick="window.openUserProfile('${u.alias}', ${u.age}, '${u.img}', '${u.id}')">
-                <img src="${u.img}">
-                <div class="card-header-overlay">
-                    <span class="card-alias">${u.alias}</span>
-                    <span class="card-age">${u.age}</span>
-                </div>
-            </div>`;
-            setTimeout(initSwipeHandlers, 50);
+         
+// ... inside renderDeck ...
+
+// CHECK: Does Current User want to see explicit content?
+// (You need to fetch 'currentUserData' globally or passed in)
+const showExplicit = localStorage.getItem('pgX_showExplicit') === 'true'; // Simple local check for speed
+
+if (activeDeck.length > 0) {
+    const u = activeDeck[0];
+    
+    // EXPLICIT FILTER LOGIC
+    if (u.isExplicit && !showExplicit) {
+        // Skip this card if user has Explicit OFF
+        activeDeck.shift(); 
+        renderDeck(); // Re-run to show next card
+        return;
+    }
+
+    // WARNING BADGE LOGIC
+    const warningBadge = (u.isExplicit && showExplicit) 
+        ? `<div class="explicit-badge"></div>` 
+        : '';
+
+    zone.innerHTML = `
+    <div class="swipe-card" id="active-card" onclick="window.openUserProfile('${u.alias}', ${u.age}, '${u.img}', '${u.id}')">
+        ${warningBadge} <img src="${u.img}">
+        <div class="card-header-overlay">
+            <span class="card-alias">${u.alias}</span>
+            <span class="card-age">${u.age}</span>
+        </div>
+    </div>`;
+    
+    setTimeout(initSwipeHandlers, 50);
+}
+// ... rest of function ...
+
+
+
+
+
+
+            
         } else {
             zone.innerHTML = getEmptyStateHTML();
         }
@@ -1733,6 +2114,31 @@ window.requestLocation = function() {
             else { card.style.transform = 'translateX(0)'; resetButtons(); }
         });
     }
+
+
+
+
+
+
+
+window.userSwipe = function(dir) {
+    // BLOCK GUESTS
+    if (document.body.classList.contains('guest-mode')) {
+        alert("Sign Up to Match & Chat!");
+        window.location.href = "index.html";
+        return;
+    }
+
+    // ... existing code ...
+
+
+
+
+    
+
+
+
+    
 
     window.userSwipe = function(dir) {
         if (!card) return;
@@ -2355,32 +2761,139 @@ updateConnectionStatus();
         }
     }
 
-    // 4. JOIN LOGIC
-    window.joinGlobalQueue = function() {
-        const btn = document.getElementById('btn-join-queue');
-        
-        // Visual Feedback
-        btn.innerText = "WAITING FOR ROUND...";
-        btn.style.background = "#333";
-        btn.style.color = "#aaa";
-        btn.disabled = true;
-        
-        isQueueJoined = true;
 
-        // Add "Me" to the top of the list
+
+
+
+    // --- SPEED DATING ENGINE ---
+
+// 1. JOIN QUEUE (With Security & Limits)
+window.joinGlobalQueue = async function() {
+    const btn = document.getElementById('btn-join-queue');
+    
+    // A. BLOCK GUESTS
+    if (localStorage.getItem('pgX_guest') === 'true') {
+        alert("🔒 Guest Mode Restricted.\nCreate an account to join Speed Dating.");
+        return;
+    }
+
+    // B. CHECK DAILY LIMIT (The Hook)
+    // We pass 'speed_date' to the limit checker we built in Phase 3
+    const allowed = await window.checkDailyLimit('speed_date');
+    if (!allowed) return;
+
+    // C. UI UPDATE
+    btn.innerText = "VERIFYING TICKET...";
+    btn.style.opacity = "0.5";
+
+    try {
+        // D. ADD TO FIRESTORE QUEUE
+        // We use a 'composite key' of RoundID + UserID to prevent duplicates
+        const roundId = getCurrentRoundId(); 
+        const queueRef = window.fbase.doc(window.db, 'artifacts', window.APP_ID, 'public', 'data', `queue_${roundId}`, currentUserUid);
+        
+        await window.fbase.setDoc(queueRef, {
+            uid: currentUserUid,
+            alias: localStorage.getItem('pgX_alias'),
+            img: localStorage.getItem('my_profile_pic'),
+            joinedAt: window.fbase.serverTimestamp(),
+            tier: 'standard' // You can fetch real tier here
+        });
+
+        // E. SUCCESS STATE
+        isQueueJoined = true;
+        btn.innerText = "YOU ARE IN LINE";
+        btn.style.background = "#10B981"; // Green
+        btn.onclick = null; // Prevent double click
+        
+        // Add visual chip to top of list
         const list = document.getElementById('lounge-queue');
         const myChip = document.createElement('div');
         myChip.className = 'user-chip';
-        myChip.style.border = '1px solid var(--accent)';
+        myChip.style.border = '1px solid #10B981';
         myChip.innerHTML = `
-            <img src="${localStorage.getItem('my_profile_pic') || 'https://via.placeholder.com/40'}" class="chip-img">
-            <div class="chip-info">
-                <span class="chip-name">You (Pending)</span>
-                <span class="chip-status">Ready to Match</span>
-            </div>
+            <img src="${localStorage.getItem('my_profile_pic')}" class="chip-img">
+            <div class="chip-info"><span class="chip-name">You</span><span class="chip-status" style="color:#10B981">Confirmed</span></div>
         `;
         list.prepend(myChip);
+
+    } catch (e) {
+        console.error(e);
+        alert("Queue Error: " + e.message);
+        btn.innerText = "TRY AGAIN";
+        btn.style.opacity = "1";
     }
+}
+
+// 2. MINIMIZE LOUNGE (Show Floating Timer)
+window.closeLounge = function() {
+    document.getElementById('speed-lounge').style.display = 'none';
+    
+    // Only show floating bubble if we are actually in the queue
+    if (isQueueJoined) {
+        document.getElementById('floating-timer-bubble').style.display = 'flex';
+    }
+}
+
+// 3. RESTORE LOUNGE
+window.openSpeedIntro = function() {
+    document.getElementById('speed-lounge').style.display = 'block';
+    document.getElementById('floating-timer-bubble').style.display = 'none';
+    
+    // Restart timers if needed
+    if (!loungeInterval) startGlobalTimer();
+    if (!queueSimulator) startQueueSimulation();
+}
+
+// 4. ROUND ID GENERATOR (Groups users by 10-minute blocks)
+function getCurrentRoundId() {
+    const now = Date.now();
+    const interval = 10 * 60 * 1000; // 10 Minutes
+    const roundTimestamp = Math.ceil(now / interval) * interval;
+    return "R_" + roundTimestamp;
+}
+
+// 5. GLOBAL TIMER (Updates Logic)
+function startGlobalTimer() {
+    const timerEl = document.getElementById('global-countdown');
+    const miniTimerEl = document.getElementById('mini-timer');
+    
+    updateTimer();
+    loungeInterval = setInterval(updateTimer, 1000);
+
+    function updateTimer() {
+        const now = Date.now();
+        const interval = 10 * 60 * 1000;
+        const nextRound = Math.ceil(now / interval) * interval;
+        const diff = nextRound - now;
+
+        // TRANSITION LOGIC
+        if (diff <= 0) {
+            // If user is in queue -> GO
+            if (isQueueJoined) {
+                clearInterval(loungeInterval);
+                window.location.href = "speed_dating.html";
+            } else {
+                // Round reset, wait for next
+            }
+        }
+
+        // FORMAT TIME
+        const m = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+        const s = Math.floor((diff % (1000 * 60)) / 1000);
+        const timeStr = `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
+        
+        if(timerEl) timerEl.innerText = timeStr;
+        if(miniTimerEl) miniTimerEl.innerText = timeStr;
+    }
+}
+
+    
+
+
+
+
+    
 
     // 5. QUEUE SIMULATION (Creates "Fake" Activity)
     function startQueueSimulation() {
@@ -2412,6 +2925,11 @@ updateConnectionStatus();
         chip.innerHTML = `
             <img src="https://i.pravatar.cc/150?u=${Math.random()}" class="chip-img">
             <div class="chip-info">
+ 
+                
+                
+                
+                
                 <span class="chip-name">${name}</span>
                 <span class="chip-status">Just Joined</span>
             </div>
@@ -2523,6 +3041,109 @@ window.sendWink = function(id) {
 
 
 
+// --- 1. ANTI-LEAKAGE TEXT SCANNER ---
+function scanAndSanitize(text) {
+    let flagged = false;
+    let cleanText = text;
+
+    // PATTERNS
+    const phonePattern = /\b(?:\+?1[-.]?)?\(?([0-9]{3})\)?[-. ]?([0-9]{3})[-. ]?([0-9]{4})\b/g;
+    const emailPattern = /[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/g;
+    const socialKeywords = /(snapchat|insta|kik|telegram|whatsapp|wickr|@)/gi;
+
+    // CHECK & REDACT
+    if (phonePattern.test(text) || emailPattern.test(text) || socialKeywords.test(text)) {
+        flagged = true;
+        cleanText = text.replace(phonePattern, "***-***-****")
+                        .replace(emailPattern, "[REDACTED EMAIL]")
+                        .replace(socialKeywords, "[REDACTED]");
+    }
+
+    return { text: cleanText, flagged: flagged };
+}
+
+// --- 2. ROBUST SAVE PROFILE (Replaces old saveProfile) ---
+window.saveProfile = async function() {
+    const btn = document.querySelector('#profile-modal button[onclick="saveProfile()"]');
+    btn.innerText = "Saving...";
+    
+    try {
+        // A. GET TEXT INPUTS
+        const rawAlias = document.getElementById('p-alias').value;
+        const rawBio = document.getElementById('p-bio').value;
+        const age = parseInt(document.getElementById('p-age').value) || 21;
+        const isExplicit = document.getElementById('p-explicit').checked;
+
+        // B. RUN SAFETY SCAN
+        const safeAlias = scanAndSanitize(rawAlias);
+        const safeBio = scanAndSanitize(rawBio);
+
+        // C. PREPARE UPDATES
+        let updates = {
+            alias: safeAlias.text,
+            bio: safeBio.text,
+            age: age,
+            isExplicit: isExplicit,
+            lastSeen: window.fbase.serverTimestamp()
+        };
+
+        // IF FLAGGED -> MARK ACCOUNT
+        if (safeAlias.flagged || safeBio.flagged) {
+            updates.isFlagged = true;
+            updates.flagReason = "Leakage Attempt";
+            alert("⚠️ Warning: Contact info is not allowed in public profiles. Your bio has been redacted and account flagged for review.");
+        }
+
+        // D. SMART GALLERY UPLOAD (Slots 1-4)
+        // Main Profile Pic (Slot 0)
+        const fileMain = document.getElementById('main-up').files[0];
+        if (fileMain) updates.img = await uploadToSlot(fileMain, 'main');
+
+        // Gallery Slots
+        const fileG2 = document.getElementById('g2').files[0];
+        if (fileG2) updates['gallery.slot2'] = await uploadToSlot(fileG2, 'slot2');
+
+        const fileG3 = document.getElementById('g3').files[0];
+        if (fileG3) updates['gallery.slot3'] = await uploadToSlot(fileG3, 'slot3');
+
+        const fileG4 = document.getElementById('g4').files[0];
+        if (fileG4) updates['gallery.slot4'] = await uploadToSlot(fileG4, 'slot4');
+
+        // E. VIDEO UPLOAD (With Size Limit)
+        const fileVid = document.getElementById('vid-up').files[0];
+        if (fileVid) {
+            if (fileVid.size > 50 * 1024 * 1024) { // 50MB Limit
+                alert("Profile Video is too large (Max 50MB). Skipped.");
+            } else {
+                updates.videoProfile = await uploadToSlot(fileVid, 'video_profile');
+            }
+        }
+
+        // F. SAVE TO DB
+        const userRef = window.fbase.doc(window.db, 'artifacts', window.APP_ID, 'public', 'data', 'users', currentUserUid);
+        await window.fbase.updateDoc(userRef, updates);
+
+        alert("Profile Updated Successfully!");
+        document.getElementById('profile-modal').style.display = 'none';
+        btn.innerText = "Save";
+        
+        // Refresh Deck to show changes
+        if(window.renderDeck) renderDeck();
+
+    } catch (e) {
+        console.error(e);
+        alert("Save Failed: " + e.message);
+        btn.innerText = "Save";
+    }
+}
+
+// HELPER: Upload to specific path
+async function uploadToSlot(file, slotName) {
+    const path = `profiles/${currentUserUid}/${slotName}_${Date.now()}`;
+    const storageRef = window.fbase.ref(window.storage, path);
+    const snap = await window.fbase.uploadBytes(storageRef, file);
+    return await window.fbase.getDownloadURL(snap.ref);
+}
 
 
     
@@ -2545,8 +3166,22 @@ window.sendWink = function(id) {
     initBackend();
 });
 </script>
+
+
+
+
+
+<div id="floating-timer-bubble" onclick="window.openSpeedIntro()" style="display:none;">
+    <div style="font-size:10px; font-weight:bold; color:#888;">NEXT DATE</div>
+    <div id="mini-timer" style="font-size:18px; font-weight:900; color:white;">00:00</div>
+    <div class="pulse-dot"></div>
+</div>
+
+
+    
 </body>
 </html>
+
 
 
 
