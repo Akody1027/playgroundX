@@ -21,7 +21,7 @@
             --bg-dark: #121212;
             --card-dark: #1E1E1E;
             --text-main: #E5E7EB;
-            --text-dim: #9CA3AF;
+            --text-dim: #9CA3AF; 
             --btn-dim: grey;
             --btnfont: white;
         }
@@ -2119,15 +2119,6 @@ if (activeDeck.length > 0) {
 
 
 
-window.userSwipe = function(dir) {
-    // BLOCK GUESTS
-    if (document.body.classList.contains('guest-mode')) {
-        alert("Sign Up to Match & Chat!");
-        window.location.href = "index.html";
-        return;
-    }
-
-    // ... existing code ...
 
 
 
@@ -2137,8 +2128,6 @@ window.userSwipe = function(dir) {
         // 1. BLOCK GUESTS
         if (document.body.classList.contains('guest-mode')) {
             alert("Sign Up to Match & Chat!");
-            // Optional: Redirect to login if they try to swipe
-            // window.location.href = "index.html"; 
             return;
         }
 
@@ -2189,6 +2178,7 @@ window.userSwipe = function(dir) {
             }
         }, 300);
     }
+
 
 
 
@@ -3240,6 +3230,7 @@ async function uploadToSlot(file, slotName) {
     
 </body>
 </html>
+
 
 
 
