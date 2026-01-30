@@ -3165,6 +3165,69 @@ async function uploadToSlot(file, slotName) {
     // START
     initBackend();
 });
+
+
+
+
+
+
+
+// --- MONETIZATION & LIMITS (PASTE AT BOTTOM OF SCRIPT) ---
+window.checkDailyLimit = async function(actionType) {
+    if (!currentUserUid) return false;
+
+    // 1. Fetch user data
+    const userRef = window.fbase.doc(window.db, 'artifacts', window.APP_ID, 'public', 'data', 'users', currentUserUid);
+    const snap = await window.fbase.getDoc(userRef);
+    
+    if (!snap.exists()) return true; // Safety check
+    const u = snap.data();
+    
+    // 2. PREMIUM / UPGRADED: No Limits
+    if (u.tier === 'premium' || u.tier === 'upgraded') return true;
+
+    // 3. DAY RESET LOGIC
+    const today = new Date().toDateString();
+    if (u.lastActionDate !== today) {
+        // New day? Reset all counters
+        await window.fbase.updateDoc(userRef, {
+            dailyMsgCount: 0,
+            dailySpeedDateCount: 0,
+            lastActionDate: today
+        });
+        return true;
+    }
+
+    // 4. CHECK MSG LIMIT (3 per day)
+    if (actionType === 'message') {
+        if ((u.dailyMsgCount || 0) >= 3) {
+            alert("Daily Limit Reached! Upgrade to keep chatting.");
+            // Open Wallet
+            window.openModal('profile-modal');
+            document.getElementById('tab-btn-wallet').click();
+            return false;
+        }
+        await window.fbase.updateDoc(userRef, { dailyMsgCount: window.fbase.increment(1) });
+    }
+
+    // 5. CHECK SPEED DATE LIMIT (1 per day)
+    if (actionType === 'speed_date') {
+        if ((u.dailySpeedDateCount || 0) >= 1) {
+            alert("You used your 1 Free Date today! Upgrade for unlimited access.");
+            // Open Wallet
+            window.openModal('profile-modal');
+            document.getElementById('tab-btn-wallet').click();
+            return false;
+        }
+        await window.fbase.updateDoc(userRef, { dailySpeedDateCount: window.fbase.increment(1) });
+    }
+
+    return true;
+}
+
+
+
+    
 </script>
 
 
@@ -3181,6 +3244,7 @@ async function uploadToSlot(file, slotName) {
     
 </body>
 </html>
+
 
 
 
