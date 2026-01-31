@@ -42,8 +42,9 @@
 
         /* --- SCROLLABLE LANDING WRAPPER --- */
 #landing-module {
-    position: fixed; inset: 0; z-index: 20;
-    background: transparent; /* This must stay transparent */
+    position: fixed; inset: 0; 
+    z-index: 5; /* Lowered from 20 to 5 */
+    background: transparent;
     overflow-y: auto; 
     scroll-behavior: smooth;
     transition: transform 0.6s cubic-bezier(0.16, 1, 0.3, 1);
@@ -120,11 +121,15 @@
         .f-desc { font-size: 14px; color: var(--text-gray); line-height: 1.6; }
 
         /* --- LOGIN OVERLAY --- */
-        #login-layer {
-            position: fixed; inset: 0; z-index: 10;
-            display: flex; align-items: center; justify-content: center;
-            background: url('https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?q=80&w=2564&auto=format&fit=crop') center/cover;
-        }
+#login-layer {
+    position: fixed; inset: 0; 
+    z-index: 100; /* Raised to 100 to sit on top */
+    display: none; /* Hidden by default to see the image */
+    align-items: center; justify-content: center;
+    background: url('https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?q=80&w=2564&auto=format&fit=crop') center/cover;
+}
+/* This makes it appear when you click the button */
+#login-layer.login-visible { display: flex; }
         .login-backdrop { position: absolute; inset: 0; background: rgba(0,0,0,0.92); backdrop-filter: blur(20px); }
         
         .login-card {
@@ -457,6 +462,7 @@
     </script>
 </body>
 </html>
+
 
 
 
