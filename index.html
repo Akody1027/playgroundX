@@ -151,7 +151,7 @@
 .login-card {
             position: relative; 
             width: 100%; 
-            max-width: 400px; 
+            max-width: 450px; 
             padding: 40px;
             background: #050505; 
             border: 1px solid #222; 
@@ -159,7 +159,7 @@
             box-shadow: 0 50px 100px rgba(0,0,0,0.8);
             
             /* --- PREVENTS SCREEN OVERFLOW --- */
-            max-height: 85vh; /* Never taller than 85% of screen */
+            max-height: 90vh; /* Never taller than 85% of screen */
             overflow-y: auto; /* Scroll inside the card if needed */
             display: flex;
             flex-direction: column;
@@ -175,7 +175,7 @@
         
         @media (max-width: 480px) {
             .login-card {
-                padding: 25px; /* Tighter padding on mobile */
+                padding: 20px; /* Tighter padding on mobile */
                 width: 90%; /* Give it some breathing room on sides */
             }
         }
@@ -705,6 +705,7 @@ window.finishOnboarding = async () => {
     </script>
 </body>
 </html>
+
 
 
 
