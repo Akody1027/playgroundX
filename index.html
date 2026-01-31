@@ -30,20 +30,23 @@
         }
 
 
-        .hero, .features-grid {
-            background: var(--bg-main) !important;
-        }
+.hero, .features-grid {
+    background: #030303 !important; /* Ensure this is solid black */
+    position: relative;
+    z-index: 2;
+}
 
 
         
 
         /* --- SCROLLABLE LANDING WRAPPER --- */
-        #landing-module {
-            position: fixed; inset: 0; z-index: 20;
-            background: transparent;
-            overflow-y: auto; scroll-behavior: smooth;
-            transition: transform 0.6s cubic-bezier(0.16, 1, 0.3, 1);
-        }
+#landing-module {
+    position: fixed; inset: 0; z-index: 20;
+    background: transparent; /* This must stay transparent */
+    overflow-y: auto; 
+    scroll-behavior: smooth;
+    transition: transform 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+}
         #landing-module.slide-up { transform: translateY(-100%); }
         
         #landing-module::-webkit-scrollbar { width: 6px; }
@@ -453,6 +456,7 @@
     </script>
 </body>
 </html>
+
 
 
 
