@@ -29,10 +29,18 @@
             height: 100vh; overflow: hidden;
         }
 
+
+        .hero, .features-grid {
+            background: var(--bg-main) !important;
+        }
+
+
+        
+
         /* --- SCROLLABLE LANDING WRAPPER --- */
         #landing-module {
             position: fixed; inset: 0; z-index: 20;
-            background: var(--bg-main);
+            background: transparent;
             overflow-y: auto; scroll-behavior: smooth;
             transition: transform 0.6s cubic-bezier(0.16, 1, 0.3, 1);
         }
@@ -450,6 +458,7 @@
     </script>
 </body>
 </html>
+
 
 
 
