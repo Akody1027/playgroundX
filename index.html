@@ -30,10 +30,11 @@
         }
 
 
-.hero, .features-grid {
-    background: #030303 !important; /* Ensure this is solid black */
+/* Update this block */
+.hero, .features-grid, nav {
+    background: #030303 !important; 
     position: relative;
-    z-index: 2;
+    z-index: 5; /* Moves these sections to the front */
 }
 
 
@@ -201,8 +202,8 @@
 </head>
 <body>
 
-<div style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: -1; overflow: hidden;">
-    <img src="bgplay.png" style="width: 100%; height: 100%; object-fit: cover;" alt="background">
+<div style="position: fixed; inset: 0; z-index: 1; pointer-events: none;">
+    <img src="bgplay.png" style="width: 100%; height: 100%; object-fit: cover;">
 </div>
 
 
@@ -456,6 +457,7 @@
     </script>
 </body>
 </html>
+
 
 
 
