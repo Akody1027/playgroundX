@@ -59,7 +59,7 @@
 
         /* HERO */
         .hero {
-            padding-top:20px;
+            padding: 100px 20px 60px 20px;
             text-align: center;
             background: radial-gradient(circle at 50% 0%, #1e1035 0%, #030303 70%);
         }
@@ -69,13 +69,13 @@
             border: 1px solid var(--primary); padding: 5px 15px; border-radius: 20px;
         }
         .hero h1 {
-            font-size: clamp(48px, 6vw, 80px); font-weight: 800; line-height: 1.0;
+            font-size: clamp(40px, 6vw, 80px); font-weight: 800; line-height: 1.1;
             margin-bottom: 30px; letter-spacing: -2px;
             background: linear-gradient(180deg, #fff 20%, #666 100%);
             -webkit-background-clip: text; -webkit-text-fill-color: transparent;
         }
         .hero p {
-            font-size: 18px; color: var(--text-gray); max-width: 650px; margin: 0 auto 50px auto;
+            font-size: 18px; color: var(--text-gray); max-width: 600px; margin: 0 auto 40px auto;
             line-height: 1.6; font-weight: 300;
         }
         .btn-glow {
@@ -84,6 +84,28 @@
             box-shadow: 0 0 30px rgba(255, 255, 255, 0.1); transition: 0.3s;
         }
         .btn-glow:hover { transform: translateY(-2px); box-shadow: 0 0 50px rgba(255, 255, 255, 0.3); }
+
+        /* --- NEW FEATURE GRID --- */
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            padding: 40px;
+            max-width: 1200px;
+            margin: 0 auto 100px auto;
+        }
+        .f-card {
+            background: var(--bg-card);
+            border: 2px dashed var(--primary);
+            
+            padding: 30px;
+            border-radius: 24px;
+            transition: 0.3s;
+        }
+        .f-card:hover { border-color: var(--primary); transform: translateY(-5px); }
+        .f-icon { font-size: 32px; margin-bottom: 20px; display: block; }
+        .f-title { font-size: 20px; font-weight: 700; margin-bottom: 12px; color: white; }
+        .f-desc { font-size: 14px; color: var(--text-gray); line-height: 1.6; }
 
         /* --- LOGIN OVERLAY --- */
         #login-layer {
@@ -195,12 +217,46 @@
             <div class="brand">playground<span>X</span></div>
             <button class="nav-btn" onclick="revealLogin()">MEMBER ACCESS</button>
         </nav>
+
         <header class="hero">
-            <div class="tagline">Come Play</div>
-            <h1>The Adult Playground<br>for Real Connection.</h1>
-            <p>High-fidelity, verified video dating for adults who value chemistry.</p>
+            <div class="tagline">The Future of Dating</div>
+            <h1>A Playground for<br>Real Connections.</h1>
+            <p>High-fidelity, verified video dating. Browse by vibe, join live events, and meet people who are active right now.</p>
             <button class="btn-glow" onclick="revealLogin()">Apply for Access</button>
         </header>
+
+        <section class="features-grid">
+            <div class="f-card">
+                <span class="f-icon">🧭</span>
+                <div class="f-title">Triple Discovery</div>
+                <div class="f-desc">Don't get locked into one view. Choose between a Swipe Deck, a Photo Grid, or an Interactive Map to find your match.</div>
+            </div>
+            <div class="f-card">
+                <span class="f-icon">⚡</span>
+                <div class="f-title">The Speed Lounge</div>
+                <div class="f-desc">Join global 10-minute matching rounds. No ghost towns—everyone is online and ready to chat at the same time.</div>
+            </div>
+            <div class="f-card">
+                <span class="f-icon">🎥</span>
+                <div class="f-title">Video-First Feed</div>
+                <div class="f-desc">See movement, hear voices, and catch the vibe. Static photos are a thing of the past; real people move.</div>
+            </div>
+            <div class="f-card">
+                <span class="f-icon">🎁</span>
+                <div class="f-title">Live Studio</div>
+                <div class="f-desc">Watch live broadcasts, send virtual gifts, and showcase your personality beyond just a profile picture.</div>
+            </div>
+            <div class="f-card">
+                <span class="f-icon">😉</span>
+                <div class="f-title">Instant Connect</div>
+                <div class="f-desc">Break the ice with a "Wink." A low-pressure way to show interest without the stress of the perfect opening line.</div>
+            </div>
+            <div class="f-card">
+                <span class="f-icon">🛡️</span>
+                <div class="f-title">AI-Powered Safety</div>
+                <div class="f-desc">Verified IDs and real-time moderation ensure a safe playground for adults to be themselves.</div>
+            </div>
+        </section>
     </div>
 
     <div id="login-layer">
@@ -348,7 +404,3 @@
     </script>
 </body>
 </html>
-
-
-
-
