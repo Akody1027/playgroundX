@@ -32,7 +32,6 @@
 
 /* Update this block */
 .hero, .features-grid, nav {
-    background: #030303 !important; 
     position: relative;
     z-index: 5; /* Moves these sections to the front */
 }
@@ -58,7 +57,7 @@
         nav {
             display: flex; justify-content: space-between; align-items: center;
             padding: 20px 40px; position: sticky; top: 0;
-            background: rgba(3,3,3,0.9); backdrop-filter: blur(12px);
+             backdrop-filter: blur(12px);
             z-index: 50; border-bottom: 1px solid var(--border);
         }
         .brand { font-weight: 800; font-size: 22px; letter-spacing: -1px; }
@@ -122,16 +121,16 @@
         .f-desc { font-size: 14px; color: var(--text-gray); line-height: 1.6; }
 
         /* --- LOGIN OVERLAY --- */
-#login-layer {
-    position: fixed; inset: 0; 
-    z-index: 100; /* Raised to 100 to sit on top */
-    display: none; /* Hidden by default to see the image */
-    align-items: center; justify-content: center;
-    background: url('https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?q=80&w=2564&auto=format&fit=crop') center/cover;
-}
-/* This makes it appear when you click the button */
-#login-layer.login-visible { display: flex; }
-        .login-backdrop { position: absolute; inset: 0; background: rgba(0,0,0,0.92); backdrop-filter: blur(20px); }
+        #login-layer {
+         position: fixed; inset: 0; 
+         z-index: 100; /* Raised to 100 to sit on top */
+         display: none; /* Hidden by default to see the image */
+          align-items: center; justify-content: center;
+          background: url('https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?q=80&w=2564&auto=format&fit=crop') center/cover;
+         }
+         /* This makes it appear when you click the button */
+         #login-layer.login-visible { display: flex; }
+         .login-backdrop { position: absolute; inset: 0; background: rgba(0,0,0,0.92); backdrop-filter: blur(20px); }
         
         .login-card {
             position: relative; width: 100%; max-width: 400px; padding: 40px;
@@ -560,6 +559,7 @@
     </script>
 </body>
 </html>
+
 
 
 
