@@ -539,19 +539,43 @@
             setTimeout(() => document.getElementById(next).classList.add('active'), 100);
         };
 
-        window.finishOnboarding = async () => {
+window.finishOnboarding = async () => {
             const front = document.getElementById('id-front').files[0];
             const selfie = document.getElementById('selfie-upload').files[0];
-            if(!front || !selfie) return;
+            const btn = document.querySelector('#step-selfie button'); // Grab the button
+
+            // 1. Check if files exist BEFORE doing anything
+            if(!front || !selfie) {
+                alert("Please ensure both your ID and Selfie are uploaded.");
+                return;
+            }
+
+            // 2. Change UI to "Loading" state
+            btn.innerText = "VERIFYING..."; 
+            btn.style.opacity = "0.7";
+            btn.disabled = true; // Stop them from clicking again
 
             try {
+                // 3. Perform the heavy lifting
                 const frontUrl = await upload(front, `verification/${currentUser.uid}/id_front.jpg`);
                 const selfieUrl = await upload(selfie, `verification/${currentUser.uid}/selfie.jpg`);
+                
                 await setDoc(doc(db, 'artifacts', 'playgroundX_Prod_v1', 'public', 'data', 'users', currentUser.uid), {
-                    idVerified: 'pending', idPhotoUrl: frontUrl, selfieUrl
+                    idVerified: 'pending', 
+                    idPhotoUrl: frontUrl, 
+                    selfieUrl: selfieUrl
                 }, {merge: true});
+
+                // 4. Success! Move to next screen
                 wizardNext('step-selfie', 'step-success');
-            } catch(e) { alert(e.message); }
+
+            } catch(e) { 
+                // 5. If it fails, reset the button so they can try again
+                alert("Upload failed: " + e.message);
+                btn.innerText = "SUBMIT";
+                btn.style.opacity = "1";
+                btn.disabled = false;
+            }
         };
 
         async function upload(file, path) {
@@ -570,6 +594,7 @@
     </script>
 </body>
 </html>
+
 
 
 
