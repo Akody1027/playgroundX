@@ -4,6 +4,21 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>playgroundX</title>
+
+<title>playgroundX</title>
+    <script>
+        document.addEventListener("DOMContentLoaded", () => {
+            // Check if user previously clicked Member Access
+            if (localStorage.getItem("pgX_member_active") === "true") {
+                const landing = document.getElementById('landing-module');
+                const login = document.getElementById('login-layer');
+                if (landing && login) {
+                    landing.classList.add('slide-up');
+                    login.classList.add('login-visible');
+                }
+            }
+        });
+    </script>
     <meta name="theme-color" content="#030303">
     <link rel="manifest" href="manifest.json">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;800&display=swap" rel="stylesheet">
@@ -470,11 +485,13 @@
         let currentUser = null;
 
         window.revealLogin = () => {
+            localStorage.setItem("pgX_member_active", "true"); // Saves the flag
             document.getElementById('landing-module').classList.add('slide-up');
             document.getElementById('login-layer').classList.add('login-visible');
         };
 
         window.showLanding = () => {
+            localStorage.removeItem("pgX_member_active"); // Clears the flag so they aren't stuck
             document.getElementById('landing-module').classList.remove('slide-up');
             document.getElementById('login-layer').classList.remove('login-visible');
         };
@@ -553,6 +570,7 @@
     </script>
 </body>
 </html>
+
 
 
 
