@@ -176,6 +176,16 @@
         .w-desc { color: #888; font-size: 14px; line-height: 1.6; margin-bottom: 30px; }
         .file-drop { width: 100%; border: 2px dashed #333; border-radius: 12px; padding: 15px; margin-bottom: 10px; color: #666; cursor: pointer; }
         .btn-wizard { background: var(--primary); color: white; border: none; padding: 15px 40px; border-radius: 50px; font-weight: bold; cursor: pointer; margin-top: 20px; }
+ 
+    
+    hr{
+
+        width:80%;
+        color:var(--primary);
+    }
+
+        
+    
     </style>
 </head>
 <body>
@@ -183,13 +193,13 @@
     <div id="wizard-overlay">
         <div class="wizard-container">
             <div id="step-safety" class="w-step active">
-                <div class="w-icon">🛡️</div>
+                <div class="w-icon"></div>
                 <div class="w-title">The Safety Oath</div>
                 <div class="w-desc">Zero-tolerance for solicitation or harassment. Proceed to build our fortress.</div>
                 <button class="btn-wizard" onclick="wizardNext('step-safety', 'step-id')">I AGREE</button>
             </div>
             <div id="step-id" class="w-step">
-                <div class="w-icon">🪪</div>
+                <div class="w-icon"></div>
                 <div class="w-title">Identity Check</div>
                 <div class="w-desc">Upload front and back of your ID. Deleted after verification.</div>
                 <input type="file" id="id-front" class="file-drop" accept="image/*">
@@ -197,14 +207,14 @@
                 <button class="btn-wizard" onclick="wizardNext('step-id', 'step-selfie')">CONTINUE</button>
             </div>
             <div id="step-selfie" class="w-step">
-                <div class="w-icon">✌️</div>
+                <div class="w-icon"></div>
                 <div class="w-title">Liveness Check</div>
                 <div class="w-desc">Take a selfie holding a Peace Sign.</div>
                 <input type="file" id="selfie-upload" class="file-drop" accept="image/*" capture="user">
                 <button class="btn-wizard" onclick="finishOnboarding()">SUBMIT</button>
             </div>
             <div id="step-success" class="w-step">
-                <div class="w-icon">🎉</div>
+                <div class="w-icon"></div>
                 <div class="w-title">Verified.</div>
                 <div class="w-desc">Your profile is in the queue. Limited access granted immediately.</div>
                 <button class="btn-wizard" onclick="enterApp()">ENTER LOUNGE</button>
@@ -225,6 +235,10 @@
             <button class="btn-glow" onclick="revealLogin()">Apply for Access</button>
         </header>
 
+
+
+<hr/>
+        
         <section class="features-grid">
             <div class="f-card">
                 <span class="f-icon">🧭</span>
@@ -404,3 +418,4 @@
     </script>
 </body>
 </html>
+
