@@ -400,7 +400,17 @@
 .connection-dot.online { background: #10B981; }
 .connection-dot.offline { background: #EF4444; }
 
-.user-icon-wrapper { position: relative; cursor: pointer; display: flex; align-items: center; }
+.user-icon-wrapper { 
+    position: relative; 
+    cursor: pointer; 
+    display: flex; 
+    align-items: center; 
+    justify-content: center; /* Centers the image */
+    width: 30px;  /* FIXED WIDTH */
+    height: 30px; /* FIXED HEIGHT */
+    border-radius: 50%; /* Ensures circle shape */
+    overflow: hidden; /* Crops any excess image */
+}
 
 .upload-status { display: none; align-items: center; gap: 8px; background: #222; padding: 5px 10px; border-radius: 20px; font-size: 12px; font-weight: bold; border: 1px solid #333; margin-right: 10px; }
 .upload-spinner { width: 14px; height: 14px; border: 2px solid #555; border-top-color: var(--accent); border-radius: 50%; animation: spin 1s linear infinite; }
@@ -2547,6 +2557,7 @@ window.sendWink = function(id) {
 </script>
 </body>
 </html>
+
 
 
 
