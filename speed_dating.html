@@ -81,14 +81,7 @@
         const db = getFirestore(app);
         const APP_ID = "playgroundX_Prod_v1";
 
-        // --- GATEKEEPER ---
-        const uid = localStorage.getItem('pgX_myUid');
-        const isGuest = localStorage.getItem('pgX_guest') === 'true';
-
-        if (!uid || isGuest) {
-            alert("Access Denied. Please Sign In.");
-            window.location.href = "index.html";
-        }
+        
 
         // --- MATCHING ENGINE ---
         async function findMatch() {
@@ -194,3 +187,4 @@
 
 </body>
 </html>
+
