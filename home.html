@@ -1666,25 +1666,62 @@ window.requestLocation = function() {
 
 
 
-    
-
     async function ensureUserProfile() {
+        // 1. Reference the specific user document in Firestore
         const userRef = window.fbase.doc(window.db, 'artifacts', window.APP_ID, 'public', 'data', 'users', currentUserUid);
-        const storedAlias = localStorage.getItem('pgX_alias');
-        if (!storedAlias) {
-             const defaultAlias = "User_" + Math.floor(Math.random() * 1000);
-             await window.fbase.setDoc(userRef, {
-                 alias: defaultAlias,
-                 age: 21,
-                 bio: "New member",
-                 img: "https://via.placeholder.com/120",
-                 joinedAt: window.fbase.serverTimestamp()
-             }, { merge: true });
-             
-             localStorage.setItem('pgX_alias', defaultAlias);
-             localStorage.setItem('my_profile_pic', "https://via.placeholder.com/120");
+        
+        try {
+            // 2. ASK FIREBASE: "Does this user exist?"
+            const snap = await window.fbase.getDoc(userRef);
+
+            if (snap.exists()) {
+                // --- CASE A: EXISTING USER ---
+                // The user is already in the database. Let's pull their real data.
+                const data = snap.data();
+                console.log("Profile loaded from DB:", data.alias);
+
+                // 1. Update Local Storage (Sync Cache)
+                if (data.alias) localStorage.setItem('pgX_alias', data.alias);
+                if (data.bio) localStorage.setItem('pgX_bio', data.bio);
+                if (data.img) localStorage.setItem('my_profile_pic', data.img);
+
+                // 2. UPDATE HEADER IMMEDIATELY
+                // This ensures the image appears even if you reloaded or cleared cache
+                if (data.img) {
+                    const headerIcon = document.getElementById('user-icon-trigger');
+                    if (headerIcon) {
+                        headerIcon.innerHTML = `
+                            <img src="${data.img}" style="width:100%; height:100%; border-radius:50%; object-fit:cover;">
+                            <div id="connection-dot" class="connection-dot ${navigator.onLine ? 'online' : 'offline'}"></div>
+                        `;
+                    }
+                }
+
+            } else {
+                // --- CASE B: NEW USER ---
+                // User does not exist in DB. Create them now.
+                console.log("Creating new user profile...");
+                
+                const defaultAlias = "User_" + Math.floor(Math.random() * 1000);
+                const defaultImg = "https://via.placeholder.com/120";
+
+                await window.fbase.setDoc(userRef, {
+                    alias: defaultAlias,
+                    age: 21,
+                    bio: "New member",
+                    img: defaultImg,
+                    joinedAt: window.fbase.serverTimestamp()
+                });
+                
+                // Set Defaults
+                localStorage.setItem('pgX_alias', defaultAlias);
+                localStorage.setItem('my_profile_pic', defaultImg);
+            }
+        } catch (e) {
+            console.error("Profile check failed:", e);
         }
     }
+
 
     // --- 2. DECK & SWIPE LOGIC ---
 
@@ -2819,6 +2856,7 @@ window.performAccountDeletion = async function() {
 </script>
 </body>
 </html>
+
 
 
 
