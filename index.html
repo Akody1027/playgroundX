@@ -639,16 +639,16 @@
 
         // 3. Update handleAuthAction to VALIDATE the new fields
 
-
 // 3. Update handleAuthAction to VALIDATE the new fields
         window.handleAuthAction = async () => {
-            // --- NEW: CHECK FOR GOOGLE COMPLETION MODE FIRST ---
+            
+            // --- NEW: IF GOOGLE USER, SKIP PASSWORD CHECK ---
             if (window.isGoogleCompletion) {
                 await finalizeGoogleUser();
-                return;
+                return; 
             }
+            // ------------------------------------------------
 
-            // --- STANDARD LOGIC BELOW ---
             const email = document.getElementById('email').value;
             const password = document.getElementById('password').value;
             
@@ -695,6 +695,33 @@
                 }
             } catch(e) { document.getElementById('error-txt').innerText = e.message; }
         };
+
+        // --- ADD THIS HELPER FUNCTION RIGHT BELOW ---
+        async function finalizeGoogleUser() {
+            const fname = document.getElementById('fname').value;
+            const lname = document.getElementById('lname').value;
+            const address = document.getElementById('address').value;
+            const dob = document.getElementById('dob').value;
+
+            try {
+                // Save the missing details to the database
+                await setDoc(doc(db, 'artifacts', 'playgroundX_Prod_v1', 'public', 'data', 'users', currentUser.uid), {
+                    email: currentUser.email,
+                    firstName: fname,
+                    lastName: lname,
+                    address: address,
+                    dob: dob,
+                    idVerified: 'pending_upload',
+                    isAdmin: false,
+                    joined: serverTimestamp()
+                }, { merge: true });
+                
+                // Success! Move to the Verification Wizard
+                document.getElementById('login-layer').style.display = 'none';
+                document.getElementById('wizard-overlay').style.display = 'flex';
+            } catch(e) { document.getElementById('error-txt').innerText = e.message; }
+        }
+
 // --- ADD THIS FUNCTION ---
         async function finalizeGoogleUser() {
             const fname = document.getElementById('fname').value;
@@ -893,6 +920,7 @@ window.finishOnboarding = async () => {
     </script>
 </body>
 </html>
+
 
 
 
