@@ -8,9 +8,16 @@
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@latest/dist/tf.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/nsfwjs@latest/dist/nsfwjs.min.js"></script>
+     <script>
+             // --- GATEKEEPER ---
+        const uid = localStorage.getItem('pgX_myUid');
+        const isGuest = localStorage.getItem('pgX_guest') === 'true';
 
-
-
+        if (!uid || isGuest) {
+            alert("Access Denied. Please Sign In.");
+            window.location.href = "index.html";
+        }
+    </script>
     
     <style>
         :root {
@@ -2925,6 +2932,7 @@ window.performAccountDeletion = async function() {
 </script>
 </body>
 </html>
+
 
 
 
