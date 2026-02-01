@@ -1097,6 +1097,15 @@
                     <label class="radio-option" onclick="window.selectProfileOption('disp-vices', '420 Friendly', 'acc-vices')">420 Friendly</label>
                 </div>
             </div>
+
+
+            <div style="margin-top: 40px; padding-top: 20px; border-top: 1px solid #333; text-align: center;">
+               <button onclick="window.startDeleteProcess()" style="background: #EF4444; color: white; border: none; padding: 15px 30px; border-radius: 12px; font-weight: bold; width: 100%; font-size: 16px; cursor: pointer;">
+               DELETE MY ACCOUNT
+               </button>
+               <p style="color: #666; font-size: 12px; margin-top: 10px;">This action is permanent and cannot be undone.</p>
+             </div>
+            
         </div>
 
         <div id="profile-tab-wallet" class="tab-pane" style="display:none; padding:0;">
@@ -2546,7 +2555,53 @@ window.logout = function() {
 }
 
 
+// --- ACCOUNT DELETION LOGIC ---
 
+window.startDeleteProcess = function() {
+    // 1. First Confirmation
+    if (confirm("Delete Account?\n\nAre you sure you want to delete your account? This action is permanent.")) {
+        // 2. Second Confirmation (The "Double Check")
+        if (confirm("FINAL WARNING:\n\nThis will permanently erase all your data, photos, and messages.\n\nThis cannot be undone.\n\nAre you absolutely sure?")) {
+            window.performAccountDeletion();
+        }
+    }
+}
+
+window.performAccountDeletion = async function() {
+    const user = window.auth.currentUser;
+    if (!user) return;
+
+    const loader = document.getElementById('loading-overlay');
+    loader.style.display = 'flex';
+    loader.innerHTML = '<div class="spinner"></div><div style="color:white; font-weight:bold;">DELETING ACCOUNT...</div>';
+
+    try {
+        // 1. Delete User Data from Firestore
+        await window.fbase.deleteDoc(window.fbase.doc(window.db, 'artifacts', window.APP_ID, 'public', 'data', 'users', user.uid));
+        
+        // 2. (Optional) You could also delete their specific chat logs or storage here if strictly needed, 
+        // but deleting the User Document removes them from the App Deck.
+
+        // 3. Delete Authentication Record
+        // This allows them to sign up again with the same email later as a "new" user.
+        await window.fbase.deleteDoc(window.fbase.doc(window.db, 'users', user.uid)); // Cleanup any extra refs if they exist
+        await user.delete();
+
+        alert("Account Deleted. Goodbye.");
+        window.location.href = "index.html";
+
+    } catch (error) {
+        console.error("Delete Error:", error);
+        loader.style.display = 'none';
+        
+        // Security Safety: If it's been too long since login, Firebase requires re-auth to delete.
+        if (error.code === 'auth/requires-recent-login') {
+            alert("Security Alert: Please log out and log back in to verify your identity before deleting your account.");
+        } else {
+            alert("Error deleting account: " + error.message);
+        }
+    }
+}
 
     
 
@@ -2570,6 +2625,7 @@ window.logout = function() {
 </script>
 </body>
 </html>
+
 
 
 
