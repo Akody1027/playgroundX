@@ -1005,19 +1005,44 @@
             </div>
 
             <div class="gallery-grid">
-                <div class="gallery-slot" style="border-color:var(--accent); position:relative; padding:0;">
-                    <img id="g1-preview" src="" style="width:100%; height:100%; object-fit:cover; display:none;">
-                    <label id="g1-lbl" style="position:absolute; inset:0; display:flex; align-items:center; justify-content:center; width:100%; height:100%;">★</label>
-                </div>
-                <div class="gallery-slot"><input type="file" id="g2" hidden><label for="g2">+</label></div>
-                <div class="gallery-slot"><input type="file" id="g3" hidden><label for="g3">+</label></div>
-                <div class="gallery-slot"><input type="file" id="g4" hidden><label for="g4">+</label></div>
-                <div class="gallery-slot">
-                    <input type="file" id="vid-up" hidden accept="video/*" onchange="window.previewVideo(event)">
-                    <label for="vid-up">▶</label>
-                    <video id="vid-preview" style="display:none;" autoplay muted loop></video>
-                </div>
-            </div>
+    <div class="gallery-slot" style="border-color:var(--accent); position:relative; padding:0;">
+        <img id="g1-preview" src="" style="width:100%; height:100%; object-fit:cover; display:none;">
+        <label id="g1-lbl" style="position:absolute; inset:0; display:flex; align-items:center; justify-content:center; width:100%; height:100%; pointer-events:none;">★</label>
+    </div>
+
+    <div class="gallery-slot" id="slot-g2" style="position:relative;">
+        <img id="preview-g2" src="" style="width:100%; height:100%; object-fit:cover; display:none;">
+        <button id="del-g2" onclick="window.deleteGalleryItem('g2')" style="display:none; position:absolute; top:-5px; right:-5px; width:20px; height:20px; background:red; border-radius:50%; color:white; border:none; font-weight:bold; font-size:10px; cursor:pointer; z-index:10;">✕</button>
+        <input type="file" id="g2" hidden onchange="window.previewGallery(event, 'g2')">
+        <label for="g2" id="lbl-g2" style="position:absolute; inset:0; display:flex; align-items:center; justify-content:center; cursor:pointer;">+</label>
+    </div>
+
+    <div class="gallery-slot" id="slot-g3" style="position:relative;">
+        <img id="preview-g3" src="" style="width:100%; height:100%; object-fit:cover; display:none;">
+        <button id="del-g3" onclick="window.deleteGalleryItem('g3')" style="display:none; position:absolute; top:-5px; right:-5px; width:20px; height:20px; background:red; border-radius:50%; color:white; border:none; font-weight:bold; font-size:10px; cursor:pointer; z-index:10;">✕</button>
+        <input type="file" id="g3" hidden onchange="window.previewGallery(event, 'g3')">
+        <label for="g3" id="lbl-g3" style="position:absolute; inset:0; display:flex; align-items:center; justify-content:center; cursor:pointer;">+</label>
+    </div>
+
+    <div class="gallery-slot" id="slot-g4" style="position:relative;">
+        <img id="preview-g4" src="" style="width:100%; height:100%; object-fit:cover; display:none;">
+        <button id="del-g4" onclick="window.deleteGalleryItem('g4')" style="display:none; position:absolute; top:-5px; right:-5px; width:20px; height:20px; background:red; border-radius:50%; color:white; border:none; font-weight:bold; font-size:10px; cursor:pointer; z-index:10;">✕</button>
+        <input type="file" id="g4" hidden onchange="window.previewGallery(event, 'g4')">
+        <label for="g4" id="lbl-g4" style="position:absolute; inset:0; display:flex; align-items:center; justify-content:center; cursor:pointer;">+</label>
+    </div>
+
+    <div class="gallery-slot" style="position:relative;">
+        <input type="file" id="vid-up" hidden accept="video/*" onchange="window.previewVideo(event)">
+        <label for="vid-up" id="vid-lbl" style="position:absolute; inset:0; display:flex; align-items:center; justify-content:center; cursor:pointer;">▶</label>
+        <video id="vid-preview" style="width:100%; height:100%; object-fit:cover; display:none;" autoplay muted loop></video>
+        <button id="del-vid" onclick="window.deleteGalleryItem('vid')" style="display:none; position:absolute; top:-5px; right:-5px; width:20px; height:20px; background:red; border-radius:50%; color:white; border:none; font-weight:bold; font-size:10px; cursor:pointer; z-index:10;">✕</button>
+    </div>
+</div>
+
+
+
+
+            
 
             <div style="display: flex; flex-direction: column; gap: 10px; margin-bottom: 50px;">
                 
@@ -2076,14 +2101,20 @@ window.closeModal = function(id) {
         alert("Video selected!");
     }
 
-    window.saveProfile = async function() {
-        // 1. Get Values from ORIGINAL Layout
-        const alias = document.getElementById('p-alias').value;
-        const bio = document.getElementById('p-bio').value;
-        const age = document.getElementById('p-age').value;
-        const isExplicit = document.getElementById('p-explicit').checked;
-        
-        // 2. Prepare Updates
+        // 4. MAIN SAVE FUNCTION (Uploads All Files)
+window.saveProfile = async function() {
+    const alias = document.getElementById('p-alias').value;
+    const bio = document.getElementById('p-bio').value;
+    const age = document.getElementById('p-age').value;
+    const isExplicit = document.getElementById('p-explicit').checked;
+
+    // Show Loading Spinner
+    const btn = event.target; // The Save button
+    const oldText = btn.innerText;
+    btn.innerText = "Saving...";
+    btn.disabled = true;
+
+    try {
         const updates = {
             alias: alias || "User",
             bio: bio,
@@ -2091,6 +2122,73 @@ window.closeModal = function(id) {
             isExplicit: isExplicit,
             lastSeen: window.fbase.serverTimestamp()
         };
+
+        // HELPER: Upload File Function
+        const uploadFile = async (inputId, pathName) => {
+            const el = document.getElementById(inputId);
+            if (el && el.files[0]) {
+                const storageRef = window.fbase.ref(window.storage, `profiles/${currentUserUid}_${pathName}_${Date.now()}`);
+                const snap = await window.fbase.uploadBytes(storageRef, el.files[0]);
+                return await window.fbase.getDownloadURL(snap.ref);
+            }
+            return null;
+        };
+
+        // A. Upload Main Profile Pic
+        const mainUrl = await uploadFile('main-up', 'main');
+        if (mainUrl) {
+            updates.img = mainUrl; // Update "img" field for Main
+            localStorage.setItem('my_profile_pic', mainUrl); // Cache locally
+        }
+
+        // B. Upload Gallery Images (g2, g3, g4)
+        const g2Url = await uploadFile('g2', 'g2');
+        if (g2Url) updates.g2 = g2Url;
+
+        const g3Url = await uploadFile('g3', 'g3');
+        if (g3Url) updates.g3 = g3Url;
+
+        const g4Url = await uploadFile('g4', 'g4');
+        if (g4Url) updates.g4 = g4Url;
+        
+        // C. Upload Video
+        const vidUrl = await uploadFile('vid-up', 'video');
+        if (vidUrl) updates.video = vidUrl;
+
+        // D. Handle Deletions (If user clicked Red X)
+        if (window.pendingDeletes) {
+            if (window.pendingDeletes.g2) updates.g2 = window.fbase.deleteDoc.toString() === 'stub' ? null : ""; // Clear field
+            if (window.pendingDeletes.g3) updates.g3 = "";
+            if (window.pendingDeletes.g4) updates.g4 = "";
+        }
+        if (window.pendingVideoDelete) updates.video = "";
+
+        // E. Save to Firestore
+        const userRef = window.fbase.doc(window.db, 'artifacts', window.APP_ID, 'public', 'data', 'users', currentUserUid);
+        await window.fbase.setDoc(userRef, updates, { merge: true });
+
+        // Update Local Storage for fast access
+        if(alias) localStorage.setItem('pgX_alias', alias);
+        if(bio) localStorage.setItem('pgX_bio', bio);
+
+        alert("Profile Saved Successfully!");
+        
+        // Refresh and Close
+        if (window.renderDeck) renderDeck();
+        document.getElementById('profile-modal').style.display = 'none';
+        
+        // Reset Delete Flags
+        window.pendingDeletes = {};
+        window.pendingVideoDelete = false;
+
+    } catch (e) {
+        console.error("Save Error:", e);
+        alert("Error saving: " + e.message);
+    } finally {
+        btn.innerText = oldText;
+        btn.disabled = false;
+    }
+}
 
         // 3. Handle File Upload (Original 'main-up' ID)
         const fileInput = document.getElementById('main-up');
@@ -2119,28 +2217,147 @@ window.closeModal = function(id) {
         }
     }
 
-    window.loadMyProfile = function() {
-        const storedAlias = localStorage.getItem('pgX_alias') || ""; 
-        const storedBio = localStorage.getItem('pgX_bio') || "";
-        const storedImg = localStorage.getItem('my_profile_pic') || "https://via.placeholder.com/120";
+// 5. LOAD PROFILE FUNCTION (Populates Galleries)
+window.loadMyProfile = async function() {
+    if (!currentUserUid) return;
 
-        document.getElementById('p-alias').value = storedAlias;
-        document.getElementById('p-bio').value = storedBio;
-        document.getElementById('my-main-preview').src = storedImg;
-        
-        const galleryImg = document.getElementById('g1-preview');
-        const galleryLabel = document.getElementById('g1-lbl');
-        
-        if (storedImg.includes('data:image') || storedImg.includes('http')) {
-             galleryImg.src = storedImg;
-             galleryImg.style.display = 'block';
-             if(galleryLabel) galleryLabel.style.display = 'none';
+    // Load Basic Text
+    document.getElementById('p-alias').value = localStorage.getItem('pgX_alias') || "";
+    document.getElementById('p-bio').value = localStorage.getItem('pgX_bio') || "";
+    
+    // Switch View
+    document.getElementById('profile-modal').style.display = 'block';
+    document.getElementById('user-dropdown').style.display = 'none';
+
+    // FETCH LATEST DATA FROM DB
+    try {
+        const userRef = window.fbase.doc(window.db, 'artifacts', window.APP_ID, 'public', 'data', 'users', currentUserUid);
+        const docSnap = await window.fbase.getDoc(userRef);
+
+        if (docSnap.exists()) {
+            const data = docSnap.data();
+
+            // 1. Main Image
+            if (data.img) {
+                document.getElementById('my-main-preview').src = data.img;
+                document.getElementById('g1-preview').src = data.img;
+                document.getElementById('g1-preview').style.display = 'block';
+                const g1Lbl = document.getElementById('g1-lbl');
+                if(g1Lbl) g1Lbl.style.display = 'none';
+            }
+
+            // 2. Helper to set Gallery Slot
+            const setSlot = (key, slotId) => {
+                if (data[key]) {
+                    const img = document.getElementById(`preview-${slotId}`);
+                    img.src = data[key];
+                    img.style.display = 'block';
+                    document.getElementById(`del-${slotId}`).style.display = 'block';
+                    document.getElementById(`lbl-${slotId}`).style.display = 'none';
+                } else {
+                    // Reset if empty
+                    document.getElementById(`preview-${slotId}`).style.display = 'none';
+                    document.getElementById(`del-${slotId}`).style.display = 'none';
+                    document.getElementById(`lbl-${slotId}`).style.display = 'flex';
+                }
+            };
+
+            setSlot('g2', 'g2');
+            setSlot('g3', 'g3');
+            setSlot('g4', 'g4');
+
+            // 3. Video
+            if (data.video) {
+                const vid = document.getElementById('vid-preview');
+                vid.src = data.video;
+                vid.style.display = 'block';
+                document.getElementById('del-vid').style.display = 'block';
+                document.getElementById('vid-lbl').style.display = 'none';
+            }
         }
-        
-        document.getElementById('profile-modal').style.display = 'block';
-        document.getElementById('user-dropdown').style.display = 'none';
+    } catch (e) {
+        console.warn("Could not fetch latest profile data", e);
     }
+}
 
+
+
+
+
+
+
+
+
+
+
+
+// 1. Handle New Gallery Previews
+window.previewGallery = function(event, slotId) {
+    const file = event.target.files[0];
+    if (file) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            // Show Image
+            const img = document.getElementById(`preview-${slotId}`);
+            img.src = e.target.result;
+            img.style.display = 'block';
+            
+            // Show Delete Button
+            document.getElementById(`del-${slotId}`).style.display = 'block';
+            
+            // Hide Plus Label
+            document.getElementById(`lbl-${slotId}`).style.display = 'none';
+        }
+        reader.readAsDataURL(file);
+    }
+}
+
+// 2. Handle Video Preview
+window.previewVideo = function(event) {
+    const file = event.target.files[0];
+    if (file) {
+        const url = URL.createObjectURL(file);
+        const vid = document.getElementById('vid-preview');
+        vid.src = url;
+        vid.style.display = 'block';
+        document.getElementById('del-vid').style.display = 'block';
+        document.getElementById('vid-lbl').style.display = 'none';
+    }
+}
+
+// 3. Delete Item Logic
+window.deleteGalleryItem = function(slotId) {
+    // Determine type (Video or Image)
+    if (slotId === 'vid') {
+        document.getElementById('vid-preview').src = "";
+        document.getElementById('vid-preview').style.display = 'none';
+        document.getElementById('vid-lbl').style.display = 'flex';
+        document.getElementById('del-vid').style.display = 'none';
+        document.getElementById('vid-up').value = ""; // Clear input
+        // Mark for deletion in DB
+        window.pendingVideoDelete = true;
+    } else {
+        document.getElementById(`preview-${slotId}`).src = "";
+        document.getElementById(`preview-${slotId}`).style.display = 'none';
+        document.getElementById(`lbl-${slotId}`).style.display = 'flex';
+        document.getElementById(`del-${slotId}`).style.display = 'none';
+        document.getElementById(slotId).value = ""; // Clear input
+        // Mark for deletion in DB
+        if (!window.pendingDeletes) window.pendingDeletes = {};
+        window.pendingDeletes[slotId] = true;
+    }
+}
+
+
+
+
+
+
+
+
+
+
+    
     window.applyFilters = function() {
         document.getElementById('filter-modal').style.display = 'none';
         renderDeck();
@@ -2625,6 +2842,7 @@ window.performAccountDeletion = async function() {
 </script>
 </body>
 </html>
+
 
 
 
