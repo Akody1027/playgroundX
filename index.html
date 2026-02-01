@@ -809,6 +809,47 @@
             dob.addEventListener('input', checkDone);
         }
 
+
+window.finalizeGoogleUser = async () => {
+            const fname = document.getElementById('fname').value;
+            const mname = document.getElementById('mname').value;
+            const lname = document.getElementById('lname').value;
+            const address = document.getElementById('address').value;
+            const dob = document.getElementById('dob').value;
+
+            // Final sanity check
+            if (!address || !dob) {
+                document.getElementById('error-txt').innerText = "Please complete the highlighted fields.";
+                return;
+            }
+
+            try {
+                // Create the User Profile in Firestore
+                await setDoc(doc(db, 'artifacts', 'playgroundX_Prod_v1', 'public', 'data', 'users', currentUser.uid), {
+                    email: currentUser.email,
+                    dob: dob,
+                    firstName: fname,
+                    middleInitial: mname,
+                    lastName: lname,
+                    address: address,
+                    idVerified: 'pending_upload', // Sets status for the Wizard
+                    isAdmin: false,
+                    joined: serverTimestamp(),
+                    authMethod: 'google'
+                });
+
+                // UI Transition: Hide Login -> Show Wizard
+                document.getElementById('login-layer').style.display = 'none';
+                document.getElementById('wizard-overlay').style.display = 'flex';
+
+            } catch (e) {
+                console.error("Google Finalize Error:", e);
+                document.getElementById('error-txt').innerText = "Error saving profile: " + e.message;
+            }
+        };
+
+
+        
         // --- GOOGLE LOGIN LOGIC END ---
 
         window.wizardNext = (curr, next) => {
@@ -871,6 +912,7 @@ window.finishOnboarding = async () => {
     </script>
 </body>
 </html>
+
 
 
 
