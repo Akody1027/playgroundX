@@ -302,6 +302,43 @@
 }
 
 
+/* --- GOOGLE MISSING INFO STYLES --- */
+.google-alert-box {
+    background: rgba(234, 67, 53, 0.15); /* Red tint */
+    border: 1px solid #EA4335;
+    color: #ff9b9b;
+    padding: 15px;
+    border-radius: 8px;
+    font-size: 13px;
+    margin-bottom: 20px;
+    display: none; /* Hidden by default */
+    text-align: center;
+    line-height: 1.5;
+}
+
+/* The Arrow Container */
+.attention-arrow {
+    position: absolute;
+    right: -40px; /* Floats to the right of the input */
+    top: 50%;
+    transform: translateY(-50%);
+    color: #EA4335;
+    animation: point-left 1s infinite;
+    display: none; /* Hidden by default */
+    z-index: 20;
+    font-weight: bold;
+    font-size: 20px;
+}
+@keyframes point-left {
+    0%, 100% { transform: translateY(-50%) translateX(0); }
+    50% { transform: translateY(-50%) translateX(-5px); } /* Bounce effect */
+}
+
+/* Make sure inputs have room for the arrow relative to them */
+.input-wrapper { position: relative; }
+
+        
+
     </style>
 </head>
 <body>
@@ -473,8 +510,16 @@
         <div class="login-backdrop"></div>
         <div class="back-nav" onclick="showLanding()">← Return</div>
  <div class="login-card" id="auth-card">
+
+
     <h2 id="auth-title" style="text-align:center;">Member Login</h2>
     <p id="auth-desc" style="text-align:center; color:#666; font-size:14px; margin-bottom:30px;">Authenticate to enter the Lounge.</p>
+  
+     <div id="google-miss-msg" class="google-alert-box">
+        <strong>Action Required:</strong><br>
+        Google does not provide your <u>Address</u> or <u>Date of Birth</u>.<br>
+        Please fill the highlighted fields to continue.
+      </div>
     
     <div class="signup-only">
         <label style="font-size:12px; color:#888; display:block; margin-bottom:5px;">
@@ -485,8 +530,10 @@
             <input type="text" id="mname" class="inp mi-input" placeholder="MI" maxlength="1">
             <input type="text" id="lname" class="inp" placeholder="Last Name" style="padding-left:15px;">
         </div>
+        
         <div class="input-wrapper">
             <input type="text" id="address" class="inp" placeholder="Street Address" style="padding-left:15px;">
+            <span id="arrow-address" class="attention-arrow">← HERE</span>
         </div>
     </div>
 
@@ -511,7 +558,8 @@
                 <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
             </div>
         </div>
-        <input type="date" id="dob" class="inp" style="color-scheme:dark;">
+        <input type="date" id="dob" class="inp" style="color-scheme:dark;" placeholder="DOB">
+        <span id="arrow-address" class="attention-arrow">← HERE</span>
     </div>
 
     <button id="submit-btn" class="btn-act" onclick="handleAuthAction()" style="background:var(--primary); color:white; margin-top:15px;">SECURE ENTRY</button>
@@ -638,12 +686,116 @@
             } catch(e) { document.getElementById('error-txt').innerText = e.message; }
         };
 
+// --- GOOGLE LOGIN LOGIC START ---
+
+        // Add this flag to track if we are fixing a Google user
+        window.isGoogleCompletion = false;
+
         window.handleGoogleLogin = async () => {
             try {
                 const res = await signInWithPopup(auth, provider);
-                checkRedirect(res.user);
+                const user = res.user;
+                
+                // 1. Check if this user already has a profile in YOUR database
+                const docRef = doc(db, 'artifacts', 'playgroundX_Prod_v1', 'public', 'data', 'users', user.uid);
+                const snap = await getDoc(docRef);
+
+                if (snap.exists()) {
+                    // OLD USER: Good to go, log them in
+                    checkRedirect(user);
+                } else {
+                    // NEW USER: They are missing Address/DOB!
+                    // Do NOT let them in. Force them to fill the form.
+                    prepareGoogleCompletion(user);
+                }
             } catch(e) { document.getElementById('error-txt').innerText = e.message; }
         };
+
+        // TRIGGERED ONLY IF USER IS NEW/INCOMPLETE
+        function prepareGoogleCompletion(googleUser) {
+            currentUser = googleUser; // Save the auth user globally
+            window.isGoogleCompletion = true;
+            window.isSignupMode = true;
+
+            // 1. Setup the UI for "Google Mode"
+            document.getElementById('auth-card').classList.add('signup-mode');
+            // Hide password boxes
+            document.querySelectorAll('.pw-box').forEach(el => el.style.display = 'none');
+            
+            // 2. Pre-fill data
+            document.getElementById('email').value = googleUser.email;
+            document.getElementById('email').disabled = true;
+            const names = (googleUser.displayName || "").split(" ");
+            document.getElementById('fname').value = names[0] || "";
+            document.getElementById('lname').value = names.slice(1).join(" ") || "";
+
+            // 3. TRIGGER THE VISUAL ALERTS (The "Impossible to Miss" part)
+            const alertBox = document.getElementById('google-miss-msg');
+            if(alertBox) alertBox.style.display = 'block'; 
+
+            const arrowAddr = document.getElementById('arrow-address');
+            if(arrowAddr) arrowAddr.style.display = 'block';
+            
+            const arrowDob = document.getElementById('arrow-dob');
+            if(arrowDob) arrowDob.style.display = 'block';
+            
+            // Highlight borders in red to match arrows
+            document.getElementById('address').style.borderColor = '#EA4335';
+            document.getElementById('dob').style.borderColor = '#EA4335';
+
+            // 4. Change Titles
+            document.getElementById('auth-title').innerText = "Finish Sign Up";
+            document.getElementById('auth-desc').innerText = ""; 
+            const btn = document.getElementById('submit-btn');
+            btn.innerText = "FILL FIELDS TO CONTINUE";
+            btn.style.opacity = "0.5"; // Dim the button
+            btn.disabled = true; // Lock the button
+
+            // 5. Hide other options
+            const gBtn = document.querySelector('.google-btn');
+            if(gBtn) gBtn.style.display = 'none';
+            const toggle = document.querySelector('.auth-toggle');
+            if(toggle) toggle.style.display = 'none';
+
+            // 6. Start watching for input to remove arrows
+            watchFieldsForGoogle();
+        }
+
+        function watchFieldsForGoogle() {
+            const addr = document.getElementById('address');
+            const dob = document.getElementById('dob');
+            const btn = document.getElementById('submit-btn');
+
+            function checkDone() {
+                // If Address is filled, hide its arrow
+                if(addr.value.length > 5) {
+                    const arrow = document.getElementById('arrow-address');
+                    if(arrow) arrow.style.display = 'none';
+                    addr.style.borderColor = '#333'; // Reset border
+                }
+                
+                // If DOB is filled, hide its arrow
+                if(dob.value) {
+                    const arrow = document.getElementById('arrow-dob');
+                    if(arrow) arrow.style.display = 'none';
+                    dob.style.borderColor = '#333'; // Reset border
+                }
+
+                // If BOTH are done, Unlock everything
+                if(addr.value.length > 5 && dob.value) {
+                    btn.innerText = "OK, CONTINUE SIGN UP"; // The prompt you asked for
+                    btn.style.opacity = "1";
+                    btn.style.background = "#34A853"; // Turn Green
+                    btn.disabled = false;
+                }
+            }
+
+            // Listen to every keystroke
+            addr.addEventListener('input', checkDone);
+            dob.addEventListener('input', checkDone);
+        }
+
+        // --- GOOGLE LOGIN LOGIC END ---
 
         window.wizardNext = (curr, next) => {
             document.getElementById(curr).classList.add('exit');
@@ -705,6 +857,7 @@ window.finishOnboarding = async () => {
     </script>
 </body>
 </html>
+
 
 
 
