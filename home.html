@@ -2075,41 +2075,107 @@ window.closeModal = function(id) {
         document.getElementById(accId).style.display = 'none';
     }
 
-    window.previewMainAndGallery = function(event) {
-        const file = event.target.files[0];
-        if (file) {
-            const reader = new FileReader();
-            reader.onload = function(e) {
-                const imgUrl = e.target.result;
-                // Update Main
-                document.getElementById('my-main-preview').src = imgUrl;
-                // Update Gallery #1
-                const galleryImg = document.getElementById('g1-preview');
-                galleryImg.src = imgUrl;
-                galleryImg.style.display = 'block';
-                const galleryLabel = document.getElementById('g1-lbl');
-                if(galleryLabel) galleryLabel.style.display = 'none';
-                // Update Header
-                const headerIcon = document.getElementById('user-icon-trigger');
-                headerIcon.innerHTML = `<img src="${imgUrl}" style="width:100%; height:100%; border-radius:50%; object-fit:cover;">`;
-            }
-            reader.readAsDataURL(file);
-        }
-    }
-    
-    window.previewVideo = function(event) {
-        alert("Video selected!");
-    }
 
-        // 4. MAIN SAVE FUNCTION (Uploads All Files)
+
+
+
+
+    
+
+
+
+
+
+// --- GALLERY & PROFILE LOGIC ---
+
+// 1. Preview Main Profile Image (Circle & Slot 1)
+window.previewMainAndGallery = function(event) {
+    const file = event.target.files[0];
+    if (file) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            const imgUrl = e.target.result;
+            // Update Main Circle
+            document.getElementById('my-main-preview').src = imgUrl;
+            // Update Slot 1
+            document.getElementById('g1-preview').src = imgUrl;
+            document.getElementById('g1-preview').style.display = 'block';
+            const g1Lbl = document.getElementById('g1-lbl');
+            if(g1Lbl) g1Lbl.style.display = 'none';
+            // Update Header Icon
+            const headerIcon = document.getElementById('user-icon-trigger');
+            if(headerIcon) headerIcon.innerHTML = `<img src="${imgUrl}" style="width:100%; height:100%; border-radius:50%; object-fit:cover;">`;
+        }
+        reader.readAsDataURL(file);
+    }
+}
+
+// 2. Preview Gallery Slots (2, 3, 4)
+window.previewGallery = function(event, slotId) {
+    const file = event.target.files[0];
+    if (file) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            const img = document.getElementById(`preview-${slotId}`);
+            img.src = e.target.result;
+            img.style.display = 'block';
+            
+            // Show Delete Button
+            document.getElementById(`del-${slotId}`).style.display = 'block';
+            
+            // Hide Plus Label
+            document.getElementById(`lbl-${slotId}`).style.display = 'none';
+        }
+        reader.readAsDataURL(file);
+    }
+}
+
+// 3. Preview Video
+window.previewVideo = function(event) {
+    const file = event.target.files[0];
+    if (file) {
+        const url = URL.createObjectURL(file);
+        const vid = document.getElementById('vid-preview');
+        vid.src = url;
+        vid.style.display = 'block';
+        document.getElementById('del-vid').style.display = 'block';
+        document.getElementById('vid-lbl').style.display = 'none';
+    }
+}
+
+// 4. Delete Gallery Item Logic
+window.deleteGalleryItem = function(slotId) {
+    if (slotId === 'vid') {
+        // Reset Video Slot
+        document.getElementById('vid-preview').src = "";
+        document.getElementById('vid-preview').style.display = 'none';
+        document.getElementById('vid-lbl').style.display = 'flex';
+        document.getElementById('del-vid').style.display = 'none';
+        document.getElementById('vid-up').value = ""; // Clear input
+        window.pendingVideoDelete = true; // Mark for DB deletion
+    } else {
+        // Reset Image Slot (g2, g3, g4)
+        document.getElementById(`preview-${slotId}`).src = "";
+        document.getElementById(`preview-${slotId}`).style.display = 'none';
+        document.getElementById(`lbl-${slotId}`).style.display = 'flex';
+        document.getElementById(`del-${slotId}`).style.display = 'none';
+        const input = document.getElementById(slotId);
+        if(input) input.value = ""; // Clear input
+        
+        if (!window.pendingDeletes) window.pendingDeletes = {};
+        window.pendingDeletes[slotId] = true; // Mark for DB deletion
+    }
+}
+
+// 5. SAVE PROFILE (Uploads Files & Handles Deletes)
 window.saveProfile = async function() {
     const alias = document.getElementById('p-alias').value;
     const bio = document.getElementById('p-bio').value;
     const age = document.getElementById('p-age').value;
     const isExplicit = document.getElementById('p-explicit').checked;
 
-    // Show Loading Spinner
-    const btn = event.target; // The Save button
+    // Show Loading
+    const btn = event.target;
     const oldText = btn.innerText;
     btn.innerText = "Saving...";
     btn.disabled = true;
@@ -2123,7 +2189,7 @@ window.saveProfile = async function() {
             lastSeen: window.fbase.serverTimestamp()
         };
 
-        // HELPER: Upload File Function
+        // Helper: Upload File
         const uploadFile = async (inputId, pathName) => {
             const el = document.getElementById(inputId);
             if (el && el.files[0]) {
@@ -2134,14 +2200,14 @@ window.saveProfile = async function() {
             return null;
         };
 
-        // A. Upload Main Profile Pic
+        // A. Upload Main (Also updates "img" field)
         const mainUrl = await uploadFile('main-up', 'main');
         if (mainUrl) {
-            updates.img = mainUrl; // Update "img" field for Main
-            localStorage.setItem('my_profile_pic', mainUrl); // Cache locally
+            updates.img = mainUrl; 
+            localStorage.setItem('my_profile_pic', mainUrl);
         }
 
-        // B. Upload Gallery Images (g2, g3, g4)
+        // B. Upload Gallery Images
         const g2Url = await uploadFile('g2', 'g2');
         if (g2Url) updates.g2 = g2Url;
 
@@ -2155,9 +2221,9 @@ window.saveProfile = async function() {
         const vidUrl = await uploadFile('vid-up', 'video');
         if (vidUrl) updates.video = vidUrl;
 
-        // D. Handle Deletions (If user clicked Red X)
+        // D. Process Deletions
         if (window.pendingDeletes) {
-            if (window.pendingDeletes.g2) updates.g2 = window.fbase.deleteDoc.toString() === 'stub' ? null : ""; // Clear field
+            if (window.pendingDeletes.g2) updates.g2 = window.fbase.deleteDoc.toString() === 'stub' ? null : ""; 
             if (window.pendingDeletes.g3) updates.g3 = "";
             if (window.pendingDeletes.g4) updates.g4 = "";
         }
@@ -2167,17 +2233,16 @@ window.saveProfile = async function() {
         const userRef = window.fbase.doc(window.db, 'artifacts', window.APP_ID, 'public', 'data', 'users', currentUserUid);
         await window.fbase.setDoc(userRef, updates, { merge: true });
 
-        // Update Local Storage for fast access
+        // Update Local Storage
         if(alias) localStorage.setItem('pgX_alias', alias);
         if(bio) localStorage.setItem('pgX_bio', bio);
 
         alert("Profile Saved Successfully!");
         
-        // Refresh and Close
         if (window.renderDeck) renderDeck();
         document.getElementById('profile-modal').style.display = 'none';
         
-        // Reset Delete Flags
+        // Clear Delete Flags
         window.pendingDeletes = {};
         window.pendingVideoDelete = false;
 
@@ -2190,46 +2255,19 @@ window.saveProfile = async function() {
     }
 }
 
-        // 3. Handle File Upload (Original 'main-up' ID)
-        const fileInput = document.getElementById('main-up');
-        
-        if (currentUserUid) {
-            try {
-                if (fileInput && fileInput.files[0]) {
-                    const storageRef = window.fbase.ref(window.storage, `profiles/${currentUserUid}_main_${Date.now()}`);
-                    const snap = await window.fbase.uploadBytes(storageRef, fileInput.files[0]);
-                    const url = await window.fbase.getDownloadURL(snap.ref);
-                    updates.p1 = url; // Save URL
-                }
-
-                // 4. Save to Firestore
-                const userRef = window.fbase.doc(window.db, 'artifacts', window.APP_ID, 'public', 'data', 'users', currentUserUid);
-                await window.fbase.setDoc(userRef, updates, { merge: true });
-                
-                alert("Profile Saved!");
-                document.getElementById('profile-modal').style.display = 'none';
-                if(window.renderDeck) renderDeck(); 
-                
-            } catch (e) { 
-                console.error("Save failed", e); 
-                alert("Error saving: " + e.message); 
-            }
-        }
-    }
-
-// 5. LOAD PROFILE FUNCTION (Populates Galleries)
+// 6. LOAD PROFILE (Fetches & Populates Slots)
 window.loadMyProfile = async function() {
     if (!currentUserUid) return;
 
-    // Load Basic Text
+    // Load Texts
     document.getElementById('p-alias').value = localStorage.getItem('pgX_alias') || "";
     document.getElementById('p-bio').value = localStorage.getItem('pgX_bio') || "";
     
-    // Switch View
+    // Show Modal
     document.getElementById('profile-modal').style.display = 'block';
     document.getElementById('user-dropdown').style.display = 'none';
 
-    // FETCH LATEST DATA FROM DB
+    // Fetch Data
     try {
         const userRef = window.fbase.doc(window.db, 'artifacts', window.APP_ID, 'public', 'data', 'users', currentUserUid);
         const docSnap = await window.fbase.getDoc(userRef);
@@ -2237,7 +2275,7 @@ window.loadMyProfile = async function() {
         if (docSnap.exists()) {
             const data = docSnap.data();
 
-            // 1. Main Image
+            // 1. Load Main Image & Slot 1
             if (data.img) {
                 document.getElementById('my-main-preview').src = data.img;
                 document.getElementById('g1-preview').src = data.img;
@@ -2246,28 +2284,28 @@ window.loadMyProfile = async function() {
                 if(g1Lbl) g1Lbl.style.display = 'none';
             }
 
-            // 2. Helper to set Gallery Slot
-            const setSlot = (key, slotId) => {
-                if (data[key]) {
+            // 2. Helper to load Slots 2, 3, 4
+            const loadSlot = (key, slotId) => {
+                if (data[key] && data[key] !== "") {
                     const img = document.getElementById(`preview-${slotId}`);
                     img.src = data[key];
                     img.style.display = 'block';
                     document.getElementById(`del-${slotId}`).style.display = 'block';
                     document.getElementById(`lbl-${slotId}`).style.display = 'none';
                 } else {
-                    // Reset if empty
+                    // Ensure empty state
                     document.getElementById(`preview-${slotId}`).style.display = 'none';
                     document.getElementById(`del-${slotId}`).style.display = 'none';
                     document.getElementById(`lbl-${slotId}`).style.display = 'flex';
                 }
             };
 
-            setSlot('g2', 'g2');
-            setSlot('g3', 'g3');
-            setSlot('g4', 'g4');
+            loadSlot('g2', 'g2');
+            loadSlot('g3', 'g3');
+            loadSlot('g4', 'g4');
 
-            // 3. Video
-            if (data.video) {
+            // 3. Load Video
+            if (data.video && data.video !== "") {
                 const vid = document.getElementById('vid-preview');
                 vid.src = data.video;
                 vid.style.display = 'block';
@@ -2286,67 +2324,6 @@ window.loadMyProfile = async function() {
 
 
 
-
-
-
-
-
-// 1. Handle New Gallery Previews
-window.previewGallery = function(event, slotId) {
-    const file = event.target.files[0];
-    if (file) {
-        const reader = new FileReader();
-        reader.onload = function(e) {
-            // Show Image
-            const img = document.getElementById(`preview-${slotId}`);
-            img.src = e.target.result;
-            img.style.display = 'block';
-            
-            // Show Delete Button
-            document.getElementById(`del-${slotId}`).style.display = 'block';
-            
-            // Hide Plus Label
-            document.getElementById(`lbl-${slotId}`).style.display = 'none';
-        }
-        reader.readAsDataURL(file);
-    }
-}
-
-// 2. Handle Video Preview
-window.previewVideo = function(event) {
-    const file = event.target.files[0];
-    if (file) {
-        const url = URL.createObjectURL(file);
-        const vid = document.getElementById('vid-preview');
-        vid.src = url;
-        vid.style.display = 'block';
-        document.getElementById('del-vid').style.display = 'block';
-        document.getElementById('vid-lbl').style.display = 'none';
-    }
-}
-
-// 3. Delete Item Logic
-window.deleteGalleryItem = function(slotId) {
-    // Determine type (Video or Image)
-    if (slotId === 'vid') {
-        document.getElementById('vid-preview').src = "";
-        document.getElementById('vid-preview').style.display = 'none';
-        document.getElementById('vid-lbl').style.display = 'flex';
-        document.getElementById('del-vid').style.display = 'none';
-        document.getElementById('vid-up').value = ""; // Clear input
-        // Mark for deletion in DB
-        window.pendingVideoDelete = true;
-    } else {
-        document.getElementById(`preview-${slotId}`).src = "";
-        document.getElementById(`preview-${slotId}`).style.display = 'none';
-        document.getElementById(`lbl-${slotId}`).style.display = 'flex';
-        document.getElementById(`del-${slotId}`).style.display = 'none';
-        document.getElementById(slotId).value = ""; // Clear input
-        // Mark for deletion in DB
-        if (!window.pendingDeletes) window.pendingDeletes = {};
-        window.pendingDeletes[slotId] = true;
-    }
-}
 
 
 
@@ -2842,6 +2819,7 @@ window.performAccountDeletion = async function() {
 </script>
 </body>
 </html>
+
 
 
 
