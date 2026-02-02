@@ -742,13 +742,36 @@
 
 
 
+                        // --- 8. GLOBAL BROADCAST (LIVE) ---
+            async sendBroadcast() {
+                const msg = document.getElementById('broadcast-msg').value;
+                if(!msg) return alert("Please enter a message first.");
+
+                try {
+                    // 1. Reference the exact system settings document
+                    const systemRef = doc(db, 'artifacts', APP_ID, 'public', 'data', 'system_status', 'settings');
+
+                    // 2. Write the message AND a timestamp (so phones know it's new)
+                    await setDoc(systemRef, { 
+                        broadcastMsg: msg,
+                        broadcastTimestamp: serverTimestamp()
+                    }, { merge: true });
+
+                    console.log(`Broadcast sent: "${msg}"`);
+                    alert("📢 GLOBAL ALERT SENT!\n\nAll active users will see this popup immediately.");
+                    
+                    // Clear the input box
+                    document.getElementById('broadcast-msg').value = ""; 
+
+                } catch (e) {
+                    console.error("Broadcast Error:", e);
+                    alert("Error sending alert: " + e.message);
+                }
+            }
 
             
 
-            sendBroadcast() {
-                const msg = document.getElementById('broadcast-msg').value;
-                if(msg) alert(`Global Alert Sent: "${msg}"`);
-            }
+            
             
             async refreshStats() {
                 // Quick counts
@@ -783,6 +806,7 @@
     </script>
 </body>
 </html>
+
 
 
 
