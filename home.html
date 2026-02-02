@@ -2050,72 +2050,87 @@ async function ensureUserProfile() {
 
 
     
-
     function initSwipeHandlers() {
-        // 1. Grab the elements again (in case the DOM refreshed)
+        // 1. Grab the elements
         card = document.getElementById('active-card');
         btnReject = document.getElementById('btn-reject');
         btnLike = document.getElementById('btn-like');
         
-        // Safety: If deck is empty, stop.
+        // Safety: If deck is empty (or showing the empty state icon), stop.
         if (!card) return;
 
-        // 2. Local State (Keeps track of THIS specific swipe)
+        // 2. Local State
         let isDragging = false;
-        
-        // --- TOUCH START (Reset Everything Here) ---
-        card.addEventListener('touchstart', (e) => { 
-            isDragging = true;
-            startX = e.touches[0].clientX; 
-            currentX = 0; // <--- FORCE RESET: Forget previous swipes
-            card.style.transition = 'none'; 
-        });
 
-        // --- TOUCH MOVE (Calculate New Distance) ---
-        card.addEventListener('touchmove', (e) => {
+        // --- COMMON START HANDLER ---
+        function startDrag(clientX) {
+            isDragging = true;
+            startX = clientX; 
+            currentX = 0;
+            card.style.transition = 'none';
+        }
+
+        // --- COMMON MOVE HANDLER ---
+        function moveDrag(clientX) {
             if (!isDragging) return;
-            
-            // Calculate distance from where you started THIS touch
-            currentX = e.touches[0].clientX - startX;
+            currentX = clientX - startX;
             
             // Move the card
             card.style.transform = `translateX(${currentX}px) rotate(${currentX / 15}deg)`;
             
             // Update Buttons Colors
             if (currentX > 0) { 
-                // Right Swipe (Green/Purple)
                 if(btnLike) btnLike.style.background = 'var(--accent)'; 
                 if(btnReject) btnReject.style.background = 'rgba(0,0,0,0.6)'; 
             } else { 
-                // Left Swipe (Red/Grey)
                 if(btnReject) btnReject.style.background = 'grey'; 
                 if(btnLike) btnLike.style.background = 'rgba(0,0,0,0.6)'; 
             }
-        });
+        }
 
-        // --- TOUCH END (Decide: Swipe or Snap Back?) ---
-        card.addEventListener('touchend', (e) => {
+        // --- COMMON END HANDLER ---
+        function endDrag() {
+            if (!isDragging) return;
             isDragging = false;
             
-            // Only swipe if moved more than 100px
+            // Decide: Swipe or Snap Back?
             if (currentX > 100) {
                 window.userSwipe('right');
             } else if (currentX < -100) {
                 window.userSwipe('left');
             } else { 
-                // Reset/Snap Back
+                // Snap Back
                 card.style.transition = 'transform 0.3s ease-out';
                 card.style.transform = 'translateX(0)'; 
                 
                 // Reset Button Colors
                 if(btnLike) btnLike.style.background = 'rgba(0,0,0,0.6)';
                 if(btnReject) btnReject.style.background = 'rgba(0,0,0,0.6)';
-                
-                // CRITICAL: Reset currentX to 0 so next TAP doesn't trigger swipe
-                currentX = 0; 
             }
+            currentX = 0;
+        }
+
+        // --- LISTENERS FOR TOUCH (Mobile) ---
+        card.addEventListener('touchstart', (e) => startDrag(e.touches[0].clientX));
+        card.addEventListener('touchmove', (e) => moveDrag(e.touches[0].clientX));
+        card.addEventListener('touchend', () => endDrag());
+
+        // --- LISTENERS FOR MOUSE (Desktop/Testing) ---
+        card.addEventListener('mousedown', (e) => {
+            e.preventDefault(); // Prevents text selection while dragging
+            startDrag(e.clientX);
+        });
+        
+        // Attach mousemove/up to WINDOW so you don't lose the drag if mouse leaves the card area
+        window.addEventListener('mousemove', (e) => {
+            if(isDragging) moveDrag(e.clientX);
+        });
+        window.addEventListener('mouseup', (e) => {
+            if(isDragging) endDrag();
         });
     }
+
+
 
 
 
@@ -3282,6 +3297,7 @@ window.performAccountDeletion = async function() {
 </script>
 </body>
 </html>
+
 
 
 
