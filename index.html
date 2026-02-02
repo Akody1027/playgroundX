@@ -347,6 +347,34 @@
 /* Make sure inputs have room for the arrow relative to them */
 .input-wrapper { position: relative; }
 
+
+
+
+        /* PASTE THIS BLOCK */
+.guest-option {
+    margin-top: 25px;
+    text-align: center;
+    font-size: 13px; /* Slightly small to be subtle */
+    color: #666;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.guest-option:hover {
+    color: #999;
+}
+
+.guest-option span {
+    color: #888;
+    text-decoration: underline;
+    font-weight: 500;
+}
+
+.guest-option:hover span {
+    color: var(--primary); /* Glows purple on hover */
+}
+        
+
         
 
     </style>
@@ -597,6 +625,9 @@
     <div class="auth-toggle" onclick="toggleAuthMode()">
         New here? <span id="toggle-text">Create an Account</span>
     </div>
+    <div class="guest-option" onclick="enterGuestMode()">
+        Just looking? <span>Take a quick tour</span>
+    </div>
     <div id="error-txt" style="color:#EF4444; font-size:12px; margin-top:15px; text-align:center;"></div>
   </div>
 </div>
@@ -625,6 +656,30 @@
         window.isSignupMode = false;
         let currentUser = null;
 
+
+
+
+
+
+
+         // PASTE THIS FUNCTION
+        window.enterGuestMode = () => {
+            // 1. Set the Guest Flag so Home knows to restrict access
+            localStorage.setItem('pgX_guest_mode', 'true');
+            
+            // 2. Clear any old Member flags so they don't get mixed signals
+            localStorage.removeItem('pgX_member_active');
+            localStorage.removeItem('pgX_admin_access');
+
+            // 3. Redirect to the app
+            window.location.href = "home.html";
+        };
+
+
+
+
+
+        
         window.revealLogin = () => {
             localStorage.setItem("pgX_member_active", "true"); // Saves the flag
             document.getElementById('landing-module').classList.add('slide-up');
@@ -931,6 +986,7 @@ window.finishOnboarding = async () => {
     </script>
 </body>
 </html>
+
 
 
 
