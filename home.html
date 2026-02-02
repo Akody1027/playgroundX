@@ -1826,6 +1826,26 @@ async function checkAdminStatus(uid) {
                     maintScreen.style.display = 'none';
                 }
             }
+
+
+
+                            // --- B. GLOBAL BROADCAST (ADD THIS BLOCK) ---
+                if (sys.broadcastMsg && sys.broadcastTimestamp) {
+                    const lastSeen = localStorage.getItem('pgX_last_broadcast');
+                    const newTime = sys.broadcastTimestamp.seconds || 0; 
+                    
+                    // Show if this message is newer than the last one we saw
+                    if (newTime > (parseInt(lastSeen) || 0)) {
+                        alert("📢 SYSTEM ANNOUNCEMENT:\n\n" + sys.broadcastMsg);
+                        localStorage.setItem('pgX_last_broadcast', newTime);
+                    }
+                }
+
+
+
+
+
+            
         });
 
 
@@ -3037,6 +3057,7 @@ window.performAccountDeletion = async function() {
 </script>
 </body>
 </html>
+
 
 
 
