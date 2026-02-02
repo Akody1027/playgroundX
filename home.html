@@ -1497,6 +1497,11 @@
 
 
 
+<div id="maintenance-overlay" style="display:none; position:fixed; inset:0; background:black; z-index:100000; flex-direction:column; align-items:center; justify-content:center; text-align:center;">
+    <h1 style="color:var(--accent); font-size:40px; margin-bottom:20px;">🚧</h1>
+    <h2 style="color:white; margin:0;">SYSTEM MAINTENANCE</h2>
+    <p style="color:#888;">We are upgrading the servers.<br>Be back shortly.</p>
+</div>
 
     
 
@@ -1718,6 +1723,82 @@ async function checkAdminStatus(uid) {
             renderDeck();
             loading.style.display = 'none';
         }
+
+
+
+
+
+        // --- 🛡️ START SYSTEM LISTENERS (Admin Controls) ---
+
+        // 1. USER SECURITY LISTENER (Detects Bans & Kicks)
+        if (currentUserUid) {
+            const myProfileRef = window.fbase.doc(window.db, 'artifacts', window.APP_ID, 'public', 'data', 'users', currentUserUid);
+            
+            window.fbase.onSnapshot(myProfileRef, (doc) => {
+                if (doc.exists()) {
+                    const data = doc.data();
+                    
+                    // A. IMMEDIATE BAN CHECK
+                    if (data.isBanned === true) {
+                        document.body.innerHTML = `
+                            <div style="background:black; color:red; height:100vh; display:flex; flex-direction:column; align-items:center; justify-content:center; font-family:sans-serif;">
+                                <h1>🚫 ACCOUNT SUSPENDED</h1>
+                                <p style="color:#666">Access has been revoked by an administrator.</p>
+                            </div>`;
+                        // Optional: Clear local credentials
+                        localStorage.clear();
+                    }
+
+                    // B. FORCE KICK CHECK (Optional feature)
+                    if (data.forceLogout === true) {
+                        window.location.reload(); // Refreshes app, effectively kicking them to intro
+                    }
+                } else {
+                    // C. IF DOC DELETED (Hard Wipe)
+                    // If the user doc disappears while they are logged in, kick them.
+                    console.log("User profile not found (Deleted by Admin?)");
+                }
+            });
+        }
+
+        // 2. GLOBAL SYSTEM LISTENER (Maintenance & Broadcasts)
+        // Note: The Admin Panel writes to this specific document ID: 'system_status'
+        const systemRef = window.fbase.doc(window.db, 'artifacts', window.APP_ID, 'public', 'data', 'system_status');
+        
+        window.fbase.onSnapshot(systemRef, (doc) => {
+            if (doc.exists()) {
+                const sys = doc.data();
+
+                // A. MAINTENANCE MODE TOGGLE
+                const maintScreen = document.getElementById('maintenance-overlay');
+                // If maintenance is ON and I am NOT an admin (you can add checkAdminStatus logic here if needed)
+                if (sys.maintenanceMode === true && maintScreen) {
+                    maintScreen.style.display = 'flex';
+                } else if (maintScreen) {
+                    maintScreen.style.display = 'none';
+                }
+
+                // B. GLOBAL BROADCAST POPUP
+                // Checks timestamp to ensure we don't show the same old message repeatedly
+                if (sys.broadcastMsg && sys.broadcastTimestamp) {
+                    const lastSeen = localStorage.getItem('pgX_last_broadcast');
+                    const newTime = sys.broadcastTimestamp.seconds || 0; // Firestore Timestamp
+                    
+                    if (newTime > (parseInt(lastSeen) || 0)) {
+                        alert("📢 SYSTEM ANNOUNCEMENT:\n\n" + sys.broadcastMsg);
+                        localStorage.setItem('pgX_last_broadcast', newTime);
+                    }
+                }
+            }
+        });
+        
+        // --- END SYSTEM LISTENERS ---
+
+
+
+
+
+        
     }
 
 
@@ -2923,6 +3004,7 @@ window.performAccountDeletion = async function() {
 </script>
 </body>
 </html>
+
 
 
 
