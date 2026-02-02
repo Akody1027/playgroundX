@@ -403,7 +403,7 @@
                 if(tabId === 'verify') this.renderVerificationQueue();
                 if(tabId === 'users') this.renderUserList();
                 if(tabId === 'content') this.renderStreams();
-                if(tabId === 'system') { this.refreshStats()  this.syncSystemState(); // <--- Add this line!
+                if(tabId === 'system') { this.refreshStats() ; this.syncSystemState(); // <--- Add this line!
                 }
                 
             }
@@ -783,6 +783,7 @@
     </script>
 </body>
 </html>
+
 
 
 
