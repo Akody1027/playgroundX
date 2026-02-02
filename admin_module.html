@@ -690,7 +690,7 @@
                 try {
                     // 1. Reference the specific 'system_status' document
                     // Note: This must match the listener in home.html exactly
-                    const systemRef = doc(db, 'artifacts', APP_ID, 'public', 'data', 'system_status''settings');
+                    const systemRef = doc(db, 'artifacts', APP_ID, 'public', 'data', 'system_status', 'settings');
                     
                     // 2. Write the data
                     await setDoc(systemRef, { 
@@ -755,6 +755,7 @@
     </script>
 </body>
 </html>
+
 
 
 
