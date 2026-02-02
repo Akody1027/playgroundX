@@ -1794,39 +1794,39 @@ async function checkAdminStatus(uid) {
             });
         }
 
-        // 2. GLOBAL SYSTEM LISTENER (Maintenance & Broadcasts)
-        // Note: The Admin Panel writes to this specific document ID: 'system_status'
+        
+        
+        
+
+        // 2. GLOBAL SYSTEM LISTENER
+        // MAKE SURE THIS PATH MATCHES THE ADMIN PATH EXACTLY
         const systemRef = window.fbase.doc(window.db, 'artifacts', window.APP_ID, 'public', 'data', 'system_status');
         
-        window.fbase.onSnapshot(systemRef, (doc) => {
-            if (doc.exists()) {
-                const sys = doc.data();
-
-                // A. MAINTENANCE MODE TOGGLE
+        window.fbase.onSnapshot(systemRef, async (sysDoc) => {
+            if (sysDoc.exists()) {
+                const sys = sysDoc.data();
                 const maintScreen = document.getElementById('maintenance-overlay');
-                // If maintenance is ON and I am NOT an admin (you can add checkAdminStatus logic here if needed)
+                
+                // Debugging: Check console to see if signal arrives
+                console.log("System Update Received:", sys);
+
                 if (sys.maintenanceMode === true && maintScreen) {
-                    maintScreen.style.display = 'flex';
+                    // ... (Rest of your checkAdminStatus logic goes here) ...
+                     const myProfile = await window.fbase.getDoc(
+                        window.fbase.doc(window.db, 'artifacts', window.APP_ID, 'public', 'data', 'users', currentUserUid)
+                    );
+                    const amIAdmin = myProfile.exists() && myProfile.data().isAdmin === true;
+
+                    if (amIAdmin) {
+                        maintScreen.style.display = 'none'; 
+                    } else {
+                        maintScreen.style.display = 'flex';
+                    }
                 } else if (maintScreen) {
                     maintScreen.style.display = 'none';
                 }
-
-                // B. GLOBAL BROADCAST POPUP
-                // Checks timestamp to ensure we don't show the same old message repeatedly
-                if (sys.broadcastMsg && sys.broadcastTimestamp) {
-                    const lastSeen = localStorage.getItem('pgX_last_broadcast');
-                    const newTime = sys.broadcastTimestamp.seconds || 0; // Firestore Timestamp
-                    
-                    if (newTime > (parseInt(lastSeen) || 0)) {
-                        alert("📢 SYSTEM ANNOUNCEMENT:\n\n" + sys.broadcastMsg);
-                        localStorage.setItem('pgX_last_broadcast', newTime);
-                    }
-                }
             }
         });
-        
-        // --- END SYSTEM LISTENERS ---
-
 
 
 
@@ -3037,6 +3037,7 @@ window.performAccountDeletion = async function() {
 </script>
 </body>
 </html>
+
 
 
 
