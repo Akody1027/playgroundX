@@ -403,8 +403,36 @@
                 if(tabId === 'verify') this.renderVerificationQueue();
                 if(tabId === 'users') this.renderUserList();
                 if(tabId === 'content') this.renderStreams();
-                if(tabId === 'system') this.refreshStats();
+                if(tabId === 'system') { this.refreshStats()  this.syncSystemState(); // <--- Add this line!
+                }
+                
             }
+
+
+
+                         // --- 7. SYNC SETTINGS (NEW) ---
+            async syncSystemState() {
+                try {
+                    // Reference the same settings file
+                    const systemRef = doc(db, 'artifacts', APP_ID, 'public', 'data', 'system_status', 'settings');
+                    const snap = await getDoc(systemRef);
+
+                    if (snap.exists()) {
+                        const data = snap.data();
+                        // Update the checkbox to match the real DB state
+                        const toggle = document.getElementById('maint-toggle');
+                        if(toggle) {
+                            toggle.checked = data.maintenanceMode === true;
+                        }
+                    }
+                } catch (e) {
+                    console.error("Sync Error:", e);
+                }
+            }
+
+
+
+            
 
             // --- 1. VERIFICATION (REAL DB) ---
             async renderVerificationQueue() {
@@ -755,6 +783,7 @@
     </script>
 </body>
 </html>
+
 
 
 
