@@ -1800,7 +1800,7 @@ async function checkAdminStatus(uid) {
 
         // 2. GLOBAL SYSTEM LISTENER
         // MAKE SURE THIS PATH MATCHES THE ADMIN PATH EXACTLY
-        const systemRef = window.fbase.doc(window.db, 'artifacts', window.APP_ID, 'public', 'data', 'system_status');
+        const systemRef = window.fbase.doc(window.db, 'artifacts', window.APP_ID, 'public', 'data', 'system_status', 'settings');
         
         window.fbase.onSnapshot(systemRef, async (sysDoc) => {
             if (sysDoc.exists()) {
@@ -3037,6 +3037,7 @@ window.performAccountDeletion = async function() {
 </script>
 </body>
 </html>
+
 
 
 
