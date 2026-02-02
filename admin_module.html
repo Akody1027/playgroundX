@@ -345,7 +345,7 @@
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
         import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-        import { getFirestore, collection, getDocs, doc, updateDoc, deleteDoc, addDoc, query, where, serverTimestamp, getDoc, increment, limit } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+        import { getFirestore, collection, getDocs, doc, updateDoc, deleteDoc, addDoc, query, where, serverTimestamp, getDoc, increment, limit, setDoc} from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
         // CONFIG FROM YOUR PROJECT (playgroundx-ca021)
         const firebaseConfig = {
@@ -683,29 +683,34 @@
 
 
 
-            // --- 6. SYSTEM (FIXED) ---
+               // --- 6. SYSTEM (CORRECTED) ---
             async toggleMaintenance(chk) {
                 const isOn = chk.checked;
-                const sysRef = doc(getCol('system_status'), 'settings'); // Creates a doc named 'settings' in a 'system_status' collection
                 
-                // We use setDoc with merge:true so it creates the file if it doesn't exist
                 try {
-                    // Note: 'getCol' in the previous script pointed to 'users'. 
-                    // Let's manually construct the correct path to be safe:
-                    const ref = doc(db, 'artifacts', APP_ID, 'public', 'data', 'system_status');
+                    // 1. Reference the specific 'system_status' document
+                    // Note: This must match the listener in home.html exactly
+                    const systemRef = doc(db, 'artifacts', APP_ID, 'public', 'data', 'system_status');
                     
-                    await window.fbase.setDoc(ref, { 
+                    // 2. Write the data
+                    await setDoc(systemRef, { 
                         maintenanceMode: isOn,
                         updatedAt: serverTimestamp()
                     }, { merge: true });
 
-                    console.log(`System Maintenance is now: ${isOn}`);
+                    console.log(`System Maintenance set to: ${isOn}`);
+                    
+                    // Visual feedback
+                    if(isOn) alert("MAINTENANCE ON: Regular users are now locked out.");
+                    else alert("MAINTENANCE OFF: App is live.");
+
                 } catch (e) {
-                    console.error("Error setting maintenance:", e);
-                    alert("Database Error: Check Console");
-                    chk.checked = !isOn; // Revert toggle if failed
+                    console.error("Maintenance Error:", e);
+                    alert("Error: " + e.message);
+                    chk.checked = !isOn; // Flip the switch back if it failed
                 }
             }
+
 
 
 
@@ -750,4 +755,5 @@
     </script>
 </body>
 </html>
+
 
