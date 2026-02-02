@@ -680,11 +680,37 @@
                 }
             }
 
-            // --- 6. SYSTEM ---
-            toggleMaintenance(chk) {
-                // In a real app, write to a system settings doc
-                alert(`Maintenance Mode: ${chk.checked ? 'ON' : 'OFF'}`);
+
+
+
+            // --- 6. SYSTEM (FIXED) ---
+            async toggleMaintenance(chk) {
+                const isOn = chk.checked;
+                const sysRef = doc(getCol('system_status'), 'settings'); // Creates a doc named 'settings' in a 'system_status' collection
+                
+                // We use setDoc with merge:true so it creates the file if it doesn't exist
+                try {
+                    // Note: 'getCol' in the previous script pointed to 'users'. 
+                    // Let's manually construct the correct path to be safe:
+                    const ref = doc(db, 'artifacts', APP_ID, 'public', 'data', 'system_status');
+                    
+                    await window.fbase.setDoc(ref, { 
+                        maintenanceMode: isOn,
+                        updatedAt: serverTimestamp()
+                    }, { merge: true });
+
+                    console.log(`System Maintenance is now: ${isOn}`);
+                } catch (e) {
+                    console.error("Error setting maintenance:", e);
+                    alert("Database Error: Check Console");
+                    chk.checked = !isOn; // Revert toggle if failed
+                }
             }
+
+
+
+
+            
 
             sendBroadcast() {
                 const msg = document.getElementById('broadcast-msg').value;
@@ -724,3 +750,4 @@
     </script>
 </body>
 </html>
+
