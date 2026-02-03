@@ -2365,60 +2365,148 @@ window.openVideoFeed = function() {
         else container.classList.add('feed-layout-swipe');
     }
 
-    window.handleVideoUpload = async function(event) {
-        const file = event.target.files[0];
-        if (!file) return;
+
+
+
+
+
+
+
+
+
+
+
+
+window.handleVideoUpload = async function(event) {
+    const file = event.target.files[0];
+    if (!file) return;
+
+    // 1. Size Check (50MB Limit)
+    const MAX_SIZE = 50 * 1024 * 1024; 
+    if (file.size > MAX_SIZE) {
+        alert("Video is too large! Please choose a file under 50MB.");
+        event.target.value = "";
+        return;
+    }
+
+    // 2. Show Scanning UI
+    const spinner = document.getElementById('global-upload-status');
+    if(spinner) {
+        spinner.style.display = 'flex';
+        spinner.innerHTML = '<div class="upload-spinner"></div> <span style="margin-left:5px; color:white;">Scanning (4 checks)...</span>';
+    }
+
+    try {
+        // --- 3. RUN THE MULTI-POINT SCAN ---
+        // This will take a few seconds as it checks 4 frames
+        const isExplicitContent = await window.analyzeVideoContent(file);
         
+        // Update UI to show upload is starting
+        if(spinner) spinner.innerHTML = '<div class="upload-spinner"></div> <span style="margin-left:5px; color:white;">Uploading...</span>';
+
+        // 4. Upload to Storage
+        const storagePath = `videos/${currentUserUid}_${Date.now()}`;
+        const storageRef = window.fbase.ref(window.storage, storagePath);
+        const snapshot = await window.fbase.uploadBytes(storageRef, file);
+        const downloadURL = await window.fbase.getDownloadURL(snapshot.ref);
+
+        // 5. Save to Database with the TAG
         const videoCollection = getPublicCollection('videos');
         await window.fbase.addDoc(videoCollection, {
             user: localStorage.getItem('pgX_alias') || "Anon",
-            // We use a sample video URL because we can't upload binary to Firestore
-            url: "https://www.w3schools.com/html/mov_bbb.mp4", 
-            timestamp: window.fbase.serverTimestamp()
+            userId: currentUserUid, 
+            userImg: localStorage.getItem('my_profile_pic') || "https://via.placeholder.com/120",
+            url: downloadURL,
+            timestamp: window.fbase.serverTimestamp(),
+            size: file.size,
+            isExplicit: isExplicitContent // <--- This saves the verdict
         });
+
+        alert(isExplicitContent ? "Upload Successful. Marked as 18+ (Explicit)." : "Upload Successful!");
+
+    } catch (error) {
+        console.error("Upload failed:", error);
+        alert("Upload failed: " + error.message);
+    } finally {
+        if(spinner) spinner.style.display = 'none';
+        event.target.value = "";
+    }
+}
+
+
+
+
+    
+
+
+
+
+
+
+
+window.renderVideoFeed = function() {
+    const container = document.getElementById('video-feed-content');
+    container.className = ''; 
+    if (currentVideoView === 'grid') container.classList.add('feed-layout-grid');
+    else container.classList.add('feed-layout-swipe');
+
+    // 1. Get User Preference (Default to HIDDEN if not set)
+    const showExplicit = localStorage.getItem('pgX_show_explicit') === 'true';
+
+    const videoCollection = getPublicCollection('videos');
+    const q = window.fbase.query(videoCollection, window.fbase.orderBy('timestamp', 'desc'), window.fbase.limit(20));
+
+    if(currentVideoUnsubscribe) currentVideoUnsubscribe();
+
+    currentVideoUnsubscribe = window.fbase.onSnapshot(q, (snapshot) => {
+        if (snapshot.empty) {
+            container.innerHTML = `<div style="padding:20px; text-align:center; color:#666;">No videos yet.</div>`;
+            return;
+        }
         
-        alert("Video Metadata Uploaded! (Using sample video for persistence demo)");
-    }
+        container.innerHTML = '';
+        
+        snapshot.forEach(doc => {
+            const vid = doc.data();
 
-    window.renderVideoFeed = function() {
-        const container = document.getElementById('video-feed-content');
-        container.className = ''; 
-        if (currentVideoView === 'grid') container.classList.add('feed-layout-grid');
-        else container.classList.add('feed-layout-swipe');
-
-        const videoCollection = getPublicCollection('videos');
-        const q = window.fbase.query(videoCollection, window.fbase.orderBy('timestamp', 'desc'), window.fbase.limit(20));
-
-        if(currentVideoUnsubscribe) currentVideoUnsubscribe();
-
-        currentVideoUnsubscribe = window.fbase.onSnapshot(q, (snapshot) => {
-             if (snapshot.empty) {
-                container.innerHTML = `        <div style="padding: 20px; text-align: center; color: #666; margin-top: 50px;">
-        <svg width="60" height="60" viewBox="0 0 24 24" fill="none" stroke="#444" stroke-width="1.5" style="margin-bottom:20px;">
-             <path d="M23 7l-7 5 7 5V7z"></path><rect x="1" y="5" width="15" height="14" rx="2" ry="2"></rect>
-        </svg>
-        <h3 style="color:white;">Content Studio</h3>
-        <p>Record and upload your clips here.</p>
-    </div>`;
-                return;
+            // --- FILTER LOGIC ---
+            // If video is explicit AND user has NOT enabled explicit content -> SKIP IT
+            if (vid.isExplicit && !showExplicit) {
+                return; 
             }
-            
-            container.innerHTML = '';
-            snapshot.forEach(doc => {
-                const vid = doc.data();
-                const div = document.createElement('div');
-                div.className = 'video-item';
-                div.innerHTML = `
-                    <video src="${vid.url}" controls playsinline loop></video>
-                    <div class="vid-details" style="padding: 10px;">
-                        <span style="color: white; font-weight: bold;">${vid.user}</span>
-                    </div>
-                `;
-                container.appendChild(div);
-            });
-        }, (error) => console.error("Video Sync Error", error));
-    }
 
+            const div = document.createElement('div');
+            div.className = 'video-item';
+            
+            // Add a red badge for explicit videos (only visible to those who allowed them)
+            const explicitBadge = vid.isExplicit ? 
+                `<span style="position:absolute; top:10px; right:10px; background:red; color:white; font-size:10px; padding:2px 6px; border-radius:4px; font-weight:bold; z-index:10;">18+</span>` 
+                : '';
+
+            div.innerHTML = `
+                <video src="${vid.url}" controls playsinline loop></video>
+                ${explicitBadge}
+                <div class="vid-details" style="padding: 10px;">
+                    <span style="color: white; font-weight: bold;">${vid.user}</span>
+                </div>
+            `;
+            container.appendChild(div);
+        });
+    }, (error) => console.error("Video Sync Error", error));
+}
+
+    
+
+    
+
+
+
+
+
+
+
+
+    
     window.toggleUserDropdown = function() {
         const menu = document.getElementById('user-dropdown');
         menu.style.display = (menu.style.display === 'block') ? 'none' : 'block';
@@ -2604,7 +2692,7 @@ window.saveProfile = async function() {
     const bio = document.getElementById('p-bio').value;
     const age = document.getElementById('p-age').value;
     const isExplicit = document.getElementById('p-explicit').checked;
-
+    localStorage.setItem('pgX_show_explicit', isExplicit); 
     // Show Loading
     const btn = event.target;
     const oldText = btn.innerText;
@@ -3282,6 +3370,84 @@ window.performAccountDeletion = async function() {
     
 
     
+// --- AI CONTENT SCANNER (MULTI-FRAME EDITION) ---
+window.analyzeVideoContent = async function(file) {
+    return new Promise(async (resolve) => {
+        try {
+            // 1. Load the AI Model
+            const model = await nsfwjs.load();
+            
+            // 2. Create a hidden video element
+            const video = document.createElement('video');
+            video.src = URL.createObjectURL(file);
+            video.width = 320;
+            video.height = 240;
+            video.muted = true;
+            video.playsInline = true;
+
+            // 3. Helper: Scan a specific timestamp
+            const scanFrame = async (time) => {
+                return new Promise((res) => {
+                    video.currentTime = time;
+                    const onSeek = async () => {
+                        video.removeEventListener('seeked', onSeek);
+                        const predictions = await model.classify(video);
+                        
+                        // Check if this specific frame is Porn or Hentai with > 50% confidence
+                        const isBad = predictions.some(p => 
+                            (p.className === 'Porn' || p.className === 'Hentai') && p.probability > 0.50
+                        );
+                        res(isBad);
+                    };
+                    video.addEventListener('seeked', onSeek);
+                });
+            };
+
+            // 4. Main Scanning Loop
+            video.onloadedmetadata = async () => {
+                const dur = video.duration || 1; // Default to 1s if unknown
+                
+                // Define 4 scan points: 10%, 30%, 60%, 90% of the video duration
+                const timestamps = [dur * 0.1, dur * 0.3, dur * 0.6, dur * 0.9];
+                
+                console.log(`Scanning video at: ${timestamps.map(t => t.toFixed(1) + 's')}`);
+
+                let foundExplicit = false;
+
+                // Check each timestamp one by one
+                for (const time of timestamps) {
+                    if (foundExplicit) break; // Stop early if we find something
+                    const isFrameExplicit = await scanFrame(time);
+                    if (isFrameExplicit) {
+                        console.warn(`Explicit content detected at ${time.toFixed(1)}s`);
+                        foundExplicit = true;
+                    }
+                }
+
+                // Cleanup memory
+                URL.revokeObjectURL(video.src);
+                
+                if (foundExplicit) {
+                    console.log("Verdict: EXPLICIT 18+");
+                    resolve(true);
+                } else {
+                    console.log("Verdict: SAFE");
+                    resolve(false);
+                }
+            };
+
+            // Fail-safe: If video can't load, assume safe so app doesn't crash
+            video.onerror = () => {
+                console.warn("Video load error, defaulting to safe");
+                resolve(false);
+            };
+
+        } catch (e) {
+            console.error("Scanner crashed:", e);
+            resolve(false);
+        }
+    });
+}
 
         
 
@@ -3297,6 +3463,7 @@ window.performAccountDeletion = async function() {
 </script>
 </body>
 </html>
+
 
 
 
