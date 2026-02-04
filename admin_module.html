@@ -434,42 +434,55 @@
 
             
 
+
             // --- 1. VERIFICATION (REAL DB) ---
             async renderVerificationQueue() {
                 const container = document.getElementById('verify-queue-container');
                 container.innerHTML = '<p>Querying Pending Users...</p>';
                 
                 try {
-                    const q = query(getCol('users'), where('status', '==', 'pending'));
+                    // FIXED: Query for 'idVerified' == 'pending_verification'
+                    const q = query(getCol('users'), where('idVerified', '==', 'pending_verification'));
                     const snap = await getDocs(q);
                     
                     document.getElementById('pending-badge').innerText = snap.size;
                     container.innerHTML = '';
-                    
+                
                     if(snap.empty) {
                         container.innerHTML = '<div style="padding:20px; color:#666;">No users pending verification.</div>';
                         return;
                     }
+
+
+
+
+                    
+
 
                     snap.forEach(doc => {
                         const u = doc.data();
                         const uid = doc.id;
                         const card = document.createElement('div');
                         card.className = 'admin-card';
+                        // FIXED: Added u.idBackUrl and corrected image sources
                         card.innerHTML = `
                             <div class="card-header">
-                                <h3 class="card-title">${u.alias || 'No Alias'} <span style="font-size:12px; color:#666;">(${uid})</span></h3>
+                                <h3 class="card-title">${u.firstName} ${u.lastName} <span style="font-size:12px; color:#666;">(${uid})</span></h3>
                             </div>
-                            <div class="verify-grid">
+                            <div class="verify-grid" style="grid-template-columns: 1fr 1fr 1fr;">
                                 <div class="evidence-box">
-                                    <img src="${u.img || ''}" alt="No Selfie">
-                                    <div class="evidence-label">LIVE SELFIE</div>
+                                    <img src="${u.selfieUrl || ''}" onclick="window.open(this.src)" style="cursor:zoom-in">
+                                    <div class="evidence-label">SELFIE</div>
                                 </div>
                                 <div class="evidence-box">
-                                    <img src="${u.idCard || ''}" alt="No ID Uploaded">
-                                    <div class="evidence-label">GOV ID</div>
+                                    <img src="${u.idPhotoUrl || ''}" onclick="window.open(this.src)" style="cursor:zoom-in">
+                                    <div class="evidence-label">ID FRONT</div>
                                 </div>
-                            </div>
+                                <div class="evidence-box">
+                                    <img src="${u.idBackUrl || ''}" onclick="window.open(this.src)" style="cursor:zoom-in">
+                                    <div class="evidence-label">ID BACK</div>
+                                </div>
+                            </div>                      
                             <div style="display:flex; gap:10px; margin-top:20px;">
                                 <button class="admin-btn btn-success" style="flex:1;" onclick="window.admin.verifyDecision('${uid}', 'approve')">✅ APPROVE</button>
                                 <button class="admin-btn btn-danger" style="flex:1;" onclick="window.admin.verifyDecision('${uid}', 'deny')">🚫 DENY</button>
@@ -482,22 +495,24 @@
                 }
             }
 
+
+
+
+            
+
+            
             verifyDecision(uid, decision) {
                 const isApprove = decision === 'approve';
                 const msg = isApprove ? "User will be Verified and Emailed." : "User will be Rejected and Emailed.";
                 
                 this.confirmAction(isApprove ? 'Approve User?' : 'Deny User?', msg, async () => {
                     const userRef = doc(getCol('users'), uid);
+                    // FIXED: Updates 'idVerified' instead of 'status'
                     await updateDoc(userRef, {
-                        status: isApprove ? 'verified' : 'rejected',
+                        idVerified: isApprove ? 'verified' : 'rejected',
                         verifiedAt: serverTimestamp()
                     });
-                    
-                    // Email Logic Simulation
-                    console.log(`[EMAIL SYSTEM] Sending ${isApprove ? 'Welcome' : 'Rejection'} email to user.`);
-                    alert(`User ${decision}d. Email trigger sent.`);
-                    this.renderVerificationQueue();
-                });
+                
             }
 
             // --- 2. USER MANAGEMENT (REAL DB) ---
@@ -806,6 +821,7 @@
     </script>
 </body>
 </html>
+
 
 
 
