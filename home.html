@@ -1729,15 +1729,17 @@ async function checkAdminStatus(uid) {
             window.updateHeaderIcon(cachedImg);
         }
 
-        try {
+                try {
             const userCred = await window.fbase.signInAnonymously(window.auth);
             currentUserUid = userCred.user.uid;
             console.log("Authenticated as:", currentUserUid);
             localStorage.setItem('pgX_myUid', currentUserUid); 
             
-            // Now fetch fresh data from DB
+            window.startWinkListener(); 
+            
             await checkAdminStatus(currentUserUid); 
             await ensureUserProfile();
+
 
         } catch (error) {
             console.warn("Auth Failed:", error);
@@ -2283,7 +2285,74 @@ async function ensureUserProfile() {
         L.marker([myLat, myLng], {icon: myIcon}).addTo(window.map);
     }
 
-    // --- 4. REAL-TIME MESSAGING ---
+        // --- 4. REAL-TIME MESSAGING ---
+
+    let winkUnsubscribe = null;
+
+    window.startWinkListener = function() {
+        if (!currentUserUid) return;
+
+        const winkList = document.getElementById('tab-winks');
+        const winkRef = window.fbase.collection(window.db, 'users', currentUserUid, 'winks');
+        const q = window.fbase.query(winkRef, window.fbase.orderBy('timestamp', 'desc'), window.fbase.limit(50));
+
+        if (winkUnsubscribe) winkUnsubscribe();
+
+        winkUnsubscribe = window.fbase.onSnapshot(q, (snapshot) => {
+            if (snapshot.empty) {
+                winkList.innerHTML = `<div style="padding:20px; text-align:center; color:#666;">No winks yet.</div>`;
+                const badge = document.getElementById('msg-badge');
+                if(badge) badge.style.display = 'none';
+                return;
+            }
+
+            const count = snapshot.size;
+            const badge = document.getElementById('msg-badge');
+            if(badge) {
+                badge.innerText = count;
+                badge.style.display = count > 0 ? 'flex' : 'none';
+            }
+
+            winkList.innerHTML = '';
+            snapshot.forEach(doc => {
+                const w = doc.data();
+                const winkId = doc.id;
+                
+                const item = document.createElement('div');
+                item.className = 'msg-item';
+                if (!w.read) item.classList.add('unread'); 
+
+                item.innerHTML = `
+                    <img src="${w.fromImg || 'https://via.placeholder.com/50'}" class="msg-avatar">
+                    <div style="flex:1;">
+                        <div style="font-weight:bold; color:white; font-size:14px;">${w.fromAlias || 'User'}</div>
+                        <div style="color:var(--accent); font-size:12px;">Sent you a wink! 😉</div>
+                        <div style="color:#666; font-size:10px;">${w.timestamp ? new Date(w.timestamp.seconds * 1000).toLocaleTimeString() : 'Just now'}</div>
+                    </div>
+                    <button onclick="window.acceptWink('${w.fromAlias}', '${w.fromUid}', '${winkId}')" style="background:var(--accent); color:white; border:none; padding:8px 12px; border-radius:20px; font-weight:bold; font-size:12px; cursor:pointer;">
+                        Chat
+                    </button>
+                `;
+                winkList.appendChild(item);
+            });
+        });
+    }
+
+    window.acceptWink = async function(alias, targetUid, winkId) {
+        window.openChat(alias, targetUid);
+        try {
+            await window.fbase.deleteDoc(window.fbase.doc(window.db, 'users', currentUserUid, 'winks', winkId));
+        } catch (e) { console.error(e); }
+    }
+
+    
+
+
+
+  
+
+
+    
 
     window.openChat = function(name, targetUid) {
         document.getElementById('msg-list-view').style.display = 'none';
@@ -3466,6 +3535,7 @@ window.analyzeVideoContent = async function(file) {
 </script>
 </body>
 </html>
+
 
 
 
