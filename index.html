@@ -873,16 +873,61 @@
             return getDownloadURL(sRef);
         }
 
+
         async function checkRedirect(user) {
             const snap = await getDoc(doc(db, 'artifacts', 'playgroundX_Prod_v1', 'public', 'data', 'users', user.uid));
-            if(snap.exists() && snap.data().isAdmin) localStorage.setItem('pgX_admin_access', 'true');
-            window.location.href = "home.html";
+            
+            if (!snap.exists()) {
+                 console.error("No profile found");
+                 return;
+            }
+
+            const data = snap.data();
+
+            // 1. Admin Always Gets In
+            if(data.isAdmin) {
+                localStorage.setItem('pgX_admin_access', 'true');
+                window.location.href = "home.html";
+                return;
+            }
+
+            // 2. Check Verification Status
+            const status = data.idVerified;
+
+            if (status === 'pending_upload') {
+                // SCENARIO: They quit halfway. Force them back to the Wizard.
+                console.log("Incomplete onboarding detected.");
+                document.getElementById('login-layer').style.display = 'none';
+                document.getElementById('wizard-overlay').style.display = 'flex';
+                
+                // Reset wizard to Step 1 (Safety Oath) just to be sure
+                document.querySelectorAll('.w-step').forEach(el => el.classList.remove('active', 'exit'));
+                document.getElementById('step-safety').classList.add('active');
+            } 
+            else if (status === 'pending_verification') {
+                // SCENARIO: They are waiting for YOU to approve them.
+                document.getElementById('error-txt').innerText = "Application under review. Access denied until approved.";
+                await auth.signOut(); // Kick them out so they can't sneak in
+            }
+            else if (status === 'verified') {
+                // SCENARIO: You manually approved them in the Database.
+                window.location.href = "home.html";
+            }
+            else {
+                // SCENARIO: Unknown state? Block them.
+                document.getElementById('error-txt').innerText = "Account status unknown. Please contact support.";
+                await auth.signOut();
+            }
         }
+
+
+        
 
         window.enterApp = () => window.location.href = "home.html";
     </script>
 </body>
 </html>
+
 
 
 
