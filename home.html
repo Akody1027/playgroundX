@@ -781,6 +781,86 @@ window.addEventListener( "pageshow", function ( event ) {
 </head>
 <body>
 
+
+
+
+<script>
+    // --- CRITICAL FIX: Defines Gatekeeper functions immediately ---
+    // This runs before the database loads, ensuring buttons work instantly.
+
+    window.handleAge = function(isAdult) {
+        if (isAdult) {
+            const ageGate = document.getElementById('age-gate');
+            const locGate = document.getElementById('location-gate');
+
+            // Show Location Gate
+            if(locGate) {
+                locGate.style.display = 'flex';
+                locGate.style.opacity = '1';
+            }
+
+            // Hide Age Gate
+            if(ageGate) {
+                ageGate.style.transition = "opacity 0.5s";
+                ageGate.style.opacity = "0";
+                setTimeout(() => { ageGate.style.display = 'none'; }, 500);
+            }
+        } else {
+            window.location.href = "https://google.com";
+        }
+    }
+
+    window.requestLocation = function() {
+        const loader = document.getElementById('loading-overlay');
+        const locGate = document.getElementById('location-gate');
+
+        // Show Loader
+        if(loader) {
+            loader.style.display = 'flex';
+            loader.style.opacity = '1';
+        }
+        // Hide Location Gate
+        if(locGate) locGate.style.display = 'none';
+
+        // Actually request location
+        if (navigator.geolocation) {
+            navigator.geolocation.getCurrentPosition((position) => {
+                // Save to window for the main app to pick up later
+                window.myLocation = { 
+                    lat: position.coords.latitude, 
+                    lng: position.coords.longitude 
+                };
+                
+                // If the main app is ready, update map
+                if (window.map) {
+                    window.map.setView([window.myLocation.lat, window.myLocation.lng], 13);
+                }
+                // If main app is ready, render users
+                if(window.renderDeck) window.renderDeck();
+                
+            }, (err) => {
+                console.warn("Location denied");
+                alert("Location is required.");
+                window.location.reload();
+            });
+        }
+
+        // Hide loader after a delay to simulate loading
+        setTimeout(() => {
+            if(loader) {
+                loader.style.transition = 'opacity 0.5s';
+                loader.style.opacity = '0';
+                setTimeout(() => { loader.style.display = 'none'; }, 500);
+            }
+        }, 3500);
+    }
+</script>
+
+
+
+
+    
+
 <div id="age-gate" style="position: fixed; inset: 0; background: rgba(0,0,0,0.9); z-index: 99999; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; backdrop-filter: blur(10px);">
     <h2 style="color: white; margin-bottom: 10px;">Adults Only</h2>
     <p style="color: #ccc; margin-bottom: 30px; font-size: 18px;">Confirm you are 18+</p>
@@ -3413,6 +3493,7 @@ window.analyzeVideoContent = async function(file) {
 </script>
 </body>
 </html>
+
 
 
 
