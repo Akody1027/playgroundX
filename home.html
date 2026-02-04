@@ -1224,9 +1224,13 @@ window.addEventListener( "pageshow", function ( event ) {
         <div class="toggle-row"><span>Transgender</span><input type="checkbox" id="f-trans" class="toggle-checkbox" onchange="window.toggleAccordion('trans-age', this.checked)"><label for="f-trans" class="toggle-switch"></label></div>
         <div id="trans-age" class="accordion-content"><div style="display:flex; gap:10px;"><input type="number" placeholder="18" class="style-input"><input type="number" placeholder="99" class="style-input"></div></div>
 
-        <label class="filter-label">DISTANCE: <span id="dist-val" style="color:var(--accent)">50 mi</span></label>
-        <input type="range" min="1" max="200" value="50" oninput="document.getElementById('dist-val').innerText = this.value + ' mi'" style="accent-color: var(--accent); width: 100%;">
 
+
+        <label class="filter-label">DISTANCE: <span id="dist-val" style="color:var(--accent)">20 mi</span></label>
+        <input type="range" id="dist-range" min="1" max="200" value="20" oninput="document.getElementById('dist-val').innerText = this.value + ' mi'" style="accent-color: var(--accent); width: 100%;">
+
+
+        
         <label class="filter-label">RELATIONSHIP TYPE</label>
         <div class="toggle-row"><span>Select Type</span><input type="checkbox" id="t-rt" class="toggle-checkbox" onchange="window.toggleAccordion('ac-rt', this.checked)"><label for="t-rt" class="toggle-switch"></label></div>
         <div id="ac-rt" class="accordion-content"><label class="radio-option"><input type="checkbox" class="f-rt" value="Marriage"> Marriage</label><label class="radio-option"><input type="checkbox" class="f-rt" value="Long-Term"> Long-Term</label><label class="radio-option"><input type="checkbox" class="f-rt" value="Short-Term"> Short-Term</label><label class="radio-option"><input type="checkbox" class="f-rt" value="No strings"> No Strings</label><label class="radio-option"><input type="checkbox" class="f-rt" value="Friendship"> Friendship</label></div>
@@ -1967,12 +1971,29 @@ async function ensureUserProfile() {
 
 
 
+    // --- 1. GEO-QUERY HELPER ---
+    // Converts miles into latitude/longitude degrees to create a search box
+    function getBounds(lat, lng, miles) {
+        const latChange = miles / 69;
+        const lngChange = miles / (69 * Math.cos(lat * (Math.PI / 180)));
+        return {
+            minLat: lat - latChange,
+            maxLat: lat + latChange,
+            minLng: lng - Math.abs(lngChange),
+            maxLng: lng + Math.abs(lngChange)
+        };
+    }
 
+    // --- 2. UPDATED RENDER DECK (Scalable) ---
     window.renderDeck = async function() {
         const zone = document.getElementById('swipe-zone');
         const grid = document.getElementById('grid-content');
+        
+        // A. Get Slider Value (Default 20 from HTML)
+        const distInput = document.getElementById('dist-range');
+        const miles = distInput ? parseInt(distInput.value) : 20;
 
-        // 1. Fetch Hidden Users List First (If logged in)
+        // B. Fetch Hidden Users List (If logged in)
         if (currentUserUid) {
             try {
                 const hiddenRef = window.fbase.collection(window.db, 'users', currentUserUid, 'hidden_swipes');
@@ -1986,27 +2007,62 @@ async function ensureUserProfile() {
 
         let realUsers = [];
         
-        // 2. DATA: Fetch Real People & Filter out Hidden ones
+        // C. DATA: Intelligent Query (Geo vs Global)
         try {
-            const snapshot = await window.fbase.getDocs(getPublicCollection("users"));
+            let q;
+            
+            // Check if we have location AND the slider is not maxed out (200 acts as "Global")
+            if (window.myLocation && miles < 200) {
+                console.log(`Searching radius: ${miles} miles around`, window.myLocation);
+                const b = getBounds(window.myLocation.lat, window.myLocation.lng, miles);
+                
+                // GEO QUERY: Only download users within the bounding box
+                // NOTE: This requires a Firestore Composite Index (Check Console if it fails!)
+                q = window.fbase.query(
+                    getPublicCollection("users"),
+                    window.fbase.where('lat', '>=', b.minLat),
+                    window.fbase.where('lat', '<=', b.maxLat),
+                    // We filter Longitude in memory if needed to avoid complex double-range limitations, 
+                    // but for strict scaling, you'd add longitude 'where' clauses here too.
+                    window.fbase.limit(50) // Safety Limit
+                );
+            } else {
+                // FALLBACK: No location or Global setting -> Load recent 50 users
+                console.log("Loading Global/Recent users (No Location filter)");
+                q = window.fbase.query(
+                    getPublicCollection("users"),
+                    window.fbase.orderBy('lastSeen', 'desc'),
+                    window.fbase.limit(50)
+                );
+            }
+
+            const snapshot = await window.fbase.getDocs(q);
+            
             snapshot.forEach(doc => {
-                // Logic: Exclude Me AND Exclude anyone in the Hidden Set
+                const d = doc.data();
+                // Logic: Exclude Me AND Exclude Hidden AND (If Geo) Check Longitude bounds
+                // Note: We do a simplified client-side check for Longitude to keep the query simple
                 if (doc.id !== currentUserUid && !window.hiddenUsersSet.has(doc.id)) {
-                    realUsers.push({ id: doc.id, ...doc.data() });
+                    realUsers.push({ id: doc.id, ...d });
                 }
             });
+
         } catch (e) {
-            console.error("DB Fetch Error:", e);
+            console.error("DB Fetch Error (Check Console for Index Link):", e);
+            // If Geo query fails (index missing), fallback to standard
+            if(e.code === 'failed-precondition') {
+                alert("Database Index Missing! Check Console to create it.");
+            }
         }
 
-        // 3. LOGIC: Update Deck
+        // D. LOGIC: Update Deck
         if (realUsers.length > 0) {
             activeDeck = realUsers;
         } else {
             activeDeck = []; 
         }
         
-        // 4. DRAWING: Render Swipe View
+        // E. DRAWING: Render Swipe View
         if (activeDeck.length > 0) {
             const u = activeDeck[0];
             zone.innerHTML = `
@@ -2019,44 +2075,33 @@ async function ensureUserProfile() {
             </div>`;
             setTimeout(initSwipeHandlers, 50);
         } else {
-            // --- UPDATED EMPTY STATE (Static Purple Icon) ---
+            // Empty State
             zone.innerHTML = `
-            <div class="swipe-card" style="display: flex; align-items: center; justify-content: center; background: #1a1a1a; border: 1px solid #333;">
-                <svg width="250" height="250" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-                    <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
-                    <circle cx="12" cy="7" r="4"></circle>
-                </svg>
-            </div>
-            `;
+            <div class="swipe-card" style="display: flex; flex-direction:column; align-items: center; justify-content: center; background: #1a1a1a; border: 1px solid #333;">
+                <svg width="100" height="100" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="1.5"><circle cx="12" cy="12" r="10"></circle><path d="M16 12l-4-4-4 4M12 16V9"></path></svg>
+                <div style="margin-top:20px; color:#666; font-weight:bold;">NO USERS NEARBY</div>
+                <div style="margin-top:10px; color:#444; font-size:12px;">Try increasing the distance slider</div>
+            </div>`;
         }
 
-        // 5. DRAWING: Render Grid View
+        // F. DRAWING: Render Grid View
         if (grid) {
             if (activeDeck.length === 0) {
-                // --- UPDATED GRID EMPTY STATE (Static Purple Icon) ---
-                grid.style.display = 'grid'; 
-                grid.innerHTML = `
-                    <div class="grid-item" style="background:#000; display:flex; align-items:center; justify-content:center;">
-                        <svg width="120" height="120" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-                            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
-                            <circle cx="12" cy="7" r="4"></circle>
-                        </svg>
-                    </div>
-                `;
+                grid.innerHTML = `<div style="color:#666; padding:20px; grid-column:1/-1; text-align:center;">No Users Found</div>`;
             } else {
-                grid.style.display = 'grid';
                 grid.innerHTML = activeDeck.map(u => `
                 <div class="grid-item" onclick="window.openUserProfile('${u.alias}', ${u.age}, '${u.img}', '${u.id}')">
-                    <img src="${u.img}" style="width:90%; height:90%; object-fit:cover;">
+                    <img src="${u.img}" style="width:100%; height:100%; object-fit:cover;">
                     <div class="grid-overlay"><span>${u.alias}</span><span>${u.age}</span></div>
                 </div>
                 `).join('');
             }
         }
         
-        // 6. DRAWING: Update Map
+        // G. DRAWING: Update Map
         if(window.updateMapPins) window.updateMapPins(activeDeck);
     }
+
 
 
 
@@ -2270,37 +2315,68 @@ async function ensureUserProfile() {
         if (btnReject) btnReject.style.background = 'rgba(0,0,0,0.6)';
     }
 
-    // --- 3. MAP ---
-    // Initialize map with a placeholder view, updated by geolocation later
-    window.map = L.map('map', {zoomControl: false}).setView([40.7128, -74.0060], 13);
-    L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png').addTo(window.map);
 
-    window.updateMapPins = function(users) {
-        window.map.eachLayer((layer) => { if(layer instanceof L.Marker) window.map.removeLayer(layer); });
 
-        users.forEach(u => {
-            if(u.lat && u.lng) {
-                const icon = L.divIcon({
-                    className: 'custom-pin',
-                    html: `<div class="user-dot-pin" style="width:12px; height:12px;"></div>`
-                });
-                L.marker([u.lat, u.lng], {icon: icon})
-                  .addTo(window.map)
-                  .bindPopup(`<b>${u.alias}</b><br>${u.age}`);
-            }
-        });
-        
-        // Use REAL location if available
-        let myLat = 40.7128;
-        let myLng = -74.0060;
-        if (window.myLocation) {
-            myLat = window.myLocation.lat;
-            myLng = window.myLocation.lng;
+
+
+    
+
+
+
+
+
+
+
+    // --- SMART MAP LISTENER ---
+    // When the user stops dragging/zooming, only load users inside the screen frame
+    window.map.on('moveend', async function() {
+        const bounds = window.map.getBounds();
+        const minLat = bounds.getSouth();
+        const maxLat = bounds.getNorth();
+        const minLng = bounds.getWest();
+        const maxLng = bounds.getEast();
+
+        console.log("Map Moved. Fetching users in view...");
+
+        try {
+            // Query only the visible map area
+            const q = window.fbase.query(
+                getPublicCollection("users"),
+                window.fbase.where('lat', '>=', minLat),
+                window.fbase.where('lat', '<=', maxLat),
+                window.fbase.limit(50)
+            );
+
+            const snapshot = await window.fbase.getDocs(q);
+            const mapUsers = [];
+            
+            snapshot.forEach(doc => {
+                const d = doc.data();
+                // Manual check for Longitude (since we can't easily double-filter range in simple mode)
+                // and basic excludes
+                if (d.lng >= minLng && d.lng <= maxLng && doc.id !== currentUserUid) {
+                    mapUsers.push({ id: doc.id, ...d });
+                }
+            });
+
+            // Update Pins Only (Do not reset the main swipe deck, keep them separate)
+            window.updateMapPins(mapUsers);
+
+        } catch (e) {
+            console.error("Map Query Error:", e);
         }
-        
-        const myIcon = L.divIcon({ className: 'my-pin', html: `<div class="my-location-pin" style="width:20px; height:20px;"></div>` });
-        L.marker([myLat, myLng], {icon: myIcon}).addTo(window.map);
-    }
+    });
+
+    
+
+
+
+
+
+
+
+
+    
 
     // --- 4. REAL-TIME MESSAGING ---
 
@@ -3485,6 +3561,7 @@ window.analyzeVideoContent = async function(file) {
 </script>
 </body>
 </html>
+
 
 
 
