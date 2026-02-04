@@ -2915,7 +2915,7 @@ updateConnectionStatus();
                 toggle.checked = false;
             }
             
-        } else {
+        } else {}
             // --- ENDING STREAM ---
             if (localStream) {
                 localStream.getTracks().forEach(track => track.stop());
@@ -3413,6 +3413,7 @@ window.analyzeVideoContent = async function(file) {
 </script>
 </body>
 </html>
+
 
 
 
