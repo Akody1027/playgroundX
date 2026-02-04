@@ -3491,8 +3491,68 @@ window.analyzeVideoContent = async function(file) {
     initBackend();
 });
 </script>
+
+
+
+
+
+
+
+<script>
+    // --- UI RESCUE SCRIPT ---
+    // This forces the header buttons to work immediately, 
+    // regardless of the main app status.
+
+    window.openModal = function(id) {
+        if (id === 'modal-my-profile') {
+            if(window.loadMyProfile) window.loadMyProfile();
+            else document.getElementById('profile-modal').style.display = 'block';
+            return;
+        }
+        
+        const el = document.getElementById(id);
+        if (el) el.style.display = 'block';
+        
+        // Special Case: Initialize Camera if opening Studio
+        if (id === 'camera-modal' && window.initLiveGrid) {
+            window.initLiveGrid();
+        }
+    }
+
+    window.closeModal = function(id) {
+        const el = document.getElementById(id);
+        if (el) el.style.display = 'none';
+    }
+
+    window.switchView = function(viewId, btn) {
+        // Reset Views
+        document.querySelectorAll('.app-view').forEach(v => v.classList.remove('active'));
+        document.querySelectorAll('.view-btn').forEach(b => b.classList.remove('active'));
+        
+        // Activate Target
+        const target = document.getElementById('view-' + viewId);
+        if(target) target.classList.add('active');
+        if(btn) btn.classList.add('active');
+
+        // Fix Map Glitch
+        if (viewId === 'map' && window.map) {
+            setTimeout(() => window.map.invalidateSize(), 100);
+        }
+    }
+
+    window.toggleUserDropdown = function() {
+        const menu = document.getElementById('user-dropdown');
+        if(menu) menu.style.display = (menu.style.display === 'block') ? 'none' : 'block';
+    }
+</script>
+
+
+
+
+    
 </body>
 </html>
+
 
 
 
