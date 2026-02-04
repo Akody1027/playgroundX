@@ -1915,53 +1915,7 @@ async function checkAdminStatus(uid) {
 
 
 
-async function ensureUserProfile() {
-        // 1. Reference the user document
-        const userRef = window.fbase.doc(window.db, 'artifacts', window.APP_ID, 'public', 'data', 'users', currentUserUid);
-        
-        try {
-            // 2. Fetch latest data from Database
-            const snap = await window.fbase.getDoc(userRef);
 
-            if (snap.exists()) {
-                const data = snap.data();
-                console.log("Profile loaded from DB:", data.alias);
-
-                // 3. Sync to LocalStorage (so other parts of the app are fast)
-                if (data.alias) localStorage.setItem('pgX_alias', data.alias);
-                if (data.img) localStorage.setItem('my_profile_pic', data.img);
-
-                // 4. *** CRITICAL FIX: UPDATE HEADER UI IMMEDIATELY ***
-                if (data.img) {
-                    const headerIcon = document.getElementById('user-icon-trigger');
-                    if (headerIcon) {
-                        headerIcon.innerHTML = `
-                            <img src="${data.img}" style="width:100%; height:100%; border-radius:50%; object-fit:cover;">
-                            <div id="connection-dot" class="connection-dot ${navigator.onLine ? 'online' : 'offline'}"></div>
-                        `;
-                    }
-                }
-            } else {
-                // 5. Create Default User (First Time Only)
-                console.log("Creating new user profile...");
-                const defaultAlias = "User_" + Math.floor(Math.random() * 1000);
-                const defaultImg = "https://via.placeholder.com/120";
-
-                await window.fbase.setDoc(userRef, {
-                    alias: defaultAlias,
-                    age: 21,
-                    bio: "New member",
-                    img: defaultImg,
-                    joinedAt: window.fbase.serverTimestamp()
-                });
-                
-                localStorage.setItem('pgX_alias', defaultAlias);
-                localStorage.setItem('my_profile_pic', defaultImg);
-            }
-        } catch (e) {
-            console.error("Profile check failed:", e);
-        }
-    }
 
 
 
@@ -3658,6 +3612,7 @@ window.analyzeVideoContent = async function(file) {
 </script>
 </body>
 </html>
+
 
 
 
