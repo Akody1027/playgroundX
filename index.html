@@ -415,7 +415,9 @@
             <div id="step-success" class="w-step">
                 <div class="w-icon"></div>
                 <div class="w-title">Request Pending</div>
-                <div class="w-desc">Your application is under review. You will be redirected to the login page momentarily.</div>
+                <div class="w-desc">Your application is under review. You will be notified once verified so 
+                    you can return and log in. (Redirecting...)
+                </div>
             </div>
 
 
@@ -423,6 +425,26 @@
             
         </div>
     </div>
+
+
+
+
+    <div id="warning-modal" style="position:fixed; inset:0; z-index: 3000; background:rgba(0,0,0,0.95); display:none; align-items:center; justify-content:center; backdrop-filter:blur(10px);">
+        <div style="background:#0A0A0A; border:1px solid #333; padding:40px; max-width:450px; width:90%; border-radius:20px; text-align:center; box-shadow:0 20px 50px rgba(0,0,0,0.8);">
+            <div style="font-size:50px; margin-bottom:20px;">🛡️</div>
+            <h2 style="font-size:24px; font-weight:800; margin-bottom:15px; color:white;">Fair Warning</h2>
+            <p style="color:#A1A1AA; font-size:15px; line-height:1.6; margin-bottom:30px;">
+                We know it is a <b>pain in the butt</b>, but in order to keep our strict standards, security, and a bot-free PlaygroundX, we require <b>identification verification</b> before you can log in.
+            </p>
+            <button onclick="acceptWarning()" style="width:100%; background:var(--primary); color:white; padding:15px; border:none; border-radius:12px; font-weight:700; cursor:pointer; font-size:16px; margin-bottom:15px;">PROCEED TO LOGIN</button>
+            <div onclick="enterGuestMode()" style="color:#666; font-size:13px; cursor:pointer; text-decoration:underline;">Just Take a Look (Guest Mode)</div>
+        </div>
+    </div>
+
+
+
+
+    
 
     <div id="landing-module">
         <nav>
@@ -696,10 +718,22 @@
 
         
         window.revealLogin = () => {
-            localStorage.setItem("pgX_member_active", "true"); // Saves the flag
+            // New User? Show the Warning First.
+            document.getElementById('warning-modal').style.display = 'flex';
+        };
+
+
+        window.acceptWarning = () => {
+            document.getElementById('warning-modal').style.display = 'none'; // Hide Warning
+            
+            // Show Login
+            localStorage.setItem("pgX_member_active", "true"); 
             document.getElementById('landing-module').classList.add('slide-up');
             document.getElementById('login-layer').classList.add('login-visible');
         };
+
+
+        
 
         window.showLanding = () => {
             localStorage.removeItem("pgX_member_active"); // Clears the flag so they aren't stuck
@@ -927,6 +961,7 @@
     </script>
 </body>
 </html>
+
 
 
 
