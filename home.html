@@ -3262,14 +3262,17 @@ window.sendWink = function(id) {
 
 window.logout = function() {
     window.auth.signOut().then(() => {
-        // Sign-out successful, redirect to index
-        window.location.href = "index.html";
+        // Sign-out successful.
+        // We use .replace() to BURN the history bridge.
+        // The user cannot hit "Back" to return to this profile.
+        window.location.replace("index.html"); 
     }).catch((error) => {
-        // An error happened, but we redirect anyway
         console.error("Sign out error", error);
-        window.location.href = "index.html";
+        // Even if error, force the history wipe
+        window.location.replace("index.html");
     });
 }
+
 
 
 // --- ACCOUNT DELETION LOGIC ---
@@ -3463,6 +3466,7 @@ window.analyzeVideoContent = async function(file) {
 </script>
 </body>
 </html>
+
 
 
 
