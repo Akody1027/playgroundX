@@ -857,31 +857,53 @@
             setTimeout(() => document.getElementById(next).classList.add('active'), 100);
         };
 
-        window.finishOnboarding = async () => {
+
+
+
+         window.finishOnboarding = async () => {
             const front = document.getElementById('id-front').files[0];
+            const back = document.getElementById('id-back').files[0]; // NEW
             const selfie = document.getElementById('selfie-upload').files[0];
             const btn = document.querySelector('#step-selfie button');
 
-            if(!front || !selfie) {
-                alert("Please ensure both your ID and Selfie are uploaded.");
+            if(!front || !back || !selfie) {
+                alert("Please ensure ID Front, ID Back, and Selfie are uploaded.");
                 return;
-            }
+        }
+
+        
+
+
+            
 
             btn.innerText = "VERIFYING..."; 
             btn.style.opacity = "0.7";
             btn.disabled = true;
 
-            try {
+
+
+
+                 try {
                 // 1. Upload Files
                 const frontUrl = await upload(front, `verification/${currentUser.uid}/id_front.jpg`);
+                const backUrl = await upload(back, `verification/${currentUser.uid}/id_back.jpg`); // NEW
                 const selfieUrl = await upload(selfie, `verification/${currentUser.uid}/selfie.jpg`);
                 
                 // 2. Set Status to 'pending_verification'
                 await setDoc(doc(db, 'artifacts', 'playgroundX_Prod_v1', 'public', 'data', 'users', currentUser.uid), {
                     idVerified: 'pending_verification', 
-                    idPhotoUrl: frontUrl, 
+                    idPhotoUrl: frontUrl,
+                    idBackUrl: backUrl, // NEW
                     selfieUrl: selfieUrl
                 }, {merge: true});
+        
+
+
+
+
+
+
+                
 
                 // 3. Show Success Screen
                 wizardNext('step-selfie', 'step-success');
@@ -961,6 +983,7 @@
     </script>
 </body>
 </html>
+
 
 
 
