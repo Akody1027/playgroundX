@@ -2027,7 +2027,7 @@ async function checkAdminStatus(uid) {
                     <span class="card-age">${u.age}</span>
                 </div>
             </div>`;
-            setTimeout(initSwipeHandlers, 50);
+            setTimeout(window.initSwipeHandlers, 50);
         } else {
             // Empty State
             zone.innerHTML = `
@@ -3413,6 +3413,7 @@ window.analyzeVideoContent = async function(file) {
 </script>
 </body>
 </html>
+
 
 
 
