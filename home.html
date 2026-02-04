@@ -2114,84 +2114,181 @@ async function ensureUserProfile() {
 
 
     
-    function initSwipeHandlers() {
-        // 1. Grab the elements
+    
+    // --- OPTIMIZED SWIPE LOGIC (Fixes "Stuck" Cards) ---
+
+    // 1. Global Drag State
+    let isDragging = false;
+
+    // 2. Drag Start (Attached to Card)
+    function onDragStart(e) {
+        if (!card) return;
+        isDragging = true;
+        // Support both Touch and Mouse
+        startX = (e.touches ? e.touches[0].clientX : e.clientX);
+        currentX = 0;
+        card.style.transition = 'none';
+
+        // Attach Move/End listeners to WINDOW (so you can drag outside the card)
+        document.addEventListener('mousemove', onDragMove);
+        document.addEventListener('touchmove', onDragMove);
+        document.addEventListener('mouseup', onDragEnd);
+        document.addEventListener('touchend', onDragEnd);
+    }
+
+    // 3. Drag Move (Attached to Window)
+    function onDragMove(e) {
+        if (!isDragging || !card) return;
+        const clientX = (e.touches ? e.touches[0].clientX : e.clientX);
+        currentX = clientX - startX;
+
+        // Move the card visually
+        card.style.transform = `translateX(${currentX}px) rotate(${currentX / 15}deg)`;
+
+        // Highlight Buttons based on direction
+        if (currentX > 0) {
+            if (btnLike) btnLike.style.background = 'var(--accent)';
+            if (btnReject) btnReject.style.background = 'rgba(0,0,0,0.6)';
+        } else {
+            if (btnReject) btnReject.style.background = 'grey';
+            if (btnLike) btnLike.style.background = 'rgba(0,0,0,0.6)';
+        }
+    }
+
+    // 4. Drag End (Attached to Window)
+    function onDragEnd(e) {
+        if (!isDragging) return;
+        isDragging = false;
+
+        // Clean up listeners immediately (Prevents memory leaks/duplication)
+        document.removeEventListener('mousemove', onDragMove);
+        document.removeEventListener('touchmove', onDragMove);
+        document.removeEventListener('mouseup', onDragEnd);
+        document.removeEventListener('touchend', onDragEnd);
+
+        // Decide Action
+        if (currentX > 100) {
+            window.userSwipe('right');
+        } else if (currentX < -100) {
+            window.userSwipe('left');
+        } else {
+            // Snap Back
+            if (card) {
+                card.style.transition = 'transform 0.3s ease-out';
+                card.style.transform = 'translateX(0)';
+            }
+            resetButtons();
+        }
+        currentX = 0;
+    }
+
+    // 5. Initialize Handlers (Called once per new card)
+    window.initSwipeHandlers = function() {
+        // Grab latest elements
         card = document.getElementById('active-card');
         btnReject = document.getElementById('btn-reject');
         btnLike = document.getElementById('btn-like');
-        
-        // Safety: If deck is empty (or showing the empty state icon), stop.
+
         if (!card) return;
 
-        // 2. Local State
-        let isDragging = false;
+        // Only attach START listeners. 
+        // Move/End listeners are added dynamically in onDragStart
+        card.onmousedown = onDragStart;
+        card.ontouchstart = onDragStart;
+    }
 
-        // --- COMMON START HANDLER ---
-        function startDrag(clientX) {
-            isDragging = true;
-            startX = clientX; 
-            currentX = 0;
-            card.style.transition = 'none';
+    // 6. Reset Button Styles
+    function resetButtons() {
+        if (btnLike) btnLike.style.background = 'rgba(0,0,0,0.6)';
+        if (btnReject) btnReject.style.background = 'rgba(0,0,0,0.6)';
+    }
+
+    // 7. MAIN SWIPE ACTION
+    window.userSwipe = async function(dir) {
+        // Safety Check: If no card or empty deck, ignore click
+        if (!card || activeDeck.length === 0) {
+            console.warn("Swipe attempted on empty deck");
+            return;
         }
 
-        // --- COMMON MOVE HANDLER ---
-        function moveDrag(clientX) {
-            if (!isDragging) return;
-            currentX = clientX - startX;
+        const currentUser = activeDeck[0];
+
+        // Animate Card Away
+        card.style.transition = 'transform 0.5s ease-in';
+        card.style.transform = `translateX(${dir === 'right' ? 1000 : -1000}px)`;
+
+        // --- DATA LOGIC ---
+        if (dir === 'right') {
+            // RIGHT SWIPE = LIKE / WINK
+            console.log("Swiped Right -> Sending Wink to:", currentUser.alias);
             
-            // Move the card
-            card.style.transform = `translateX(${currentX}px) rotate(${currentX / 15}deg)`;
-            
-            // Update Buttons Colors
-            if (currentX > 0) { 
-                if(btnLike) btnLike.style.background = 'var(--accent)'; 
-                if(btnReject) btnReject.style.background = 'rgba(0,0,0,0.6)'; 
-            } else { 
-                if(btnReject) btnReject.style.background = 'grey'; 
-                if(btnLike) btnLike.style.background = 'rgba(0,0,0,0.6)'; 
+            // Visual Feedback
+            const winkEl = document.getElementById('wink-txt');
+            if(winkEl) {
+                winkEl.classList.add('show');
+                setTimeout(() => winkEl.classList.remove('show'), 1000);
+            }
+
+            // DB Write
+            if (currentUserUid) {
+                try {
+                    const winkRef = window.fbase.collection(window.db, 'users', currentUser.id, 'winks');
+                    window.fbase.addDoc(winkRef, {
+                        fromUid: currentUserUid,
+                        fromAlias: localStorage.getItem('pgX_alias') || "Someone",
+                        fromImg: localStorage.getItem('my_profile_pic') || "https://via.placeholder.com/120",
+                        timestamp: window.fbase.serverTimestamp(),
+                        read: false
+                    });
+                } catch(e) { console.error("Wink failed", e); }
+            }
+            activeDeck.shift(); // Remove from memory
+
+        } else {
+            // LEFT SWIPE
+            if (window.hideLeftSwipesMode) {
+                // Permanent Hide
+                if (currentUserUid) {
+                    try {
+                        const hiddenRef = window.fbase.collection(window.db, 'users', currentUserUid, 'hidden_swipes');
+                        window.fbase.setDoc(window.fbase.doc(hiddenRef, currentUser.id), {
+                            hiddenAt: window.fbase.serverTimestamp()
+                        });
+                        window.hiddenUsersSet.add(currentUser.id);
+                    } catch(e) { console.error("Hide failed", e); }
+                }
+                activeDeck.shift();
+            } else {
+                // Recycle (Move to bottom)
+                const recycledUser = activeDeck.shift();
+                activeDeck.push(recycledUser);
             }
         }
 
-        // --- COMMON END HANDLER ---
-        function endDrag() {
-            if (!isDragging) return;
-            isDragging = false;
+        // --- RELOAD NEXT CARD ---
+        setTimeout(() => {
+            resetButtons();
+            const zone = document.getElementById('swipe-zone');
             
-            // Decide: Swipe or Snap Back?
-            if (currentX > 100) {
-                window.userSwipe('right');
-            } else if (currentX < -100) {
-                window.userSwipe('left');
-            } else { 
-                // Snap Back
-                card.style.transition = 'transform 0.3s ease-out';
-                card.style.transform = 'translateX(0)'; 
-                
-                // Reset Button Colors
-                if(btnLike) btnLike.style.background = 'rgba(0,0,0,0.6)';
-                if(btnReject) btnReject.style.background = 'rgba(0,0,0,0.6)';
+            if (activeDeck.length > 0) {
+                const u = activeDeck[0];
+                zone.innerHTML = `
+                <div class="swipe-card" id="active-card" onclick="window.openUserProfile('${u.alias}', ${u.age}, '${u.img}', '${u.id}')">
+                    <img src="${u.img}">
+                    <div class="card-header-overlay">
+                        <span class="card-alias">${u.alias}</span>
+                        <span class="card-age">${u.age}</span>
+                    </div>
+                </div>`;
+                // Re-init listeners for the NEW card
+                window.initSwipeHandlers();
+            } else {
+                // Show Empty State (using your helper)
+                zone.innerHTML = getEmptyStateHTML();
+                // Clear card reference so buttons don't trigger errors
+                card = null;
             }
-            currentX = 0;
-        }
-
-        // --- LISTENERS FOR TOUCH (Mobile) ---
-        card.addEventListener('touchstart', (e) => startDrag(e.touches[0].clientX));
-        card.addEventListener('touchmove', (e) => moveDrag(e.touches[0].clientX));
-        card.addEventListener('touchend', () => endDrag());
-
-        // --- LISTENERS FOR MOUSE (Desktop/Testing) ---
-        card.addEventListener('mousedown', (e) => {
-            e.preventDefault(); // Prevents text selection while dragging
-            startDrag(e.clientX);
-        });
-        
-        // Attach mousemove/up to WINDOW so you don't lose the drag if mouse leaves the card area
-        window.addEventListener('mousemove', (e) => {
-            if(isDragging) moveDrag(e.clientX);
-        });
-        window.addEventListener('mouseup', (e) => {
-            if(isDragging) endDrag();
-        });
+        }, 300);
     }
 
 
@@ -3561,6 +3658,7 @@ window.analyzeVideoContent = async function(file) {
 </script>
 </body>
 </html>
+
 
 
 
