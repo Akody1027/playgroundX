@@ -878,36 +878,7 @@
 
 
     
-    <div id="admin-panel">
-        <div class="admin-header">
-            <h2>Admin God Mode</h2>
-            <button onclick="document.getElementById('admin-panel').style.display='none'" style="background:none; border:none; color:white; font-size:24px;">×</button>
-        </div>
-
-        <div class="admin-section">
-            <h3 style="margin-top:0">Create Fake User</h3>
-            <input type="text" id="admin-fake-alias" class="admin-input" placeholder="Alias (e.g. Sarah)">
-            <input type="number" id="admin-fake-age" class="admin-input" placeholder="Age">
-            <input type="text" id="admin-fake-img" class="admin-input" placeholder="Image URL">
-            <button class="admin-btn" onclick="adminCreateUser()" style="background: var(--accent)">Inject User</button>
-        </div>
-
-        <div class="admin-section">
-            <h3>System Status</h3>
-            <p id="admin-stats">Checking Firestore...</p>
-            <button class="admin-btn" onclick="location.reload()">Emergency Refresh</button>
-        </div>
-    </div>
-
     
-    <div id="user-dropdown">
-        <a href="#" onclick="openModal('modal-my-profile'); document.getElementById('user-dropdown').style.display='none';">My Profile</a>
-        <a href="#" onclick="logout();">Logout</a>
-    </div>
-    
-
-</div>
-
 
 
 
@@ -1049,10 +1020,44 @@
                 <div><label class="filter-label" style="margin-top:0;">BIO</label><textarea id="p-bio" style="width: 100%; background: #111; border: 1px solid #333; padding: 12px; border-radius: 10px; color: white;"></textarea></div>
 
                 <div class="toggle-row"><span>Show Explicit Content</span><input type="checkbox" id="p-explicit" class="toggle-checkbox"><label for="p-explicit" class="toggle-switch"></label></div>
-                
-                <div class="toggle-row"><span>Use GPS Location</span><input type="checkbox" id="p-use-gps" class="toggle-checkbox" checked onchange="window.toggleAccordion('loc-manual', !this.checked)"><label for="p-use-gps" class="toggle-switch"></label></div>
-                <div id="loc-manual" class="accordion-content"><input type="text" class="style-input" placeholder="Enter City..."></div>
 
+
+
+
+
+             <label class="filter-label" style="margin-top: 20px;">LOCATION</label>
+                
+                <div class="toggle-row">
+                    <span>Approximate Location</span>
+                    <input type="checkbox" id="loc-approx" class="toggle-checkbox" checked onchange="window.handleLocToggle('approx')">
+                    <label for="loc-approx" class="toggle-switch"></label>
+                </div>
+                <div style="font-size:10px; color:#666; margin-bottom:10px; padding:0 10px;">
+                    Standard privacy mode (Random 2-mile offset).
+                </div>
+
+                <div class="toggle-row">
+                    <span>Precise Location</span>
+                    <input type="checkbox" id="loc-precise" class="toggle-checkbox" onchange="window.handleLocToggle('precise')">
+                    <label for="loc-precise" class="toggle-switch"></label>
+                </div>
+
+                <div class="toggle-row">
+                    <span>Drop a Pin</span>
+                    <input type="checkbox" id="loc-pin" class="toggle-checkbox" onchange="window.handleLocToggle('pin')">
+                    <label for="loc-pin" class="toggle-switch"></label>
+                </div>
+
+                <div id="pin-input-container" class="accordion-content" style="display:none;">
+                    <label class="filter-label" style="margin-top:0;">ENTER ADDRESS OR CITY</label>
+                    <input type="text" id="google-location-input" class="style-input" placeholder="Start typing a location...">
+                </div>
+
+
+
+
+
+                
                 <label class="filter-label">GENDER</label>
                 <div class="toggle-row" onclick="window.toggleProfileAcc('acc-gender')">
                     <span id="disp-gender">Select Gender...</span>
@@ -1656,13 +1661,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
 
-
-
-
-
-
-    
-    
 
                 
 
@@ -2720,6 +2718,41 @@ window.closeModal = function(id) {
         if(el.style.display === 'block') el.style.display = 'none';
         else el.style.display = 'block';
     }
+
+
+
+    // --- NEW: EXCLUSIVE LOCATION TOGGLES ---
+    window.handleLocToggle = function(selected) {
+        const tApprox = document.getElementById('loc-approx');
+        const tPrecise = document.getElementById('loc-precise');
+        const tPin = document.getElementById('loc-pin');
+        const box = document.getElementById('pin-input-container');
+
+        // Logic: If user clicks one, force it ON and others OFF
+        // (Prevent user from turning all off)
+        if (selected === 'approx') {
+            tApprox.checked = true;
+            tPrecise.checked = false;
+            tPin.checked = false;
+            box.style.display = 'none';
+        } else if (selected === 'precise') {
+            tPrecise.checked = true;
+            tApprox.checked = false;
+            tPin.checked = false;
+            box.style.display = 'none';
+        } else if (selected === 'pin') {
+            tPin.checked = true;
+            tApprox.checked = false;
+            tPrecise.checked = false;
+            box.style.display = 'block';
+        }
+    }
+
+
+
+
+
+    
     
     window.selectProfileOption = function(displayId, value, accId) {
         document.getElementById(displayId).innerText = value;
@@ -2818,14 +2851,29 @@ window.deleteGalleryItem = function(slotId) {
     }
 }
 
-// 5. SAVE PROFILE (Uploads Files & Handles Deletes)
+
+
+
+
+    
+
+
+
+
 window.saveProfile = async function() {
     const alias = document.getElementById('p-alias').value;
     const bio = document.getElementById('p-bio').value;
     const age = document.getElementById('p-age').value;
     const isExplicit = document.getElementById('p-explicit').checked;
+    
+    // NEW: Get Toggle States
+    const isApprox = document.getElementById('loc-approx').checked;
+    const isPrecise = document.getElementById('loc-precise').checked;
+    const isPin = document.getElementById('loc-pin').checked;
+    const pinText = document.getElementById('google-location-input').value; // New Input ID
+
     localStorage.setItem('pgX_show_explicit', isExplicit); 
-    // Show Loading
+
     const btn = event.target;
     const oldText = btn.innerText;
     btn.innerText = "Saving...";
@@ -2840,7 +2888,62 @@ window.saveProfile = async function() {
             lastSeen: window.fbase.serverTimestamp()
         };
 
-        // Helper: Upload File
+        // --- LOCATION LOGIC ---
+        if (isApprox || isPrecise) {
+            // A. GPS MODES (Precise OR Approximate)
+            await new Promise((resolve) => {
+                if (!navigator.geolocation) { resolve(); return; }
+                
+                navigator.geolocation.getCurrentPosition((pos) => {
+                    let lat = pos.coords.latitude;
+                    let lng = pos.coords.longitude;
+
+                    if (isApprox) {
+                        // APPROXIMATE: Add random offset (~1-2 miles)
+                        const offsetLat = (Math.random() - 0.5) * 0.04; 
+                        const offsetLng = (Math.random() - 0.5) * 0.04;
+                        lat += offsetLat;
+                        lng += offsetLng;
+                        console.log("Saving Approximate Location (Fuzzed)");
+                    } else {
+                        console.log("Saving Precise Location");
+                    }
+
+                    updates.lat = lat;
+                    updates.lng = lng;
+                    
+                    if(window.map) window.map.setView([lat, lng], 13);
+                    resolve();
+                }, (err) => {
+                    console.warn("GPS failed", err);
+                    resolve();
+                }, { enableHighAccuracy: isPrecise }); 
+            });
+
+        } else if (isPin && pinText.length > 2) {
+            // B. PIN MODE (Manual/Google)
+            // (Placeholder: Uses Nominatim until you add Google Keys)
+            try {
+                const response = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(pinText)}`);
+                const data = await response.json();
+                
+                if (data && data.length > 0) {
+                    const lat = parseFloat(data[0].lat);
+                    const lng = parseFloat(data[0].lon);
+                    updates.lat = lat;
+                    updates.lng = lng;
+                    console.log("Pin Dropped at:", pinText, lat, lng);
+                    
+                    if(window.map) window.map.setView([lat, lng], 13);
+                } else {
+                    alert("Could not find location: " + pinText);
+                }
+            } catch (e) {
+                console.warn("Geocoding failed", e);
+            }
+        }
+
+        // --- FILE UPLOADS (Standard) ---
         const uploadFile = async (inputId, pathName) => {
             const el = document.getElementById(inputId);
             if (el && el.files[0]) {
@@ -2851,49 +2954,33 @@ window.saveProfile = async function() {
             return null;
         };
 
-        // A. Upload Main (Also updates "img" field)
         const mainUrl = await uploadFile('main-up', 'main');
-        if (mainUrl) {
-            updates.img = mainUrl; 
-            localStorage.setItem('my_profile_pic', mainUrl);
-        }
+        if (mainUrl) { updates.img = mainUrl; localStorage.setItem('my_profile_pic', mainUrl); }
 
-        // B. Upload Gallery Images
-        const g2Url = await uploadFile('g2', 'g2');
-        if (g2Url) updates.g2 = g2Url;
+        const g2Url = await uploadFile('g2', 'g2'); if (g2Url) updates.g2 = g2Url;
+        const g3Url = await uploadFile('g3', 'g3'); if (g3Url) updates.g3 = g3Url;
+        const g4Url = await uploadFile('g4', 'g4'); if (g4Url) updates.g4 = g4Url;
+        const vidUrl = await uploadFile('vid-up', 'video'); if (vidUrl) updates.video = vidUrl;
 
-        const g3Url = await uploadFile('g3', 'g3');
-        if (g3Url) updates.g3 = g3Url;
-
-        const g4Url = await uploadFile('g4', 'g4');
-        if (g4Url) updates.g4 = g4Url;
-        
-        // C. Upload Video
-        const vidUrl = await uploadFile('vid-up', 'video');
-        if (vidUrl) updates.video = vidUrl;
-
-        // D. Process Deletions
+        // Process Deletes
         if (window.pendingDeletes) {
-            if (window.pendingDeletes.g2) updates.g2 = window.fbase.deleteDoc.toString() === 'stub' ? null : ""; 
+            if (window.pendingDeletes.g2) updates.g2 = "";
             if (window.pendingDeletes.g3) updates.g3 = "";
             if (window.pendingDeletes.g4) updates.g4 = "";
         }
         if (window.pendingVideoDelete) updates.video = "";
 
-        // E. Save to Firestore
+        // SAVE TO DB
         const userRef = window.fbase.doc(window.db, 'artifacts', window.APP_ID, 'public', 'data', 'users', currentUserUid);
         await window.fbase.setDoc(userRef, updates, { merge: true });
 
-        // Update Local Storage
         if(alias) localStorage.setItem('pgX_alias', alias);
         if(bio) localStorage.setItem('pgX_bio', bio);
 
-        alert("Profile Saved Successfully!");
-        
+        alert("Profile & Location Saved!");
         if (window.renderDeck) renderDeck();
         document.getElementById('profile-modal').style.display = 'none';
         
-        // Clear Delete Flags
         window.pendingDeletes = {};
         window.pendingVideoDelete = false;
 
@@ -2907,6 +2994,15 @@ window.saveProfile = async function() {
 }
 
 
+
+
+
+
+
+
+
+    
+    
 
 
     
@@ -3598,6 +3694,7 @@ window.analyzeVideoContent = async function(file) {
 </script>
 </body>
 </html>
+
 
 
 
