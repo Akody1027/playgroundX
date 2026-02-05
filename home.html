@@ -705,6 +705,67 @@
 
 
 
+/* --- HOME MODULE --- */
+#view-home { display:none; height: 82vh; flex-direction: row; overflow: hidden; }
+#view-home.active { display: flex; }
+
+/* Left Sidebar (Friends) */
+.home-sidebar {
+    width: 60px; background: #000; border-right: 1px solid #222;
+    display: flex; flex-direction: column; padding: 10px 5px;
+    transition: width 0.3s ease; z-index: 20;
+}
+.home-sidebar.expanded { width: 40%; }
+.sidebar-toggle {
+    align-self: center; cursor: pointer; color: #666; margin-bottom: 20px; padding: 5px;
+}
+.friend-row {
+    display: flex; align-items: center; gap: 10px; margin-bottom: 12px; 
+    cursor: pointer; overflow: hidden; padding: 5px; border-radius: 8px;
+}
+.friend-row:hover { background: #111; }
+.friend-avatar {
+    width: 36px; height: 36px; border-radius: 50%; object-fit: cover; 
+    flex-shrink: 0; border: 2px solid var(--accent);
+}
+.friend-name {
+    white-space: nowrap; font-size: 13px; font-weight: bold; color: white; 
+    opacity: 0; transition: opacity 0.2s;
+}
+.home-sidebar.expanded .friend-name { opacity: 1; }
+
+/* Right Feed (Hype) */
+.home-feed {
+    flex: 1; position: relative; background: #000;
+    display: flex; flex-direction: column;
+}
+.feed-scroll {
+    flex: 1; overflow-y: auto; padding: 10px; padding-bottom: 80px;
+}
+.feed-post {
+    background: #111; border: 1px solid #222; border-radius: 12px;
+    margin-bottom: 15px; overflow: hidden; position: relative;
+}
+.post-header {
+    padding: 10px; display: flex; align-items: center; gap: 10px;
+}
+.post-content { padding: 0 15px 10px 15px; color: #ddd; font-size: 14px; line-height: 1.4; }
+.post-media { width: 100%; max-height: 350px; object-fit: cover; display: block; margin-top: 5px; }
+.post-footer { 
+    padding: 8px 15px; color: #555; font-size: 10px; border-top: 1px solid #1a1a1a; 
+    display: flex; justify-content: space-between;
+}
+
+/* Input Bar */
+.home-post-bar {
+    position: absolute; bottom: 0; left: 0; width: 100%;
+    background: #000; border-top: 1px solid #222; padding: 10px;
+    display: flex; gap: 8px; align-items: center; z-index: 50;
+}
+.post-input {
+    flex: 1; background: #161616; border: 1px solid #333; color: white;
+    padding: 10px 15px; border-radius: 20px; outline: none;
+}
 
 
         
@@ -889,17 +950,52 @@
 
 
 
-    
-<div class="toolbar">
     <div class="view-group">
-        <button class="view-btn active" onclick="window.switchView('swipe', this)"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><line x1="3" y1="9" x2="21" y2="9"></line></svg></button>
+        <button class="view-btn" onclick="window.switchView('swipe', this)"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><line x1="3" y1="9" x2="21" y2="9"></line></svg></button>
         <button class="view-btn" onclick="window.switchView('grid', this)"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke-width="2"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect></svg></button>
         <button class="view-btn" onclick="window.switchView('map', this)"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg></button>
+        
+        <div style="width: 1px; height: 24px; background: #333; margin: 0 10px;"></div>
+        <button class="view-btn active" id="btn-home" onclick="window.switchView('home', this)" style="border-color: var(--accent);">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg>
+        </button>
     </div>
+
     <button class="filter-btn" onclick="document.getElementById('filter-modal').style.display='block'">
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="4" y1="21" x2="4" y2="14"></line><line x1="4" y1="10" x2="4" y2="3"></line><line x1="12" y1="21" x2="12" y2="12"></line><line x1="12" y1="8" x2="12" y2="3"></line><line x1="20" y1="21" x2="20" 
-        y2="16"></line><line x1="20" y1="12" x2="20" y2="3"></line><line x1="1" y1="14" x2="7" y2="14"></line><line x1="9" y1="8" x2="15" y2="8"></line><line x1="17" y1="16" x2="23" y2="16"></line></svg>
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="4" y1="21" x2="4" y2="14"></line><line x1="4" y1="10" x2="4" y2="3"></line><line x1="12" y1="21" x2="12" y2="12"></line><line x1="12" y1="8" x2="12" y2="3"></line><line x1="20" y1="21" x2="20" y2="16"></line><line x1="20" y1="12" x2="20" y2="3"></line><line x1="1" y1="14" x2="7" y2="14"></line><line x1="9" y1="8" x2="15" y2="8"></line><line x1="17" y1="16" x2="23" y2="16"></line></svg>
     </button>
+
+
+
+
+<div id="view-home" class="app-view active">
+    <div id="home-sidebar" class="home-sidebar">
+        <div class="sidebar-toggle" onclick="toggleHomeSidebar()">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="13 17 18 12 13 7"></polyline><polyline points="6 17 11 12 6 7"></polyline></svg>
+        </div>
+        <div id="friend-list-container">
+            </div>
+    </div>
+
+    <div class="home-feed">
+        <div id="feed-container" class="feed-scroll">
+            <div style="text-align:center; padding:40px; color:#444;">
+                <div class="spinner" style="margin:0 auto 20px auto;"></div>
+                Loading Hype...
+            </div>
+        </div>
+
+        <div class="home-post-bar">
+            <button onclick="document.getElementById('post-media-up').click()" style="background:none; border:none; color:var(--accent); cursor:pointer; padding:5px;">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><circle cx="8.5" cy="8.5" r="1.5"></circle><polyline points="21 15 16 10 5 21"></polyline></svg>
+            </button>
+            <input type="file" id="post-media-up" hidden accept="image/*,video/*">
+            
+            <input type="text" id="post-text" class="post-input" placeholder="What's happening? (Expires in 24h)">
+            
+            <button onclick="window.createPost()" style="background:var(--accent); border:none; color:white; padding:8px 16px; border-radius:20px; font-weight:bold; font-size:12px; cursor:pointer;">POST</button>
+        </div>
+    </div>
 </div>
 
 
@@ -907,6 +1003,8 @@
 
 
 
+
+    
 
 
     
@@ -3948,6 +4046,167 @@ window.analyzeVideoContent = async function(file) {
 
 
 
+
+
+
+
+    // --- HOME & SOCIAL LOGIC ---
+
+    // 1. Toggle Sidebar
+    window.toggleHomeSidebar = function() {
+        const sb = document.getElementById('home-sidebar');
+        sb.classList.toggle('expanded');
+    }
+
+    // 2. Render Friends (Left Sidebar)
+    window.renderHomeSidebar = async function() {
+        if (!currentUserUid) return;
+        const container = document.getElementById('friend-list-container');
+        
+        try {
+            const friendsRef = window.fbase.collection(window.db, 'users', currentUserUid, 'friends');
+            const snap = await window.fbase.getDocs(friendsRef);
+
+            if (snap.empty) {
+                container.innerHTML = '<div style="font-size:10px; color:#666; text-align:center; margin-top:20px;">No friends</div>';
+                return;
+            }
+
+            container.innerHTML = '';
+            snap.forEach(doc => {
+                const f = doc.data();
+                const div = document.createElement('div');
+                div.className = 'friend-row';
+                div.onclick = () => window.openUserProfile(f.alias, 21, f.img, doc.id); // Open Profile
+                
+                div.innerHTML = `
+                    <img src="${f.img}" class="friend-avatar">
+                    <div class="friend-name">${f.alias}</div>
+                `;
+                container.appendChild(div);
+            });
+        } catch(e) { console.error("Sidebar Error", e); }
+    }
+
+    // 3. Create Post (Auto Cleanup)
+    window.createPost = async function() {
+        const txt = document.getElementById('post-text').value;
+        const fileInput = document.getElementById('post-media-up');
+        const file = fileInput.files[0];
+
+        if (!txt && !file) return;
+
+        // Cleanup Trigger
+        window.lazyCleanupPosts();
+
+        let mediaUrl = null;
+        let mediaType = null;
+        
+        if (file) {
+            // Simple Upload
+            const ref = window.fbase.ref(window.storage, `posts/${currentUserUid}_${Date.now()}`);
+            const snap = await window.fbase.uploadBytes(ref, file);
+            mediaUrl = await window.fbase.getDownloadURL(snap.ref);
+            mediaType = file.type.startsWith('video') ? 'video' : 'image';
+        }
+
+        try {
+            await window.fbase.addDoc(window.fbase.collection(window.db, 'artifacts', window.APP_ID, 'public', 'data', 'posts'), {
+                uid: currentUserUid,
+                alias: localStorage.getItem('pgX_alias'),
+                avatar: localStorage.getItem('my_profile_pic'),
+                text: txt,
+                media: mediaUrl,
+                mediaType: mediaType,
+                timestamp: window.fbase.serverTimestamp()
+            });
+            
+            document.getElementById('post-text').value = "";
+            fileInput.value = "";
+            // Alert removed for smoother feel, feed updates automatically
+        } catch(e) { alert("Post failed"); }
+    }
+
+    // 4. Render Feed (24h Filter)
+    let feedUnsub = null;
+    window.renderHomeFeed = function() {
+        const container = document.getElementById('feed-container');
+        const postsRef = window.fbase.collection(window.db, 'artifacts', window.APP_ID, 'public', 'data', 'posts');
+        
+        // 24 Hours Ago Logic
+        const yesterday = new Date();
+        yesterday.setHours(yesterday.getHours() - 24);
+
+        const q = window.fbase.query(postsRef, 
+            window.fbase.where('timestamp', '>', yesterday),
+            window.fbase.orderBy('timestamp', 'desc'),
+            window.fbase.limit(50)
+        );
+
+        if (feedUnsub) feedUnsub();
+        feedUnsub = window.fbase.onSnapshot(q, (snap) => {
+            if (snap.empty) {
+                container.innerHTML = '<div style="text-align:center; padding:40px; color:#444;">No Hype in the last 24h.<br>Be the first to post!</div>';
+                return;
+            }
+            container.innerHTML = '';
+            snap.forEach(doc => {
+                const p = doc.data();
+                const div = document.createElement('div');
+                div.className = 'feed-post';
+                
+                let mediaHtml = '';
+                if(p.media) {
+                    if(p.mediaType === 'video') mediaHtml = `<video src="${p.media}" class="post-media" controls playsinline></video>`;
+                    else mediaHtml = `<img src="${p.media}" class="post-media">`;
+                }
+                
+                // Calculate time left
+                let timeMsg = "Just now";
+                if(p.timestamp) {
+                    const postTime = p.timestamp.toDate();
+                    const hoursLeft = 24 - ((new Date() - postTime) / 36e5);
+                    timeMsg = Math.max(0, Math.round(hoursLeft)) + "h left";
+                }
+
+                div.innerHTML = `
+                    <div class="post-header">
+                        <img src="${p.avatar}" style="width:30px; height:30px; border-radius:50%; object-fit:cover;">
+                        <span style="color:var(--accent); font-weight:bold; font-size:13px;">${p.alias}</span>
+                    </div>
+                    ${mediaHtml}
+                    <div class="post-content">${p.text || ''}</div>
+                    <div class="post-footer">
+                        <span>${timeMsg}</span>
+                    </div>
+                `;
+                container.appendChild(div);
+            });
+        });
+    }
+
+    // 5. Cleanup Script
+    window.lazyCleanupPosts = async function() {
+        if(!currentUserUid) return;
+        const postsRef = window.fbase.collection(window.db, 'artifacts', window.APP_ID, 'public', 'data', 'posts');
+        const yesterday = new Date();
+        yesterday.setHours(yesterday.getHours() - 24);
+
+        // Delete MY posts older than 24h
+        const q = window.fbase.query(postsRef, 
+            window.fbase.where('uid', '==', currentUserUid),
+            window.fbase.where('timestamp', '<', yesterday)
+        );
+
+        const snap = await window.fbase.getDocs(q);
+        snap.forEach(async (doc) => {
+            await window.fbase.deleteDoc(doc.ref);
+        });
+    }
+
+
+
+            
         
 
 
@@ -3959,6 +4218,7 @@ window.analyzeVideoContent = async function(file) {
 </script>
 </body>
 </html>
+
 
 
 
