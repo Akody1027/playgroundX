@@ -1785,6 +1785,7 @@ async function checkAdminStatus(uid) {
             localStorage.setItem('pgX_myUid', currentUserUid); 
             
             window.startWinkListener(); 
+            window.startInboxListener();
             
             await checkAdminStatus(currentUserUid); 
             await ensureUserProfile();
@@ -2412,6 +2413,43 @@ async function ensureUserProfile() {
 
     
 
+    // --- NEW: INBOX LISTENER ---
+    window.startInboxListener = function() {
+        if (!currentUserUid) return;
+
+        const chatList = document.getElementById('tab-chats');
+        const chatsRef = window.fbase.collection(window.db, 'users', currentUserUid, 'active_chats');
+        const q = window.fbase.query(chatsRef, window.fbase.orderBy('timestamp', 'desc'));
+
+        window.fbase.onSnapshot(q, (snapshot) => {
+            if (snapshot.empty) {
+                chatList.innerHTML = `<div style="padding:20px; text-align:center; color:#666;">No conversations yet.</div>`;
+                return;
+            }
+
+            chatList.innerHTML = '';
+            snapshot.forEach(doc => {
+                const c = doc.data();
+                const item = document.createElement('div');
+                item.className = 'msg-item';
+                item.onclick = () => window.openChat(c.withName, c.withUid); // Clicking opens the chat
+
+                item.innerHTML = `
+                    <div class="msg-avatar" style="background:var(--accent); display:flex; align-items:center; justify-content:center; color:white; font-weight:bold;">
+                        ${c.withName[0].toUpperCase()}
+                    </div>
+                    <div style="flex:1;">
+                        <div style="font-weight:bold; color:white; font-size:14px;">${c.withName}</div>
+                        <div style="color:#888; font-size:12px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:180px;">${c.lastMsg}</div>
+                    </div>
+                    <div style="font-size:10px; color:#666;">
+                        ${c.timestamp ? new Date(c.timestamp.seconds * 1000).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) : ''}
+                    </div>
+                `;
+                chatList.appendChild(item);
+            });
+        });
+    }
 
 
   
@@ -2461,16 +2499,39 @@ async function ensureUserProfile() {
             const msgCollection = window.fbase.collection(window.db, 'artifacts', window.APP_ID, 'public', 'data', `chat_${chatId}`);
 
             try {
+                // 1. Send the actual message
                 await window.fbase.addDoc(msgCollection, {
                     text: text,
                     senderId: currentUserUid,
                     createdAt: window.fbase.serverTimestamp()
                 });
+
+                // 2. Update MY Inbox (So I see it in my list)
+                const myChatRef = window.fbase.doc(window.db, 'users', currentUserUid, 'active_chats', currentChatId);
+                await window.fbase.setDoc(myChatRef, {
+                    withUid: currentChatId,
+                    withName: document.getElementById('chat-target-name').innerText, 
+                    lastMsg: text,
+                    timestamp: window.fbase.serverTimestamp()
+                }, { merge: true });
+
+                // 3. Update THEIR Inbox (So they see it in their list)
+                const theirChatRef = window.fbase.doc(window.db, 'users', currentChatId, 'active_chats', currentUserUid);
+                await window.fbase.setDoc(theirChatRef, {
+                    withUid: currentUserUid,
+                    withName: localStorage.getItem('pgX_alias') || "Someone",
+                    lastMsg: text,
+                    timestamp: window.fbase.serverTimestamp()
+                }, { merge: true });
+
                 input.value = '';
-            } catch (e) {
+            } catch (e) {          
+
+
                 console.error("Send failed", e);
                 alert("Could not send message. Check console.");
             }
+ 
         }
     }
 
@@ -3678,6 +3739,7 @@ window.analyzeVideoContent = async function(file) {
 </script>
 </body>
 </html>
+
 
 
 
