@@ -511,9 +511,20 @@
 
 
 
-            verifyDecision(uid, decision) {
+                        verifyDecision(uid, decision) {
                 const isApprove = decision === 'approve';
                 const msg = isApprove ? "User will be Verified and Emailed." : "User will be Rejected and Emailed.";
+                
+                this.confirmAction(isApprove ? 'Approve User?' : 'Deny User?', msg, async () => {
+                    const userRef = doc(getCol('users'), uid);
+                    // FIXED: Updates 'idVerified' instead of 'status'
+                    await updateDoc(userRef, {
+                        idVerified: isApprove ? 'verified' : 'rejected',
+                        verifiedAt: serverTimestamp()
+                    });
+                });
+            }
+
 
             
 
@@ -831,6 +842,7 @@
     </script>
 </body>
 </html>
+
 
 
 
