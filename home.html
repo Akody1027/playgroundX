@@ -3410,26 +3410,6 @@ updateConnectionStatus();
 
 
 
-// --- MISSING FUNCTIONS FIX ---
-
-window.adminCreateUser = async function() {
-    const alias = document.getElementById('admin-fake-alias').value;
-    const age = document.getElementById('admin-fake-age').value;
-    const img = document.getElementById('admin-fake-img').value;
-    
-    if(!alias || !age) return alert("Fill out fields");
-    
-    const fakeCol = window.fbase.collection(window.db, 'artifacts', window.APP_ID, 'public', 'data', 'users');
-    await window.fbase.addDoc(fakeCol, {
-        alias: alias,
-        age: parseInt(age),
-        img: img || "https://via.placeholder.com/150",
-        bio: "Bot Generated",
-        isAdmin: false
-    });
-    alert("Fake user injected!");
-    window.renderDeck(); // Refresh deck
-}
 
 window.handleLiveEnter = function(e) {
     if(e.key === 'Enter') window.sendLiveMessage();
@@ -3694,6 +3674,7 @@ window.analyzeVideoContent = async function(file) {
 </script>
 </body>
 </html>
+
 
 
 
