@@ -4299,25 +4299,7 @@ window.analyzeVideoContent = async function(file) {
 
 
 
-    
-    // 5. Cleanup Script
-    window.lazyCleanupPosts = async function() {
-        if(!currentUserUid) return;
-        const postsRef = window.fbase.collection(window.db, 'artifacts', window.APP_ID, 'public', 'data', 'posts');
-        const yesterday = new Date();
-        yesterday.setHours(yesterday.getHours() - 24);
 
-        // Delete MY posts older than 24h
-        const q = window.fbase.query(postsRef, 
-            window.fbase.where('uid', '==', currentUserUid),
-            window.fbase.where('timestamp', '<', yesterday)
-        );
-
-        const snap = await window.fbase.getDocs(q);
-        snap.forEach(async (doc) => {
-            await window.fbase.deleteDoc(doc.ref);
-        });
-    }
 
 
 
@@ -4333,50 +4315,6 @@ window.analyzeVideoContent = async function(file) {
 </script>
 </body>
 </html>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
