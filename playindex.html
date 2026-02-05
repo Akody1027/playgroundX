@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>playgroundX</title>
+    
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#030303">
+
+    <style>
+        /* LOCK THE SHELL */
+        body, html {
+            margin: 0; padding: 0;
+            width: 100%; height: 100%;
+            overflow: hidden; /* Critical: Prevents double scrollbars */
+            background-color: #030303;
+        }
+
+        #app-frame {
+            width: 100vw;
+            height: 100vh;
+            border: none;
+            display: block;
+        }
+    </style>
+</head>
+<body>
+
+    <iframe src="landing.html" id="app-frame" title="PlaygroundX App"></iframe>
+
+    <script>
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                // Ensure your file is named 'sw.js' or update this path
+                navigator.serviceWorker.register('/sw.js')
+                    .then(reg => console.log('PGX Service Worker Registered', reg.scope))
+                    .catch(err => console.log('PGX SW Registration Failed:', err));
+            });
+        }
+    </script>
+
+</body>
+</html>
