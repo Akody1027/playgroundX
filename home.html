@@ -1560,63 +1560,110 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
     
-window.handleAge = function(isAdult) {
-    if (isAdult) {
-        const ageGate = document.getElementById('age-gate');
+
+
+
+    window.handleAge = function(isAdult) {
+        if (isAdult) {
+            const ageGate = document.getElementById('age-gate');
+
+            // --- SMART CHECK: If already allowed, skip UI and go straight to loading ---
+            if (localStorage.getItem('pgX_loc_allowed') === 'true') {
+                 window.requestLocation(); 
+                 
+                 // Fade out Age Gate only
+                 ageGate.style.transition = "opacity 0.5s";
+                 ageGate.style.opacity = "0";
+                 setTimeout(() => { ageGate.style.display = 'none'; }, 500);
+                 return; 
+            }
+
+            const locGate = document.getElementById('location-gate');
+
+            // 1. Show Location Gate FIRST (behind Age Gate)
+            locGate.style.display = 'flex';
+            locGate.style.opacity = '1';
+
+            // 2. Then Fade out Age Gate
+            ageGate.style.transition = "opacity 0.5s";
+            ageGate.style.opacity = "0";
+
+            setTimeout(() => {
+                ageGate.style.display = 'none';
+            }, 500);
+
+        } else {
+            if (history.length > 1) { history.back(); } 
+            else { window.location.href = "https://google.com"; }
+        }
+    }
+
+    window.requestLocation = function() {
+        // 1. Show Spinner FIRST (Overlaying everything)
+        const loader = document.getElementById('loading-overlay');
         const locGate = document.getElementById('location-gate');
 
-        // 1. Show Location Gate FIRST (behind Age Gate)
-        locGate.style.display = 'flex';
-        locGate.style.opacity = '1';
+        loader.style.display = 'flex';
+        loader.style.opacity = '1';
+        loader.innerHTML = '<div class="spinner"></div><div style="color: #666; font-size: 14px; font-weight: bold;">INITIALIZING SECURE CONNECTION...</div>';
 
-        // 2. Then Fade out Age Gate
-        ageGate.style.transition = "opacity 0.5s";
-        ageGate.style.opacity = "0";
+        // 2. Hide Location Gate immediately (Loader is covering it)
+        locGate.style.display = 'none';
 
+        // 3. Request Actual Location & SAVE TO DB
+        if (navigator.geolocation) {
+            navigator.geolocation.getCurrentPosition(async (position) => {
+                const lat = position.coords.latitude;
+                const lng = position.coords.longitude;
+                
+                // A. Save Locally & Set Permission Flag
+                window.myLocation = { lat, lng };
+                localStorage.setItem('pgX_loc_allowed', 'true');
+
+                // B. Save to Database (So others can see you on map)
+                if (currentUserUid) {
+                    try {
+                        const userRef = window.fbase.doc(window.db, 'artifacts', window.APP_ID, 'public', 'data', 'users', currentUserUid);
+                        // Merge true ensures we don't overwrite existing name/age data
+                        await window.fbase.setDoc(userRef, { 
+                            lat: lat, 
+                            lng: lng,
+                            lastLocation: window.fbase.serverTimestamp()
+                        }, { merge: true });
+                    } catch(e) { console.error("Loc Save Error", e); }
+                }
+
+                if (window.map) {
+                    window.map.setView([lat, lng], 13);
+                    if(activeDeck) updateMapPins(activeDeck);
+                }
+            }, (err) => {
+                console.warn("Location denied", err);
+                // Reset flag if they denied it this time
+                localStorage.removeItem('pgX_loc_allowed'); 
+            });
+        }
+
+        // 4. Wait 3.5 seconds, then reveal App
         setTimeout(() => {
-            ageGate.style.display = 'none';
-        }, 500);
-
-    } else {
-        if (history.length > 1) { history.back(); } 
-        else { window.location.href = "https://google.com"; }
-    }
-}
-
-window.requestLocation = function() {
-    // 1. Show Spinner FIRST (Overlaying everything)
-    const loader = document.getElementById('loading-overlay');
-    const locGate = document.getElementById('location-gate');
-
-    loader.style.display = 'flex';
-    loader.style.opacity = '1';
-    loader.innerHTML = '<div class="spinner"></div><div style="color: #666; font-size: 14px; font-weight: bold;">INITIALIZING SECURE CONNECTION...</div>';
-
-    // 2. Hide Location Gate immediately (Loader is covering it)
-    locGate.style.display = 'none';
-
-    // 3. Request Actual Location (Logic remains)
-    if (navigator.geolocation) {
-        navigator.geolocation.getCurrentPosition((position) => {
-            const lat = position.coords.latitude;
-            const lng = position.coords.longitude;
-            window.myLocation = { lat, lng };
-            if (window.map) {
-                window.map.setView([lat, lng], 13);
-                if(activeDeck) updateMapPins(activeDeck);
-            }
-        }, (err) => console.warn("Location denied", err));
+            loader.style.transition = 'opacity 0.5s';
+            loader.style.opacity = '0';
+            setTimeout(() => {
+                loader.style.display = 'none';
+            }, 500);
+        }, 3500);
     }
 
-    // 4. Wait 3.5 seconds, then reveal App
-    setTimeout(() => {
-        loader.style.transition = 'opacity 0.5s';
-        loader.style.opacity = '0';
-        setTimeout(() => {
-            loader.style.display = 'none';
-        }, 500);
-    }, 3500);
-}
+
+
+
+
+
+
+
+    
+    
+
                 
 
 
@@ -3551,6 +3598,7 @@ window.analyzeVideoContent = async function(file) {
 </script>
 </body>
 </html>
+
 
 
 
