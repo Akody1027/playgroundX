@@ -1315,24 +1315,47 @@
         <div class="stats-grid" id="view-user-chips"></div>
         <p style="color: #ccc; line-height: 1.5; margin-bottom: 50px;" id="view-user-bio">...</p>
     </div>
-    <div class="profile-actions" style="display:flex; flex-direction:column; gap:10px; padding:0 20px;">
-                <div style="display:flex; gap:10px;">
-                    <button class="swipe-btn" style="flex:1; border-color:#FFD700; color:#FFD700;" onclick="sendWink(currentTargetId)">
-                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l8.84-8.84 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path></svg>
-                    </button>
-                    <button class="swipe-btn" style="flex:1; border-color:var(--accent); color:var(--accent);" onclick="openChat(currentTargetId)">
-                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
-                    </button>
-                </div>
 
-                <button class="buy-btn" style="width:100%; padding:15px; background:#FBBF24;" onclick="tipUser(currentTargetId)">
-                    Tip 10 Coins
-                </button>
-                
-                <button onclick="reportContent('user', currentTargetId)" style="background:none; border:none; color:#EF4444; font-size:12px; margin-top:5px; text-decoration:underline; cursor:pointer; width:100%;">
-                    Report Inappropriate Content
-                </button>
+
+
+
+    
+        <div class="profile-actions" style="padding: 10px 20px; position: relative;">
+        
+        <div id="coin-popup" style="display:none; position:absolute; bottom:90px; left:50%; transform:translateX(-50%); background:#222; padding:15px; border-radius:12px; border:1px solid #FFD700; z-index:9000; width:200px; text-align:center; box-shadow:0 5px 20px black;">
+            <div style="color:#FFD700; font-weight:bold; margin-bottom:10px;">Send Coins</div>
+            <input type="number" id="coin-amount" placeholder="Amount" style="width:100%; padding:8px; margin-bottom:10px; background:#111; border:1px solid #444; color:white; border-radius:6px;">
+            <div style="display:flex; gap:5px;">
+                <button onclick="document.getElementById('coin-popup').style.display='none'" style="flex:1; background:#444; border:none; color:white; padding:6px; border-radius:6px;">Cancel</button>
+                <button onclick="window.confirmSendCoin()" style="flex:1; background:#FFD700; border:none; color:black; font-weight:bold; padding:6px; border-radius:6px;">Send</button>
             </div>
+        </div>
+
+        <div style="display:flex; justify-content:space-between; align-items:center; gap:10px;">
+            
+            <button onclick="window.sendWink(currentTargetId)" style="width:60px; height:60px; border-radius:50%; background:#222; border:1px solid var(--accent); color:var(--accent); display:flex; align-items:center; justify-content:center; cursor:pointer;">
+                <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><path d="M8 15a6 6 0 0 0 8 0"></path><line x1="9" y1="9" x2="9.01" y2="9" stroke-width="3"></line><path d="M15 9h2"></path></svg>
+            </button>
+
+            <button onclick="window.sendFriendRequest(currentTargetId)" style="width:60px; height:60px; border-radius:50%; background:#222; border:1px solid #10B981; color:#10B981; display:flex; align-items:center; justify-content:center; cursor:pointer;">
+                <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="8.5" cy="7" r="4"></circle><line x1="20" y1="8" x2="20" y2="14"></line><line x1="23" y1="11" x2="17" y2="11"></line></svg>
+            </button>
+
+            <button onclick="document.getElementById('coin-popup').style.display='block'" style="width:60px; height:60px; border-radius:50%; background:#222; border:1px solid #FFD700; color:#FFD700; display:flex; align-items:center; justify-content:center; cursor:pointer;">
+                <span style="font-weight:bold; font-size:20px;">$</span>
+            </button>
+
+            <button onclick="window.closeModal('view-user-modal'); window.openChat(document.getElementById('view-user-name').innerText.split(',')[0], currentTargetId)" style="width:60px; height:60px; border-radius:50%; background:var(--accent); border:none; color:white; display:flex; align-items:center; justify-content:center; cursor:pointer; box-shadow:0 0 15px var(--accent-glow);">
+                <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
+            </button>
+
+        </div>
+        
+        <button onclick="reportContent('user', currentTargetId)" style="background:none; border:none; color:#EF4444; font-size:12px; margin-top:15px; text-decoration:underline; cursor:pointer; width:100%;">
+            Report Inappropriate Content
+        </button>
+    </div>
+
 
 
 
@@ -1349,21 +1372,25 @@
         <h2 style="font-size: 18px; margin: 0; color: white;">Connect</h2>
         <div style="width: 24px;"></div>
     </div>
-    
+
+
+
+
+
+
     <div id="msg-list-view">
         <div class="tab-group">
-            <button class="tab-btn active" onclick="window.openTab('tab-winks', this)">Winks</button>
+            <button class="tab-btn active" onclick="window.openTab('tab-reqs', this)">Requests</button>
+            <button class="tab-btn" onclick="window.openTab('tab-winks', this)">Winks</button>
             <button class="tab-btn" onclick="window.openTab('tab-chats', this)">Messages</button>
         </div>
 
+        <div id="tab-reqs" class="tab-pane active"></div>
+        <div id="tab-winks" class="tab-pane"></div>
+        <div id="tab-chats" class="tab-pane"></div>
 
 
-        <div id="tab-winks" class="tab-pane active"></div>
-
-        <div id="tab-chats" class="tab-pane">
-            
-        </div>
-    </div>
+    
 
     <div id="chat-view" style="display:none;">
         <div style="padding:10px; background:#111; border-bottom:1px solid #333; display:flex; align-items:center; gap:10px;">
@@ -1807,6 +1834,7 @@ async function checkAdminStatus(uid) {
             
             window.startWinkListener(); 
             window.startInboxListener();
+            window.startRequestListener();
             
             await checkAdminStatus(currentUserUid); 
             await ensureUserProfile();
@@ -3200,35 +3228,86 @@ window.loadMyProfile = async function() {
         renderDeck();
     }
 
-window.openUserProfile = function(alias, age, img, id) {
-        currentTargetId = id; // <--- CRITICAL: Links the Tip/Report buttons to this user
-        
-        const modal = document.getElementById('view-user-modal');
-        document.getElementById('view-user-img').src = img;
-        document.getElementById('view-user-img-small').src = img;
-        document.getElementById('view-user-name').innerText = alias + ", " + age;
-        document.getElementById('view-user-bio').innerText = `${alias} is a ${age} year old member.`;
-        
-        const chipsContainer = document.getElementById('view-user-chips');
-        // (Optional: You can update this later to show real Vices/Children status)
-        chipsContainer.innerHTML = `<span class="stat-chip love">Words of Affirmation</span><span class="stat-chip">Non-Smoker</span>`;
-        
-        modal.style.display = 'block';
-    }
 
-    window.toggleReportMenu = function() {
-        const menu = document.getElementById('report-menu');
-        menu.style.display = (menu.style.display === 'block') ? 'none' : 'block';
-    }
 
-    // --- FIX FOR PROFILE BUTTON: Attach listener immediately ---
-    const profileBtn = document.getElementById('open-my-profile');
-    if(profileBtn) {
-        profileBtn.onclick = (e) => {
-            e.preventDefault(); 
-            window.loadMyProfile();
-        };
+    
+
+window.openUserProfile = async function(alias, age, img, id) {
+    currentTargetId = id; 
+    
+    const modal = document.getElementById('view-user-modal');
+    // Basic Info
+    document.getElementById('view-user-img').src = img;
+    document.getElementById('view-user-name').innerText = alias + ", " + age;
+    
+    // Reset Gallery & Stats
+    const gallerySlots = document.querySelectorAll('#view-user-modal .gallery-slot');
+    gallerySlots[0].innerHTML = `<img src="${img}" style="width:100%;height:100%;object-fit:cover;">`; // Main Img
+    gallerySlots[1].innerHTML = ''; 
+    gallerySlots[2].innerHTML = ''; 
+    gallerySlots[3].innerHTML = ''; 
+    gallerySlots[4].innerHTML = '▶'; // Video Placeholder
+    
+    const chipsContainer = document.getElementById('view-user-chips');
+    chipsContainer.innerHTML = '<span style="color:#666; font-size:12px;">Loading attributes...</span>';
+    document.getElementById('view-user-bio').innerText = "Loading bio...";
+
+    modal.style.display = 'block';
+
+    // FETCH FULL PROFILE DATA
+    try {
+        const docRef = window.fbase.doc(window.db, 'artifacts', window.APP_ID, 'public', 'data', 'users', id);
+        const snap = await window.fbase.getDoc(docRef);
+        
+        if (snap.exists()) {
+            const d = snap.data();
+
+            // 1. BIO: Use "----" if empty, remove age sentence
+            document.getElementById('view-user-bio').innerText = d.bio || "-----";
+
+            // 2. GALLERY IMAGES
+            if(d.g2) gallerySlots[1].innerHTML = `<img src="${d.g2}" style="width:100%;height:100%;object-fit:cover;">`;
+            if(d.g3) gallerySlots[2].innerHTML = `<img src="${d.g3}" style="width:100%;height:100%;object-fit:cover;">`;
+            if(d.g4) gallerySlots[3].innerHTML = `<img src="${d.g4}" style="width:100%;height:100%;object-fit:cover;">`;
+
+            // 3. VIDEO (Click to play)
+            if(d.video) {
+                gallerySlots[4].innerHTML = `<video src="${d.video}" style="width:100%;height:100%;object-fit:cover;" onclick="this.paused ? this.play() : this.pause()"></video>`;
+            } else {
+                gallerySlots[4].innerHTML = '<span style="color:#444;">No Vid</span>';
+            }
+
+            // 4. ATTRIBUTES (Chips)
+            chipsContainer.innerHTML = '';
+            
+            const createChip = (label, val) => {
+                const span = document.createElement('span');
+                span.className = 'stat-chip';
+                // If val is missing/empty, show -----
+                span.innerText = (val && val !== "Select Type..." && val !== "Select Gender...") ? val : "-----";
+                if(val && val.includes("Words") || val === "Love") span.classList.add('love'); // Example styling
+                chipsContainer.appendChild(span);
+            };
+
+            // Order of chips
+            createChip("Gender", d.gender); 
+            createChip("Relation", d.relationshipType); 
+            createChip("Body", d.bodyType);
+            createChip("Vices", d.vices);
+            createChip("Love", d.loveLanguage);
+
+        }
+    } catch (e) {
+        console.error("Error loading user details", e);
     }
+}
+
+
+
+
+
+
+    
 
 // FIXED: Connection Status Logic
 window.addEventListener('online', updateConnectionStatus);
@@ -3769,7 +3848,104 @@ window.analyzeVideoContent = async function(file) {
     });
 }
 
+
+
+
+    // --- 1. SEND COIN LOGIC ---
+    window.confirmSendCoin = async function() {
+        const input = document.getElementById('coin-amount');
+        const amount = parseInt(input.value);
+        if(!amount || amount <= 0) return alert("Please enter a valid amount.");
+
+        // Check Balance
+        const myBal = parseInt(localStorage.getItem('pgX_wallet_balance') || "0");
         
+        if (myBal < amount) {
+            if(confirm("Insufficient Coins! \n\nWould you like to buy more?")) {
+                 window.closeModal('view-user-modal');
+                 window.loadMyProfile();
+                 setTimeout(() => window.openTab('profile-tab-wallet', document.getElementById('tab-btn-wallet')), 500);
+            }
+            return;
+        }
+
+        // EXECUTE TRANSACTION
+        try {
+            // Deduct from Me
+            const myRef = window.fbase.doc(window.db, 'artifacts', window.APP_ID, 'public', 'data', 'users', currentUserUid);
+            await window.fbase.updateDoc(myRef, { walletBalance: window.fbase.increment(-amount) });
+
+            // Add to Them
+            const theirRef = window.fbase.doc(window.db, 'artifacts', window.APP_ID, 'public', 'data', 'users', currentTargetId);
+            await window.fbase.updateDoc(theirRef, { walletBalance: window.fbase.increment(amount) });
+
+            alert(`Sent ${amount} coins!`);
+            document.getElementById('coin-popup').style.display = 'none';
+        } catch(e) {
+            console.error(e);
+            alert("Transaction failed.");
+        }
+    }
+
+    // --- 2. FRIEND REQUEST LOGIC ---
+    window.sendFriendRequest = async function(targetId) {
+        if(!confirm("Send Friend Request?")) return;
+
+        try {
+            const reqRef = window.fbase.doc(window.db, 'users', targetId, 'friend_requests', currentUserUid);
+            await window.fbase.setDoc(reqRef, {
+                fromUid: currentUserUid,
+                fromAlias: localStorage.getItem('pgX_alias'),
+                fromImg: localStorage.getItem('my_profile_pic'),
+                timestamp: window.fbase.serverTimestamp()
+            });
+            alert("Request Sent!");
+        } catch(e) {
+            console.error(e);
+            alert("Could not send request.");
+        }
+    }
+
+    // --- 3. REQUEST LISTENER (Inbox) ---
+    window.startRequestListener = function() {
+        if (!currentUserUid) return;
+        const list = document.getElementById('tab-reqs');
+        const ref = window.fbase.collection(window.db, 'users', currentUserUid, 'friend_requests');
+        
+        window.fbase.onSnapshot(ref, (snap) => {
+            if(snap.empty) {
+                list.innerHTML = '<div style="padding:20px; text-align:center; color:#666;">No pending requests.</div>';
+                return;
+            }
+            list.innerHTML = '';
+            snap.forEach(doc => {
+                const d = doc.data();
+                const div = document.createElement('div');
+                div.className = 'msg-item';
+                div.innerHTML = `
+                    <img src="${d.fromImg}" class="msg-avatar">
+                    <div style="flex:1;">
+                        <div style="color:white; font-weight:bold;">${d.fromAlias}</div>
+                        <div style="font-size:11px; color:var(--accent);">Wants to be friends</div>
+                    </div>
+                    <button onclick="window.acceptFriend('${doc.id}', '${d.fromAlias}')" style="background:#10B981; color:black; border:none; padding:5px 10px; border-radius:6px; font-weight:bold;">Accept</button>
+                    <button onclick="window.ignoreRequest('${doc.id}')" style="background:#333; color:white; border:none; padding:5px 10px; border-radius:6px; margin-left:5px;">X</button>
+                `;
+                list.appendChild(div);
+            });
+        });
+    }
+
+    window.acceptFriend = async function(friendId, alias) {
+        // Create Chat Entry immediately
+        window.openChat(alias, friendId);
+        window.ignoreRequest(friendId); // Remove from request list
+    }
+
+    window.ignoreRequest = async function(docId) {
+        await window.fbase.deleteDoc(window.fbase.doc(window.db, 'users', currentUserUid, 'friend_requests', docId));
+    }
+
 
 
         
@@ -3783,6 +3959,7 @@ window.analyzeVideoContent = async function(file) {
 </script>
 </body>
 </html>
+
 
 
 
