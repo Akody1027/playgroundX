@@ -1018,6 +1018,13 @@
             
 
             <div style="display: flex; flex-direction: column; gap: 10px; margin-bottom: 50px;">
+
+
+
+                
+
+
+                
                 
                 <div><label class="filter-label" style="margin-top:0;">DISPLAY NAME</label><input type="text" id="p-alias" class="style-input" placeholder="e.g. Jay_Rocker"></div>
                 
@@ -1143,7 +1150,21 @@
                <button onclick="window.startDeleteProcess()" style="background: #EF4444; color: white; border: none; padding: 15px 30px; border-radius: 12px; font-weight: bold; width: 100%; font-size: 16px; cursor: pointer;">
                DELETE MY ACCOUNT
                </button>
+
+
+                
                <p style="color: #666; font-size: 12px; margin-top: 10px;">This action is permanent and cannot be undone.</p>
+               
+               <div style="margin-top: 30px; padding-top: 15px; border-top: 1px dashed #333; text-align: center;">
+                   <div style="font-size: 10px; color: #444; font-weight: bold; font-family: monospace;">USER ID</div>
+                   <div id="p-uid-footer" style="font-size: 11px; color: #666; font-family: monospace; margin-bottom: 10px; user-select: all;">LOADING...</div>
+                   
+                   <div style="font-size: 10px; color: #444; font-weight: bold; font-family: monospace;">REGISTERED EMAIL</div>
+                   <div id="p-email-footer" style="font-size: 11px; color: #666; font-family: monospace; user-select: all;">LOADING...</div>
+               </div>
+
+            </div>
+            
              </div>
             
         </div>
@@ -3075,6 +3096,29 @@ window.saveProfile = async function() {
 window.loadMyProfile = async function() {
     if (!currentUserUid) return;
 
+
+
+
+
+    // --- NEW: POPULATE EMAIL & UID ---
+    const user = window.auth.currentUser;
+    const emailText = (user && user.email) ? user.email : "Anonymous Account (No Email Linked)";
+    const uidText = (user && user.uid) ? user.uid : "Unknown UID";
+
+
+    // 2. Update the Footer Labels
+    const footerUid = document.getElementById('p-uid-footer');
+    if(footerUid) footerUid.innerText = uidText;
+    
+    const footerEmail = document.getElementById('p-email-footer');
+    if(footerEmail) footerEmail.innerText = emailText;
+    // ---------------------------------
+
+
+
+
+
+                
     // Load Texts
     document.getElementById('p-alias').value = localStorage.getItem('pgX_alias') || "";
     document.getElementById('p-bio').value = localStorage.getItem('pgX_bio') || "";
@@ -3739,6 +3783,7 @@ window.analyzeVideoContent = async function(file) {
 </script>
 </body>
 </html>
+
 
 
 
