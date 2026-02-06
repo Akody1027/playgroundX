@@ -1625,6 +1625,53 @@
 
 
 
+
+
+
+function updateGravity(delta) {
+            // 1. Apply Gravity to Velocity
+            velocity.y -= 9.8 * 15.0 * delta; 
+            
+            // 2. Move Camera Y based on Velocity
+            camera.position.y += velocity.y * delta;
+
+            // 3. Check for Floor Collision
+            const yaw = camera.rotation.y;
+            const avX = camera.position.x - Math.sin(yaw) * cameraFollowDist;
+            const avZ = camera.position.z - Math.cos(yaw) * cameraFollowDist;
+
+            const feetPos = camera.position.y - eyeLevel;
+            raycaster.set(new THREE.Vector3(avX, feetPos + 1, avZ), new THREE.Vector3(0, -1, 0));
+
+            const intersects = raycaster.intersectObjects(colliders);
+            
+            // If we are close to the ground (within 1.5 units) AND falling
+            if (intersects.length > 0 && intersects[0].distance < 1.5 && velocity.y <= 0) {
+                velocity.y = 0;
+                camera.position.y = intersects[0].point.y + eyeLevel;
+                canJump = true;
+            } else {
+                 canJump = false;
+            }
+
+            // Floor Reset (Kill Zone)
+            if (camera.position.y < -300) {
+                velocity.y = 0;
+                camera.position.set(0, 10, 0);
+            }
+        }
+
+         updateGravity(delta);
+
+
+
+
+
+
+
+        
+
+
         function animate() {
 
             requestAnimationFrame(animate);
@@ -1690,48 +1737,7 @@
 
 
 
-        function updateGravity(delta) {
-            // 1. Apply Gravity to Velocity
-            velocity.y -= 9.8 * 15.0 * delta; 
-            
-            // 2. Move Camera Y based on Velocity
-            camera.position.y += velocity.y * delta;
-
-            // 3. Check for Floor Collision
-            const yaw = camera.rotation.y;
-            const avX = camera.position.x - Math.sin(yaw) * cameraFollowDist;
-            const avZ = camera.position.z - Math.cos(yaw) * cameraFollowDist;
-
-            const feetPos = camera.position.y - eyeLevel;
-            raycaster.set(new THREE.Vector3(avX, feetPos + 1, avZ), new THREE.Vector3(0, -1, 0));
-
-            const intersects = raycaster.intersectObjects(colliders);
-            
-            // If we are close to the ground (within 1.5 units) AND falling
-            if (intersects.length > 0 && intersects[0].distance < 1.5 && velocity.y <= 0) {
-                velocity.y = 0;
-                camera.position.y = intersects[0].point.y + eyeLevel;
-                canJump = true;
-            } else {
-                 canJump = false;
-            }
-
-            // Floor Reset (Kill Zone)
-            if (camera.position.y < -300) {
-                velocity.y = 0;
-                camera.position.set(0, 10, 0);
-            }
-        }
-
-
-
-
-
-
-            
-
-
-                        updateGravity(delta);
+        
 
 
 
@@ -1997,6 +2003,7 @@
 </body>
 
 </html>
+
 
 
 
