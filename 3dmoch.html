@@ -1203,6 +1203,7 @@
 
 
         
+
         function handleInteraction(isBuilding) {
             // Raycast from CENTER of screen (Crosshair)
             raycaster.setFromCamera(new THREE.Vector2(0, 0), camera);
@@ -1225,16 +1226,14 @@
                 else {
                     const voxel = new THREE.Mesh(voxelGeo, voxelMat);
                     
-                    // FIX: Convert Local Normal (Side) to World Space (Up)
-                    // This ensures the block sits ON TOP of the floor, not under it.
-                   
-                     // FIX: Multiply by 0.5 to land in the adjacent grid cell, not the one after it
-                    const p = hit.point.clone().add(normal.multiplyScalar(0.5));
-                                      
-                    
-                    const p = hit.point.clone().add(normal);
+                    // 1. Calculate the World Normal (Direction facing out)
+                    const normal = hit.face.normal.clone();
+                    normal.transformDirection(hit.object.matrixWorld).normalize();
 
-                    // Snap to grid (Size 1.0)
+                    // 2. Calculate Position (Add half normal to center in adjacent block)
+                    const p = hit.point.clone().add(normal.multiplyScalar(0.5));
+
+                    // 3. Snap to grid (Size 1.0)
                     voxel.position.x = Math.floor(p.x) + 0.5;
                     voxel.position.y = Math.floor(p.y) + 0.5;
                     voxel.position.z = Math.floor(p.z) + 0.5;
@@ -1899,6 +1898,7 @@
 </body>
 
 </html>
+
 
 
 
