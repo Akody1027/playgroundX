@@ -1831,6 +1831,31 @@
             // Move camera visually if blocked (The "Underneath" fix)
             const visualPos = getSmartCameraPos();
             camera.position.copy(visualPos);
+
+
+               // --- FADE AVATAR IF CLOSE ---
+               // 1. Calculate distance from Camera to Avatar's Head
+               const headTarget = myAvatar.position.clone().add(new THREE.Vector3(0, 1.5, 0));
+               const distToHead = camera.position.distanceTo(headTarget);
+   
+               // 2. Determine Opacity (0.1 if close, 1.0 if far)
+                const targetOpacity = distToHead < 1.2 ? 0.1 : 1.0; 
+
+                // 3. Apply to all parts of the avatar
+                  myAvatar.traverse((child) => {
+                   if(child.isMesh) {
+                     // Enable transparency if not already set
+                    if(!child.material.transparent) child.material.transparent = true; 
+                    // Smoothly fade the opacity
+                     child.material.opacity = THREE.MathUtils.lerp(child.material.opacity, targetOpacity, 0.2);
+                  }
+               });
+
+
+
+
+
+
             
             // Render
             // Sync other players
@@ -1913,6 +1938,7 @@
 </body>
 
 </html>
+
 
 
 
