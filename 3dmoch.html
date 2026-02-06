@@ -1197,7 +1197,13 @@
         }, { passive: false });
 
 
-                // --- MOBILE BUILD/BREAK LOGIC ---
+
+
+
+
+
+
+        
         function handleInteraction(isBuilding) {
             // Raycast from CENTER of screen (Crosshair)
             raycaster.setFromCamera(new THREE.Vector2(0, 0), camera);
@@ -1219,21 +1225,33 @@
                 // BUILD BLOCK
                 else {
                     const voxel = new THREE.Mesh(voxelGeo, voxelMat);
-                    const p = hit.point.add(hit.face.normal);
-                    // Snap to grid
+                    
+                    // FIX: Convert Local Normal to World Space
+                    const normal = hit.face.normal.clone();
+                    normal.transformDirection(hit.object.matrixWorld).normalize();
+                    
+                    const p = hit.point.clone().add(normal);
 
-                                        // Snap to grid (Size 1.0)
+                    // Snap to grid (Size 1.0)
                     voxel.position.x = Math.floor(p.x) + 0.5;
                     voxel.position.y = Math.floor(p.y) + 0.5;
                     voxel.position.z = Math.floor(p.z) + 0.5;
 
-                    
                     scene.add(voxel);
                     voxels.push(voxel);
                     colliders.push(voxel);
                 }
             }
         }
+
+
+
+
+
+
+
+
+        
 
         document.getElementById('btn-build').addEventListener('touchstart', (e) => {
              e.preventDefault(); 
@@ -1878,6 +1896,7 @@
 </body>
 
 </html>
+
 
 
 
