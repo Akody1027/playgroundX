@@ -319,6 +319,14 @@
 
             </div>
 
+
+            <div class="slider-group" style="display: flex; align-items: center; justify-content: space-between; margin-top: 20px;">
+                <label class="slider-label" style="margin:0;">PC MODE (Mouse/Keys)</label>
+                <input type="checkbox" id="pc-mode-toggle" style="width: 20px; height: 20px;">
+            </div>
+            
+            
+
             <button id="close-settings" style="background:#000; color:white; border:none; padding:12px 30px; border-radius:30px; font-weight:bold; cursor:pointer;">DONE</button>
 
         </div>
@@ -476,7 +484,9 @@
 
         const input = { move: { x: 0, y: 0 }, look: { x: 0, y: 0 } };
 
-        let isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+                // FORCE MOBILE BY DEFAULT
+        let isMobile = true; 
+        
 
 
 
@@ -521,6 +531,32 @@
         document.getElementById('range-sens').addEventListener('input', (e) => config.lookSpeed = parseFloat(e.target.value));
 
 
+
+
+        // --- PC MODE TOGGLE LOGIC ---
+        const pcToggle = document.getElementById('pc-mode-toggle');
+        
+        // 1. Set initial state (Unchecked because we are Mobile First)
+        pcToggle.checked = false;
+
+        // 2. Listen for changes
+        pcToggle.addEventListener('change', (e) => {
+            if (e.target.checked) {
+                // SWITCH TO PC MODE
+                isMobile = false;
+                document.querySelectorAll('.joystick-zone, #btn-jump, .action-btn').forEach(el => el.style.display = 'none');
+                alert("PC Mode Active: Click screen to lock mouse.");
+            } else {
+                // SWITCH TO MOBILE MODE
+                isMobile = true;
+                document.querySelectorAll('.joystick-zone, #btn-jump, .action-btn').forEach(el => el.style.display = 'flex');
+                document.exitPointerLock();
+            }
+        });
+        
+
+
+        
 
         // --- AUTH ---
 
@@ -1936,6 +1972,7 @@
 </body>
 
 </html>
+
 
 
 
