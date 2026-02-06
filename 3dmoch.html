@@ -503,7 +503,7 @@
         let isMobile = true; 
         
                 // --- GLOBAL CAMERA VARIABLES ---
-        let eyeLevel = 2.2;
+        let eyeLevel = 1.6;
         let cameraFollowDist = 3.0; 
         
 
@@ -515,7 +515,7 @@
         let canJump = false;
         
         // Block Building Setup
-        const voxelGeo = new THREE.BoxGeometry(2.5, 2.5, 2.5);
+        const voxelGeo = new THREE.BoxGeometry(1, 1, 1);
         const voxelMat = new THREE.MeshStandardMaterial({ map: new THREE.TextureLoader().load('https://threejs.org/examples/textures/crate.gif') });
         const voxels = []; // Keep track of placed blocks
 
@@ -775,7 +775,7 @@
 
 
 
-        const gridHelper = new THREE.GridHelper(300, 120, 0xeeeeee, 0xf5f5f5);
+        const gridHelper = new THREE.GridHelper(300, 300, 0xeeeeee, 0xf5f5f5);
 
         scene.add(gridHelper);
 
@@ -1221,10 +1221,12 @@
                     const voxel = new THREE.Mesh(voxelGeo, voxelMat);
                     const p = hit.point.add(hit.face.normal);
                     // Snap to grid
-                                        // Snap to grid (Size 2.5)
-                    voxel.position.x = Math.floor(p.x / 2.5) * 2.5 + 1.25;
-                    voxel.position.y = Math.floor(p.y / 2.5) * 2.5 + 1.25;
-                    voxel.position.z = Math.floor(p.z / 2.5) * 2.5 + 1.25;
+
+                                        // Snap to grid (Size 1.0)
+                    voxel.position.x = Math.floor(p.x) + 0.5;
+                    voxel.position.y = Math.floor(p.y) + 0.5;
+                    voxel.position.z = Math.floor(p.z) + 0.5;
+
                     
                     scene.add(voxel);
                     voxels.push(voxel);
@@ -1876,6 +1878,7 @@
 </body>
 
 </html>
+
 
 
 
