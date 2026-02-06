@@ -514,7 +514,8 @@
         
         // Block Building Setup
         const voxelGeo = new THREE.BoxGeometry(1, 1, 1);
-        const voxelMat = new THREE.MeshStandardMaterial({ map: new THREE.TextureLoader().load('https://threejs.org/examples/textures/crate.gif') });
+        const voxelMat = new THREE.MeshStandardMaterial({ color: 0xffffff });
+        
         const voxels = []; // Keep track of placed blocks
 
 
@@ -1226,8 +1227,10 @@
                     
                     // FIX: Convert Local Normal (Side) to World Space (Up)
                     // This ensures the block sits ON TOP of the floor, not under it.
-                    const normal = hit.face.normal.clone();
-                    normal.transformDirection(hit.object.matrixWorld).normalize();
+                   
+                     // FIX: Multiply by 0.5 to land in the adjacent grid cell, not the one after it
+                    const p = hit.point.clone().add(normal.multiplyScalar(0.5));
+                                      
                     
                     const p = hit.point.clone().add(normal);
 
@@ -1896,6 +1899,7 @@
 </body>
 
 </html>
+
 
 
 
