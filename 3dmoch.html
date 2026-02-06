@@ -497,7 +497,7 @@
         let canJump = false;
         
         // Block Building Setup
-        const voxelGeo = new THREE.BoxGeometry(5, 5, 5);
+        const voxelGeo = new THREE.BoxGeometry(2.5, 2.5, 2.5);
         const voxelMat = new THREE.MeshStandardMaterial({ map: new THREE.TextureLoader().load('https://threejs.org/examples/textures/crate.gif') });
         const voxels = []; // Keep track of placed blocks
 
@@ -665,9 +665,9 @@
 
         // FIX: Eye level at 1.8m (6ft)
 
-        const eyeLevel = 2.2;
+        const eyeLevel = 1.8;
 
-        const cameraFollowDist = 3.0; // Distance behind avatar
+        const cameraFollowDist = 2.0; // Distance behind avatar
 
         camera.position.set(0, eyeLevel, 15); 
 
@@ -751,7 +751,7 @@
 
 
 
-        const gridHelper = new THREE.GridHelper(300, 100, 0xeeeeee, 0xf5f5f5);
+        const gridHelper = new THREE.GridHelper(300, 120, 0xeeeeee, 0xf5f5f5);
 
         scene.add(gridHelper);
 
@@ -1197,9 +1197,10 @@
                     const voxel = new THREE.Mesh(voxelGeo, voxelMat);
                     const p = hit.point.add(hit.face.normal);
                     // Snap to grid
-                    voxel.position.x = Math.floor(p.x / 5) * 5 + 2.5;
-                    voxel.position.y = Math.floor(p.y / 5) * 5 + 2.5;
-                    voxel.position.z = Math.floor(p.z / 5) * 5 + 2.5;
+                                        // Snap to grid (Size 2.5)
+                    voxel.position.x = Math.floor(p.x / 2.5) * 2.5 + 1.25;
+                    voxel.position.y = Math.floor(p.y / 2.5) * 2.5 + 1.25;
+                    voxel.position.z = Math.floor(p.z / 2.5) * 2.5 + 1.25;
                     
                     scene.add(voxel);
                     voxels.push(voxel);
@@ -1972,6 +1973,7 @@
 </body>
 
 </html>
+
 
 
 
