@@ -16,19 +16,17 @@
 
         
 
-        #ui-layer { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; }
-
-        
 
         #reticle {
-
-            position: absolute; top: 50%; left: 50%; width: 4px; height: 4px;
-
-            background: #000; border-radius: 50%; transform: translate(-50%, -50%);
-
-            opacity: 0.5;
-
+            position: absolute; top: 50%; left: 50%; width: 20px; height: 20px;
+            transform: translate(-50%, -50%); pointer-events: none;
         }
+        #reticle::before, #reticle::after {
+            content: ''; position: absolute; background: rgba(0, 0, 0, 0.8);
+            top: 50%; left: 50%; transform: translate(-50%, -50%);
+        }
+        #reticle::before { width: 2px; height: 100%; } /* Vertical Line */
+        #reticle::after { width: 100%; height: 2px; } /* Horizontal Line */
 
 
 
@@ -1226,7 +1224,8 @@
                 else {
                     const voxel = new THREE.Mesh(voxelGeo, voxelMat);
                     
-                    // FIX: Convert Local Normal to World Space
+                    // FIX: Convert Local Normal (Side) to World Space (Up)
+                    // This ensures the block sits ON TOP of the floor, not under it.
                     const normal = hit.face.normal.clone();
                     normal.transformDirection(hit.object.matrixWorld).normalize();
                     
@@ -1243,6 +1242,7 @@
                 }
             }
         }
+
 
 
 
@@ -1896,6 +1896,7 @@
 </body>
 
 </html>
+
 
 
 
