@@ -320,6 +320,21 @@
             </div>
 
 
+
+            <div class="slider-group">
+                <label class="slider-label">CAMERA DISTANCE</label>
+                <input type="range" id="range-dist" min="1" max="8" step="0.5">
+            </div>
+            <div class="slider-group">
+                <label class="slider-label">CAMERA HEIGHT</label>
+                <input type="range" id="range-height" min="0.5" max="5" step="0.2">
+            </div>
+
+
+
+            
+
+
             <div class="slider-group" style="display: flex; align-items: center; justify-content: space-between; margin-top: 20px;">
                 <label class="slider-label" style="margin:0;">PC MODE (Mouse/Keys)</label>
                 <input type="checkbox" id="pc-mode-toggle" style="width: 20px; height: 20px;">
@@ -530,6 +545,15 @@
 
         document.getElementById('range-sens').addEventListener('input', (e) => config.lookSpeed = parseFloat(e.target.value));
 
+                // --- CAMERA SETTINGS ---
+        // Set initial slider positions
+        document.getElementById('range-dist').value = cameraFollowDist;
+        document.getElementById('range-height').value = eyeLevel;
+
+        // Listen for changes
+        document.getElementById('range-dist').addEventListener('input', (e) => cameraFollowDist = parseFloat(e.target.value));
+        document.getElementById('range-height').addEventListener('input', (e) => eyeLevel = parseFloat(e.target.value));
+        
 
 
 
@@ -665,9 +689,9 @@
 
         // FIX: Eye level at 1.8m (6ft)
 
-        const eyeLevel = 2.6;
-
-        const cameraFollowDist = 1.5; // Distance behind avatar
+        let eyeLevel = 2.2;
+        let cameraFollowDist = 3.0; // Changed from const to let
+        
 
         camera.position.set(0, eyeLevel, 15); 
 
@@ -1973,6 +1997,7 @@
 </body>
 
 </html>
+
 
 
 
