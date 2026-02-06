@@ -68,8 +68,8 @@
             display: flex; justify-content: space-between; align-items: center;
             padding: 10px 10px; /* Reduced padding to fit buttons */
             background: var(--bg-dark);
-            flex-wrap: nowrap; /* Forces single row */
-            overflow-x: auto; /* Safety scroll if screen is tiny */
+            display: flex;
+            
         }
           /* Ensure the group doesn't shrink awkwardly */
         .view-group { flex-shrink: 0; }
@@ -4315,6 +4315,7 @@ window.analyzeVideoContent = async function(file) {
 </script>
 </body>
 </html>
+
 
 
 
