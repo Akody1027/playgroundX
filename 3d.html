@@ -1,0 +1,866 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>PlaygroundX | Connected World</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <style>
+        body { margin: 0; overflow: hidden; background: #fff; font-family: 'Inter', sans-serif; user-select: none; -webkit-user-select: none; }
+        
+        #ui-layer { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; }
+        
+        #reticle {
+            position: absolute; top: 50%; left: 50%; width: 4px; height: 4px;
+            background: #000; border-radius: 50%; transform: translate(-50%, -50%);
+            opacity: 0.5;
+        }
+
+        /* CHAT */
+        #chat-container {
+            position: absolute; bottom: 20px; left: 20px; width: 350px; height: 250px;
+            pointer-events: auto; display: flex; flex-direction: column; gap: 10px;
+        }
+        #chat-feed {
+            flex: 1; overflow-y: auto; display: flex; flex-direction: column; 
+            justify-content: flex-end; text-shadow: 0 1px 2px rgba(255,255,255,0.8);
+        }
+        .chat-msg {
+            background: rgba(255,255,255,0.9); color: #000; padding: 6px 12px; 
+            border-radius: 8px; margin-top: 5px; font-size: 14px; width: fit-content;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1); border: 1px solid #ccc; font-weight: 600;
+        }
+        #chat-input {
+            background: rgba(255,255,255,0.95); border: 1px solid #999; color: #000;
+            padding: 10px; border-radius: 20px; outline: none; box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+        }
+        
+        /* NAMETAGS */
+        .nametag {
+            position: absolute; color: #333; font-weight: bold; font-size: 12px;
+            padding: 2px 6px; background: rgba(255,255,255,0.8); border: 1px solid #ccc;
+            border-radius: 4px; transform: translate(-50%, -100%); pointer-events: none;
+        }
+        .chat-bubble-3d {
+            position: absolute; background: #222; color: white; padding: 8px 12px;
+            border-radius: 15px; font-size: 14px; font-weight: bold;
+            transform: translate(-50%, -150%); max-width: 200px; text-align: center;
+            pointer-events: none; opacity: 0; transition: opacity 0.3s;
+        }
+        .chat-bubble-3d::after {
+            content: ''; position: absolute; bottom: -6px; left: 50%; transform: translateX(-50%);
+            border-width: 6px 6px 0; border-style: solid; border-color: #222 transparent transparent transparent;
+        }
+
+        /* UI ELEMENTS */
+        #blocker {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            background: #ffffff; display: flex; flex-direction: column;
+            align-items: center; justify-content: center; color: #333; pointer-events: auto; z-index: 999;
+        }
+        #btn-enter {
+            padding: 15px 40px; background: #000; color: white; font-weight: bold;
+            border: none; border-radius: 30px; font-size: 18px; cursor: pointer; margin-top: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+
+        #mini-profile {
+            display: none; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+            width: 300px; background: #fff; border: 1px solid #eee; border-radius: 20px;
+            padding: 20px; color: #333; text-align: center; pointer-events: auto; z-index: 1000;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.2);
+        }
+        #mini-profile img { width: 80px; height: 80px; border-radius: 50%; border: 3px solid #8B5CF6; margin-bottom: 10px; object-fit: cover;}
+        .close-btn { position: absolute; top: 15px; right: 15px; background: none; border: none; color: #999; font-size: 20px; cursor: pointer;}
+        
+        /* JOYSTICKS */
+        .joystick-zone {
+            position: absolute; bottom: 40px; width: 140px; height: 140px;
+            pointer-events: auto; display: none; 
+            border: 2px solid rgba(0,0,0,0.05); border-radius: 50%;
+            background: rgba(0,0,0,0.03); backdrop-filter: blur(2px);
+        }
+        #stick-left { left: 30px; }
+        #stick-right { right: 30px; }
+        
+        .knob {
+            width: 60px; height: 60px; background: #333;
+            border-radius: 50%; position: absolute; top: 40px; left: 40px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2); pointer-events: none; transition: transform 0.1s;
+        }
+        .knob.active { transition: none; background: #8B5CF6; transform: scale(1.1); }
+
+        .gear-btn {
+            position: absolute; top: -15px; right: -15px; width: 44px; height: 44px;
+            background: #fff; border-radius: 50%; border: 1px solid #eee;
+            display: flex; justify-content: center; align-items: center; cursor: pointer;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1); font-size: 20px; pointer-events: auto; color: #333;
+        }
+
+        #settings-popup {
+            display: none; position: absolute; bottom: 200px; left: 50%; transform: translateX(-50%);
+            background: white; padding: 25px; border-radius: 20px; width: 280px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.2); pointer-events: auto; text-align: center;
+            border: 1px solid #f0f0f0;
+        }
+        .slider-group { margin-bottom: 20px; text-align: left; }
+        .slider-label { font-size: 12px; font-weight: bold; color: #888; letter-spacing: 1px; margin-bottom: 8px; display: block; }
+        input[type=range] { width: 100%; accent-color: #8B5CF6; height: 6px; border-radius: 3px; }
+
+        @media (hover: none) and (pointer: coarse) {
+            .joystick-zone { display: block; }
+            #chat-container { width: 100%; bottom: auto; top: 10px; left: 0; padding: 0 20px; height: 100px; pointer-events: none;}
+            #chat-input { pointer-events: auto; background: rgba(255,255,255,0.95); }
+            #chat-feed { mask-image: linear-gradient(to bottom, transparent, black 20%); }
+        }
+    </style>
+</head>
+<body>
+
+    <div id="ui-layer">
+        <div id="reticle"></div>
+        <div id="nametag-container"></div>
+        
+        <div id="chat-container">
+            <div id="chat-feed"></div>
+            <input type="text" id="chat-input" placeholder="Chat...">
+        </div>
+
+        <div id="settings-popup">
+            <h3 style="margin:0 0 20px 0; color:#000;">Controls</h3>
+            <div class="slider-group">
+                <label class="slider-label">WALK SPEED</label>
+                <input type="range" id="range-speed" min="2" max="20" step="1">
+            </div>
+            <div class="slider-group">
+                <label class="slider-label">LOOK SENSITIVITY</label>
+                <input type="range" id="range-sens" min="0.5" max="5" step="0.5">
+            </div>
+            <button id="close-settings" style="background:#000; color:white; border:none; padding:12px 30px; border-radius:30px; font-weight:bold; cursor:pointer;">DONE</button>
+        </div>
+
+        <div id="blocker">
+            <h1 style="font-size: 40px; margin: 0; letter-spacing: -1px;">Playground<span style="color:#8B5CF6">X</span></h1>
+            <p style="color:#888; font-weight: 500;">White Void Lounge</p>
+            <div id="loading-txt" style="margin-top:20px; color:#aaa;">Initializing...</div>
+            <button id="btn-enter" style="display:none;">ENTER WORLD</button>
+            <button onclick="window.location.href='index.html'" style="margin-top:20px; background:transparent; border:none; color:#888; font-weight:bold; cursor: pointer;">Exit</button>
+        </div>
+
+        <div id="stick-left" class="joystick-zone">
+            <div class="knob"></div>
+        </div>
+        <div id="stick-right" class="joystick-zone">
+            <div class="knob"></div>
+            <div class="gear-btn" id="btn-settings">⚙</div>
+        </div>
+    </div>
+
+    <div id="mini-profile">
+        <button class="close-btn" onclick="document.getElementById('mini-profile').style.display='none'">✕</button>
+        <img id="mp-img" src="">
+        <h2 id="mp-name">Name</h2>
+        <p id="mp-bio" style="color:#aaa; font-size: 14px;">...</p>
+        <button style="background: #8B5CF6; color: white; border: none; width: 100%; padding: 12px; border-radius: 10px; font-weight:bold; margin-top: 10px; cursor: pointer;">Add Friend</button>
+    </div>
+
+    <script type="importmap">
+        {
+            "imports": {
+                "three": "https://unpkg.com/three@0.160.0/build/three.module.js",
+                "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/"
+            }
+        }
+    </script>
+
+    <script type="module">
+        import * as THREE from 'three';
+        import { PointerLockControls } from 'three/addons/controls/PointerLockControls.js';
+        
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+        import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+        import { getFirestore, collection, doc, getDoc, setDoc, onSnapshot, serverTimestamp, updateDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+        // --- 1. FIREBASE ---
+        const firebaseConfig = {
+            apiKey: "AIzaSyDFmhk3ybnsVsFenCE3xvdmy5y_4u9ss7o", 
+            authDomain: "playgroundx-ca021.firebaseapp.com",
+            projectId: "playgroundx-ca021",
+            storageBucket: "playgroundx-ca021.firebasestorage.app",
+            messagingSenderId: "427340828971",
+            appId: "1:427340828971:web:1d9e2dc22ecd69593eb56e",
+            measurementId: "G-NEV8FYG0WK"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+        const APP_ID = "playgroundX_Prod_v1";
+
+        let myUid = localStorage.getItem('pgX_myUid');
+        let myData = {
+            alias: localStorage.getItem('pgX_alias') || "Visitor",
+            img: localStorage.getItem('my_profile_pic') || "https://via.placeholder.com/150",
+            x: 0, y: 0, z: 12, rot: 0
+        };
+        const players = {}; 
+        const chatTimeouts = {};
+        
+        const config = { moveSpeed: 10.0, lookSpeed: 2.0 };
+        const input = { move: { x: 0, y: 0 }, look: { x: 0, y: 0 } };
+        let isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+
+        // --- SETTINGS UI ---
+        document.getElementById('btn-settings').addEventListener('pointerdown', (e) => {
+            e.stopPropagation();
+            document.getElementById('settings-popup').style.display = 'block';
+            document.getElementById('range-speed').value = config.moveSpeed;
+            document.getElementById('range-sens').value = config.lookSpeed;
+        });
+        document.getElementById('close-settings').addEventListener('click', () => {
+             document.getElementById('settings-popup').style.display = 'none';
+        });
+        document.getElementById('range-speed').addEventListener('input', (e) => config.moveSpeed = parseFloat(e.target.value));
+        document.getElementById('range-sens').addEventListener('input', (e) => config.lookSpeed = parseFloat(e.target.value));
+
+        // --- AUTH ---
+        async function initConnection() {
+            if (!myUid) {
+                try { const cred = await signInAnonymously(auth); myUid = cred.user.uid; } catch(e){}
+            }
+            try {
+                const docSnap = await getDoc(doc(db, 'artifacts', APP_ID, 'public', 'data', 'users', myUid));
+                if (docSnap.exists()) {
+                    const d = docSnap.data();
+                    myData.alias = d.alias || myData.alias;
+                    myData.img = d.img || myData.img;
+                }
+            } catch (e) { }
+
+            document.getElementById('loading-txt').style.display = 'none';
+            document.getElementById('btn-enter').style.display = 'block';
+
+            onSnapshot(collection(db, 'artifacts', APP_ID, 'public', 'data', 'world_players'), (snapshot) => {
+                snapshot.docChanges().forEach((change) => {
+                    const pid = change.doc.id;
+                    const pdata = change.doc.data();
+                    if (pid === myUid) return; 
+                    if (change.type === "added") spawnPlayer(pid, pdata);
+                    if (change.type === "modified") updatePlayer(pid, pdata);
+                    if (change.type === "removed") removePlayer(pid);
+                });
+            });
+        }
+        initConnection();
+
+        // --- THREE.JS SCENE ---
+        const scene = new THREE.Scene();
+        scene.background = new THREE.Color(0xffffff); 
+        scene.fog = new THREE.Fog(0xffffff, 100, 500);
+
+        const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+        camera.rotation.order = 'YXZ'; 
+        
+        // FIX: Eye level at 1.8m (6ft)
+        const eyeLevel = 2.2;
+        const cameraFollowDist = 3.0; // Distance behind avatar
+        camera.position.set(0, eyeLevel, 15); 
+        camera.rotation.y = 0; 
+
+        // RENDERER & SHADOWS
+        const renderer = new THREE.WebGLRenderer({ antialias: true });
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        renderer.toneMapping = THREE.ACESFilmicToneMapping;
+        renderer.shadowMap.enabled = true; // Enabled Shadows
+        renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+        document.body.appendChild(renderer.domElement);
+
+        // LIGHTS
+        const hemiLight = new THREE.HemisphereLight(0xffffff, 0x444444, 0.8);
+        scene.add(hemiLight);
+
+        const dirLight = new THREE.DirectionalLight(0xffffff, 1.2);
+        dirLight.position.set(10, 50, 20);
+        dirLight.castShadow = true; 
+        dirLight.shadow.mapSize.width = 2048;
+        dirLight.shadow.mapSize.height = 2048;
+        dirLight.shadow.camera.near = 0.5;
+        dirLight.shadow.camera.far = 500;
+        // Fix for "Peter Panning" (Shadow Detachment) - Reduced Bias
+        dirLight.shadow.bias = -0.0005; 
+        dirLight.shadow.camera.left = -100;
+        dirLight.shadow.camera.right = 100;
+        dirLight.shadow.camera.top = 100;
+        dirLight.shadow.camera.bottom = -100;
+        scene.add(dirLight);
+
+        // --- PHYSICS & COLLIDERS ---
+        const colliders = []; 
+
+        // Exterior Floor
+        const ground = new THREE.Mesh(new THREE.CircleGeometry(200, 64), new THREE.MeshStandardMaterial({ color: 0xffffff }));
+        ground.rotation.x = -Math.PI / 2; 
+        ground.position.y = -0.1;
+        ground.receiveShadow = true;
+        scene.add(ground);
+        colliders.push(ground); 
+
+        const gridHelper = new THREE.GridHelper(300, 100, 0xeeeeee, 0xf5f5f5);
+        scene.add(gridHelper);
+
+        // Glass Octagon
+        const octGroup = new THREE.Group();
+        const glassMat = new THREE.MeshPhysicalMaterial({
+            color: 0xffffff, metalness: 0.1, roughness: 0.3, transmission: 0.9, thickness: 1.0, side: THREE.DoubleSide, transparent: true
+        });
+        const octRadius = 8; 
+        const sideLen = 6.2;
+        
+        for (let i = 0; i < 8; i++) {
+            if (i === 0) continue; 
+            const angle = (i / 8) * Math.PI * 2;
+            const wall = new THREE.Mesh(new THREE.BoxGeometry(sideLen, 6, 0.2), glassMat);
+            wall.position.x = Math.cos(angle) * octRadius;
+            wall.position.z = Math.sin(angle) * octRadius;
+            wall.position.y = 3;
+            wall.rotation.y = -angle + (Math.PI/2);
+            octGroup.add(wall);
+        }
+        
+        const frameMat = new THREE.MeshStandardMaterial({color: 0x111111});
+        const dL = new THREE.Mesh(new THREE.BoxGeometry(1, 6, 0.5), frameMat); dL.position.set(-3, 3, octRadius); octGroup.add(dL);
+        const dR = new THREE.Mesh(new THREE.BoxGeometry(1, 6, 0.5), frameMat); dR.position.set(3, 3, octRadius); octGroup.add(dR);
+        const dT = new THREE.Mesh(new THREE.BoxGeometry(7, 1, 0.5), frameMat); dT.position.set(0, 5.5, octRadius); octGroup.add(dT);
+
+        const canvas = document.createElement('canvas'); canvas.width = 512; canvas.height = 128;
+        const ctx = canvas.getContext('2d');
+        ctx.fillStyle = '#fff'; ctx.fillRect(0,0,512,128);
+        ctx.fillStyle = '#000'; ctx.font = 'bold 60px Arial'; ctx.textAlign = 'center'; ctx.fillText('Playground X', 256, 85);
+        const logoMesh = new THREE.Mesh(new THREE.BoxGeometry(5, 1.2, 0.1), new THREE.MeshBasicMaterial({map: new THREE.CanvasTexture(canvas)}));
+        logoMesh.position.set(0, 6.2, octRadius + 0.1);
+        octGroup.add(logoMesh);
+
+        const roof = new THREE.Mesh(new THREE.ConeGeometry(octRadius + 1, 3, 8), glassMat);
+        roof.position.y = 7.5; octGroup.add(roof);
+        octGroup.position.z = -10; 
+        scene.add(octGroup);
+
+        const ghostHall = new THREE.Group();
+        ghostHall.position.z = -10; 
+        const gFloor = new THREE.Mesh(new THREE.PlaneGeometry(16, 16), new THREE.MeshBasicMaterial({color:0xffffff}));
+        gFloor.rotation.x = -Math.PI/2;
+        ghostHall.add(gFloor);
+        scene.add(ghostHall);
+
+        // --- INTERIOR (GRAND REVEAL) ---
+        const bigRoomY = -200; 
+        const bigRoom = new THREE.Group();
+        bigRoom.position.y = bigRoomY;
+        
+        const bigFloor = new THREE.Mesh(new THREE.PlaneGeometry(200, 200), new THREE.MeshStandardMaterial({ color: 0xffffff }));
+        bigFloor.rotation.x = -Math.PI / 2; 
+        bigFloor.position.y = 0.05;
+        bigFloor.receiveShadow = true;
+        bigRoom.add(bigFloor);
+        
+        const bigGrid = new THREE.GridHelper(200, 100, 0xeeeeee, 0xf5f5f5);
+        bigGrid.position.y = 0.1;
+        bigRoom.add(bigGrid);
+
+        const floorCollider = bigFloor.clone();
+        floorCollider.position.y = bigRoomY;
+        floorCollider.visible = false;
+        scene.add(floorCollider);
+        colliders.push(floorCollider);
+
+        const roomGeo = new THREE.BoxGeometry(200, 80, 200);
+        const roomMat = new THREE.MeshStandardMaterial({ color: 0x888888, side: THREE.BackSide });
+        const roomMesh = new THREE.Mesh(roomGeo, roomMat);
+        roomMesh.position.y = 40;
+        bigRoom.add(roomMesh);
+
+        // FIX: PLATFORM SIZE REDUCED
+        const balconyDepth = 15;
+        const balconyGeo = new THREE.BoxGeometry(40, 2, balconyDepth);
+        const balconyMat = new THREE.MeshStandardMaterial({ color: 0xffffff });
+        const balcony = new THREE.Mesh(balconyGeo, balconyMat);
+        balcony.receiveShadow = true;
+        balcony.position.set(0, 19, 100 - (balconyDepth/2)); 
+        bigRoom.add(balcony);
+        
+        const balcCollider = balcony.clone();
+        balcCollider.position.set(0, bigRoomY + 19, 100 - (balconyDepth/2));
+        balcCollider.visible = false;
+        scene.add(balcCollider);
+        colliders.push(balcCollider);
+
+        const exitFrame = new THREE.Mesh(new THREE.BoxGeometry(10, 8, 1), new THREE.MeshStandardMaterial({color:0x111111}));
+        exitFrame.position.set(0, 24, 99);
+        bigRoom.add(exitFrame);
+
+        // FIX: STAIRS DIRECTION & WIDTH
+        const steps = 40;
+        const stepWidth = 15;
+        const stepGroup = new THREE.Group();
+        stepGroup.position.set(0, 0, 100 - balconyDepth); 
+        for(let i=0; i<steps; i++) {
+            const step = new THREE.Mesh(new THREE.BoxGeometry(stepWidth, 0.5, 1.5), balconyMat);
+            step.position.y = 20 - (i * 0.5);
+            step.position.z = -(i * 1.5);
+            step.castShadow = true; step.receiveShadow = true; 
+            stepGroup.add(step);
+        }
+        bigRoom.add(stepGroup);
+
+        const slopeGeo = new THREE.BoxGeometry(stepWidth + 2, 1, 62);
+        const slope = new THREE.Mesh(slopeGeo, new THREE.MeshBasicMaterial({visible:false}));
+        slope.position.set(0, bigRoomY + 10, 100 - balconyDepth - 31); 
+        slope.rotation.x = -0.33; 
+        scene.add(slope);
+        colliders.push(slope);
+
+        scene.add(bigRoom);
+
+        // --- CONTROLS ---
+        const controls = new PointerLockControls(camera, document.body);
+        const blocker = document.getElementById('blocker');
+        const btnEnter = document.getElementById('btn-enter');
+
+        btnEnter.addEventListener('click', () => {
+            if (isMobile) {
+                blocker.style.display = 'none';
+                document.querySelectorAll('.joystick-zone').forEach(el => el.style.display = 'flex');
+            } else {
+                controls.lock();
+            }
+        });
+
+        controls.addEventListener('lock', () => blocker.style.display = 'none');
+        controls.addEventListener('unlock', () => blocker.style.display = 'flex');
+
+        function setupJoystick(id, inputKey) {
+            const zone = document.getElementById(id);
+            const knob = zone.querySelector('.knob');
+            let rect, radius, center;
+            let touchId = null;
+
+            function updateMetrics() {
+                rect = zone.getBoundingClientRect();
+                radius = rect.width / 2;
+                center = { x: rect.left + radius, y: rect.top + radius };
+            }
+
+            zone.addEventListener('touchstart', e => {
+                if(e.target.classList.contains('gear-btn')) return;
+                e.preventDefault();
+                updateMetrics();
+                touchId = e.changedTouches[0].identifier;
+                handleMove(e.changedTouches[0]);
+                knob.classList.add('active');
+            }, {passive:false});
+
+            zone.addEventListener('touchmove', e => {
+                e.preventDefault();
+                for(let i=0; i<e.changedTouches.length; i++) {
+                    if(e.changedTouches[i].identifier === touchId) handleMove(e.changedTouches[i]);
+                }
+            }, {passive:false});
+
+            const end = e => {
+                e.preventDefault();
+                touchId = null;
+                input[inputKey].x = 0; input[inputKey].y = 0;
+                knob.style.transform = `translate(0px, 0px)`;
+                knob.classList.remove('active');
+            };
+            zone.addEventListener('touchend', end);
+
+            function handleMove(touch) {
+                let dx = touch.clientX - center.x;
+                let dy = touch.clientY - center.y;
+                const dist = Math.sqrt(dx*dx + dy*dy);
+                const maxDist = radius - 30;
+                if(dist > maxDist) { const r = maxDist/dist; dx*=r; dy*=r; }
+                knob.style.transform = `translate(${dx}px, ${dy}px)`;
+                input[inputKey].x = dx / maxDist;
+                input[inputKey].y = dy / maxDist;
+            }
+        }
+        if(isMobile) {
+            setupJoystick('stick-left', 'move');
+            setupJoystick('stick-right', 'look');
+        }
+
+        const keys = { w:0, a:0, s:0, d:0 };
+        document.addEventListener('keydown', e => {
+            if(e.code === 'KeyW') keys.w=1;
+            if(e.code === 'KeyS') keys.s=1;
+            if(e.code === 'KeyA') keys.a=1;
+            if(e.code === 'KeyD') keys.d=1;
+            if(e.code === 'Enter') document.getElementById('chat-input').focus();
+        });
+        document.addEventListener('keyup', e => {
+            if(e.code === 'KeyW') keys.w=0;
+            if(e.code === 'KeyS') keys.s=0;
+            if(e.code === 'KeyA') keys.a=0;
+            if(e.code === 'KeyD') keys.d=0;
+        });
+
+        const chatIn = document.getElementById('chat-input');
+        chatIn.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter' && chatIn.value.trim() !== "") {
+                sendChat(chatIn.value);
+                chatIn.value = ""; chatIn.blur();
+            }
+        });
+
+        // --- AVATAR SYSTEM (UPDATED) ---
+        const texLoader = new THREE.TextureLoader();
+        function createAvatar(imgUrl) {
+            const group = new THREE.Group();
+            const tex = texLoader.load(imgUrl);
+            const mat = new THREE.MeshStandardMaterial({ map: tex, roughness: 0.8 });
+            const shirt = new THREE.MeshStandardMaterial({ color: 0x8B5CF6, roughness: 0.8 });
+            const skin = new THREE.MeshStandardMaterial({ color: 0xffccaa, roughness: 0.8 });
+            
+            // FIX: Changed color to Dark Grey to prevent lighting artifacts (transparency look)
+            const dark = new THREE.MeshStandardMaterial({ color: 0x222222, roughness: 0.8 });
+
+            // 1. Head (Named for animation)
+            const head = new THREE.Mesh(new THREE.BoxGeometry(0.5, 0.5, 0.5), mat);
+            head.position.y = 1.5; 
+            head.castShadow = true; 
+            head.name = 'head'; 
+            group.add(head);
+
+            // 2. Body
+            const body = new THREE.Mesh(new THREE.BoxGeometry(0.5, 0.6, 0.25), shirt);
+            body.position.y = 0.95; 
+            body.castShadow = true; body.receiveShadow = true;
+            group.add(body);
+
+
+
+
+            // ... (keep head and body code above this) ...
+
+            // 3. Limbs
+            // FIX: Adjusted Pivot Points to close gaps
+            // Arm/Leg Size: 0.15 width, 0.6 height
+            const limbGeo = new THREE.BoxGeometry(0.15, 0.6, 0.15);
+            // Shift geometry center down by half height (0.3) so pivot is at the very top
+            limbGeo.translate(0, -0.3, 0); 
+            
+            // Body Width is 0.5 (Edge is 0.25). Arm Width is 0.15 (Half is 0.075).
+            // 0.25 + 0.075 = 0.325 (Flush fit)
+            
+            const lArm = new THREE.Mesh(limbGeo, skin); 
+            lArm.position.set(-0.325, 1.25, 0); // <-- DELETE OLD LINE, PASTE THIS (Brought X closer, Y higher)
+            lArm.name="leftArm"; 
+            lArm.castShadow=true;
+            group.add(lArm);
+
+            const rArm = new THREE.Mesh(limbGeo, skin); 
+            rArm.position.set(0.325, 1.25, 0); // <-- DELETE OLD LINE, PASTE THIS (Brought X closer, Y higher)
+            rArm.name="rightArm"; 
+            rArm.castShadow=true;
+            group.add(rArm);
+
+            // Body Bottom is at 0.65 (0.95 center - 0.3 half height). 
+            // Legs must spawn exactly at 0.65 Y.
+
+            const lLeg = new THREE.Mesh(limbGeo, dark); 
+            lLeg.position.set(-0.15, 0.65, 0); // <-- DELETE OLD LINE, PASTE THIS (Raised Y to close gap)
+            lLeg.name="leftLeg"; 
+            lLeg.castShadow=true;
+            group.add(lLeg);
+
+            const rLeg = new THREE.Mesh(limbGeo, dark); 
+            rLeg.position.set(0.15, 0.65, 0); // <-- DELETE OLD LINE, PASTE THIS (Raised Y to close gap)
+            rLeg.name="rightLeg"; 
+            rLeg.castShadow=true;
+            group.add(rLeg);
+
+            return group;
+        }
+
+
+        
+        
+        
+        
+        
+
+        function spawnPlayer(id, data) {
+            const mesh = createAvatar(data.img);
+            mesh.position.set(data.x, data.y, data.z);
+            mesh.userData = data;
+            scene.add(mesh);
+            players[id] = { mesh: mesh, targetPos: new THREE.Vector3(data.x, data.y, data.z) };
+            
+            const ghost = createAvatar(data.img);
+            ghost.traverse(c => { if(c.isMesh) { c.material = c.material.clone(); c.material.transparent=true; c.material.opacity=0.4; }});
+            scene.add(ghost);
+            players[id].ghost = ghost;
+
+            const tag = document.createElement('div'); tag.className='nametag'; tag.innerText=data.alias; tag.id=`tag-${id}`;
+            document.getElementById('nametag-container').appendChild(tag);
+            const bub = document.createElement('div'); bub.className='chat-bubble-3d'; bub.id=`bub-${id}`;
+            document.getElementById('nametag-container').appendChild(bub);
+        }
+
+        function updatePlayer(id, data) {
+            if (players[id]) {
+                players[id].targetPos.set(data.x, data.y, data.z);
+                players[id].mesh.rotation.y = data.rot;
+                
+                // Head Sync
+                const head = players[id].mesh.getObjectByName('head');
+                if(head && data.headRotX !== undefined) {
+                    head.rotation.x = data.headRotX;
+                }
+
+                if (data.chatMsg && data.chatTime > Date.now() - 5000) showBubble(id, data.chatMsg);
+            }
+        }
+
+        function removePlayer(id) {
+            if (players[id]) {
+                scene.remove(players[id].mesh); scene.remove(players[id].ghost);
+                document.getElementById(`tag-${id}`).remove(); document.getElementById(`bub-${id}`).remove();
+                delete players[id];
+            }
+        }
+
+        function showBubble(id, msg) {
+            const el = document.getElementById(`bub-${id}`); el.innerText = msg; el.style.opacity = 1;
+            if(chatTimeouts[id]) clearTimeout(chatTimeouts[id]);
+            chatTimeouts[id] = setTimeout(() => el.style.opacity = 0, 5000);
+            const feed = document.getElementById('chat-feed');
+            const row = document.createElement('div'); row.className = 'chat-msg';
+            const name = players[id] ? players[id].mesh.userData.alias : "Unknown";
+            row.innerText = `${name}: ${msg}`; feed.appendChild(row); feed.scrollTop = feed.scrollHeight;
+        }
+
+        async function sendChat(txt) {
+            if(!myUid) return;
+            await updateDoc(doc(db, 'artifacts', APP_ID, 'public', 'data', 'world_players', myUid), { chatMsg: txt, chatTime: Date.now() });
+            const feed = document.getElementById('chat-feed');
+            const row = document.createElement('div'); row.className = 'chat-msg';
+            row.innerText = `Me: ${txt}`; feed.appendChild(row); feed.scrollTop = feed.scrollHeight;
+        }
+
+        // --- LOCAL AVATAR ---
+        const myAvatar = createAvatar(myData.img);
+        scene.add(myAvatar);
+
+        // --- GRAVITY ENGINE & LOOP ---
+        const clock = new THREE.Clock();
+        const raycaster = new THREE.Raycaster();
+        const downVec = new THREE.Vector3(0, -1, 0);
+        let lastUpload = 0;
+
+        // Optimized Upload Loop
+        setInterval(async () => {
+            if (!myUid) return;
+            const now = Date.now();
+            if (now - lastUpload < 200) return; // Cap at 5 updates/sec
+            lastUpload = now;
+
+            try {
+                // We send Camera Rotation X as 'headRotX' so others see us look up/down
+                // Note: We invert it for the model
+                await setDoc(doc(db, 'artifacts', APP_ID, 'public', 'data', 'world_players', myUid), {
+                    x: myAvatar.position.x, 
+                    y: myAvatar.position.y, 
+                    z: myAvatar.position.z,
+                    rot: myAvatar.rotation.y, // Body rotation
+                    headRotX: -camera.rotation.x, // Head rotation
+                    alias: myData.alias, img: myData.img,
+                    lastSeen: serverTimestamp()
+                }, { merge: true });
+            } catch(e){}
+        }, 200);
+
+        function updateGravity() {
+            // FIX: AVATAR-CENTRIC RAYCAST
+            // Instead of casting from the Camera (which is behind), calculate where the Avatar IS
+            // and cast from there.
+            const yaw = camera.rotation.y;
+            const avX = camera.position.x - Math.sin(yaw) * cameraFollowDist;
+            const avZ = camera.position.z - Math.cos(yaw) * cameraFollowDist;
+
+            // Start ray high above the theoretical avatar position
+            const rayOrigin = new THREE.Vector3(avX, camera.position.y + 50, avZ);
+            raycaster.set(rayOrigin, downVec);
+
+            const intersects = raycaster.intersectObjects(colliders);
+            if(intersects.length > 0) {
+                const groundY = intersects[0].point.y;
+                // Move Camera based on where the AVATAR's feet should be
+                camera.position.y = THREE.MathUtils.lerp(camera.position.y, groundY + eyeLevel, 0.2);
+            }
+        }
+
+        function animate() {
+            requestAnimationFrame(animate);
+            const delta = clock.getDelta();
+            const time = clock.getElapsedTime();
+            const speed = config.moveSpeed * delta;
+            
+            // INPUT HANDLING
+            if (isMobile) {
+                const sens = config.lookSpeed * delta;
+                camera.rotation.y -= input.look.x * sens;
+                camera.rotation.x -= input.look.y * sens;
+                camera.rotation.x = Math.max(-0.6, Math.min(0.6, camera.rotation.x));
+                const yaw = camera.rotation.y;
+                
+                const fwd = -input.move.y; 
+                const strafe = input.move.x;
+                
+                if(Math.abs(fwd) > 0.1 || Math.abs(strafe) > 0.1) {
+                    camera.position.x -= (Math.sin(yaw)*fwd - Math.cos(yaw)*strafe) * speed;
+                    camera.position.z -= (Math.cos(yaw)*fwd + Math.sin(yaw)*strafe) * speed;
+                }
+            } else if (controls.isLocked) {
+                const fwd = Number(keys.w) - Number(keys.s);
+                const strafe = Number(keys.d) - Number(keys.a);
+                if(fwd || strafe) {
+                    controls.moveForward(fwd * speed);
+                    controls.moveRight(strafe * speed);
+                }
+            }
+
+            updateGravity();
+
+            // --- 3RD PERSON AVATAR SYNC ---
+            // 1. Position Avatar relative to Camera (Chase View)
+            const yaw = camera.rotation.y;
+            
+            myAvatar.position.x = camera.position.x - Math.sin(yaw) * cameraFollowDist;
+            myAvatar.position.z = camera.position.z - Math.cos(yaw) * cameraFollowDist;
+            myAvatar.position.y = camera.position.y - eyeLevel;
+            
+            // Rotate body to face away from camera
+            myAvatar.rotation.y = yaw + Math.PI; 
+
+            // 2. Head Look (Pitch)
+            const myHead = myAvatar.getObjectByName('head');
+            if(myHead) {
+                myHead.rotation.x = -camera.rotation.x; 
+            }
+
+            // 3. Limb Animations
+            const isMoving = keys.w || keys.s || keys.a || keys.d || (Math.abs(input.move.y) > 0.1);
+            if(isMoving) {
+                const walkSpeed = 10;
+                const limbAngle = Math.sin(time * walkSpeed) * 0.5;
+                
+                const lArm = myAvatar.getObjectByName('leftArm');
+                const rArm = myAvatar.getObjectByName('rightArm');
+                const lLeg = myAvatar.getObjectByName('leftLeg');
+                const rLeg = myAvatar.getObjectByName('rightLeg');
+
+                if(lArm) lArm.rotation.x = limbAngle;
+                if(rArm) rArm.rotation.x = -limbAngle;
+                if(lLeg) lLeg.rotation.x = -limbAngle;
+                if(rLeg) rLeg.rotation.x = limbAngle;
+            } else {
+                ['leftArm', 'rightArm', 'leftLeg', 'rightLeg'].forEach(name => {
+                    const obj = myAvatar.getObjectByName(name);
+                    if(obj) obj.rotation.x = THREE.MathUtils.lerp(obj.rotation.x, 0, 0.1);
+                });
+                if(myHead) myHead.position.y = 1.5 + Math.sin(time * 2) * 0.02; // Idle breathe
+            }
+
+
+            // Portal Logic
+            // Entrance
+            if (camera.position.y > 0 && camera.position.z < -2 && camera.position.z > -4 && Math.abs(camera.position.x) < 2) {
+                camera.position.y = bigRoomY + 21.6; // Balcony
+                camera.position.z = 95; // Spawn on balcony
+            }
+            // Exit
+            if (camera.position.y < -150 && camera.position.z > 97 && Math.abs(camera.position.x) < 3) {
+                camera.position.y = eyeLevel;
+                camera.position.z = -1;
+            }
+
+            // Sync players
+            for (const id in players) {
+                const p = players[id];
+                p.mesh.position.lerp(p.targetPos, 0.1);
+                
+                // Remote Animation
+                const dist = p.mesh.position.distanceTo(p.targetPos);
+                if(dist > 0.05) {
+                    const rot = Math.sin(time*10)*0.5;
+                    p.mesh.children.forEach(c => {
+                        if(c.name==='leftArm'||c.name==='rightLeg') c.rotation.x = rot;
+                        if(c.name==='rightArm'||c.name==='leftLeg') c.rotation.x = -rot;
+                    });
+                } else {
+                    p.mesh.children.forEach(c => {
+                       if(c.name.includes('Arm') || c.name.includes('Leg')) c.rotation.x = THREE.MathUtils.lerp(c.rotation.x, 0, 0.1);
+                    });
+                }
+
+                if (p.mesh.position.y < -50) {
+                    p.ghost.visible = true;
+                    p.ghost.position.set(p.mesh.position.x * 0.1, 0, -10 + (p.mesh.position.z * 0.1));
+                    p.ghost.rotation.y = p.mesh.rotation.y;
+                } else {
+                    p.ghost.visible = false;
+                }
+                
+                const tag = document.getElementById(`tag-${id}`);
+                const bub = document.getElementById(`bub-${id}`);
+                let target = p.mesh;
+                if(camera.position.y > 0 && p.mesh.position.y < -50) target = p.ghost;
+                
+                const headPos = target.position.clone().add(new THREE.Vector3(0, 2.2, 0));
+                headPos.project(camera);
+                if (headPos.z < 1 && Math.abs(headPos.x) < 1.2 && Math.abs(headPos.y) < 1.2) {
+                    const x = (headPos.x * .5 + .5) * window.innerWidth;
+                    const y = (-(headPos.y * .5) + .5) * window.innerHeight;
+                    tag.style.transform = `translate(${x}px, ${y}px) translate(-50%, -100%)`;
+                    bub.style.transform = `translate(${x}px, ${y}px) translate(-50%, -150%)`;
+                    tag.style.display = 'block';
+                } else {
+                    tag.style.display = 'none'; bub.style.display = 'none';
+                }
+            }
+
+            renderer.render(scene, camera);
+        }
+        animate();
+
+        window.addEventListener('mousedown', () => { if(isMobile) return; checkIntersects(); });
+        window.addEventListener('touchstart', (e) => {
+            if(e.touches.length === 1 && !e.target.classList.contains('knob')) checkIntersects();
+        });
+
+        function checkIntersects() {
+            raycaster.setFromCamera({x:0,y:0}, camera);
+            const intersects = raycaster.intersectObjects(scene.children, true);
+            for(let i=0; i<intersects.length; i++) {
+                let obj = intersects[i].object;
+                while(obj.parent && obj.parent.type !== 'Scene') obj = obj.parent;
+                if(obj.userData && obj.userData.alias) {
+                    document.getElementById('mp-img').src = obj.userData.img;
+                    document.getElementById('mp-name').innerText = obj.userData.alias;
+                    document.getElementById('mini-profile').style.display = 'block';
+                    if(!isMobile) controls.unlock();
+                    return;
+                }
+        }
+        }
+
+        window.addEventListener('resize', () => {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        });
+    </script>
+</body>
+</html>
