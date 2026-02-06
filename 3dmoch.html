@@ -1665,14 +1665,30 @@
             const time = clock.getElapsedTime();
             const speed = config.moveSpeed * delta;
             
+            
             // INPUT HANDLING
             if (isMobile) {
                 const sens = config.lookSpeed * delta;
+                
+                // 1. ORBIT LOGIC: Capture old rotation
+                const oldYaw = camera.rotation.y;
+                
+                // 2. Apply Rotation (Look Left/Right)
                 camera.rotation.y -= input.look.x * sens;
+                
+                // 3. Move Camera to compensate (Orbit around Character)
+                const newYaw = camera.rotation.y;
+                if (input.look.x !== 0) {
+                    camera.position.x += (Math.sin(newYaw) - Math.sin(oldYaw)) * cameraFollowDist;
+                    camera.position.z += (Math.cos(newYaw) - Math.cos(oldYaw)) * cameraFollowDist;
+                }
+
+                // Look Up/Down
                 camera.rotation.x -= input.look.y * sens;
                 camera.rotation.x = Math.max(-0.6, Math.min(0.6, camera.rotation.x));
-                const yaw = camera.rotation.y;
                 
+                // Movement Logic (Relative to new Camera Angle)
+                const yaw = camera.rotation.y;
                 const fwd = -input.move.y; 
                 const strafe = input.move.x;
                 
@@ -1680,6 +1696,12 @@
                     camera.position.x -= (Math.sin(yaw)*fwd - Math.cos(yaw)*strafe) * speed;
                     camera.position.z -= (Math.cos(yaw)*fwd + Math.sin(yaw)*strafe) * speed;
                 }
+            }
+
+
+
+
+                
             } else if (controls.isLocked) {
                 const fwd = Number(keys.w) - Number(keys.s);
                 const strafe = Number(keys.d) - Number(keys.a);
@@ -1854,6 +1876,7 @@
 </body>
 
 </html>
+
 
 
 
