@@ -323,20 +323,36 @@
                 <label class="slider-label">CAMERA DISTANCE</label>
                 <input type="range" id="range-dist" min="1" max="8" step="0.5">
             </div>
+        
+
             <div class="slider-group">
                 <label class="slider-label">CAMERA HEIGHT</label>
                 <input type="range" id="range-height" min="0.5" max="5" step="0.2">
             </div>
 
+            <div class="slider-group">
+                <label class="slider-label">JUMP HEIGHT (Blocks)</label>
+                <input type="range" id="range-jump" min="1" max="3" step="1" value="2">
+            </div>
 
+            <div class="slider-group" style="display: flex; align-items: center; justify-content: space-between;">
+                <label class="slider-label" style="margin:0;">FLY MODE</label>
+                <input type="checkbox" id="fly-mode-toggle" style="width: 20px; height: 20px;">
+            </div>
 
-            
+            <div class="slider-group" style="display: flex; align-items: center; justify-content: space-between;">
+                <label class="slider-label" style="margin:0;">AUTO JUMP</label>
+                <input type="checkbox" id="auto-jump-toggle" style="width: 20px; height: 20px;">
+            </div>
 
 
             <div class="slider-group" style="display: flex; align-items: center; justify-content: space-between; margin-top: 20px;">
-                <label class="slider-label" style="margin:0;">PC MODE (Mouse/Keys)</label>
-                <input type="checkbox" id="pc-mode-toggle" style="width: 20px; height: 20px;">
-            </div>
+
+
+
+
+
+
             
             
 
@@ -493,7 +509,27 @@
 
         
 
-        const config = { moveSpeed: 10.0, lookSpeed: 2.0 };
+        const config = { 
+            moveSpeed: 10.0, 
+            lookSpeed: 2.0,
+            jumpPower: 24.0, // Default to 2 blocks
+            flyMode: false,
+            autoJump: false
+        };
+        const input = { move: { x: 0, y: 0 }, look: { x: 0, y: 0 } };
+
+        // --- FLYING CONTROL VARIABLES ---
+        let jumpHeld = false;
+        let isFlyingDown = false;
+        let lastJumpRelease = 0;
+
+        // Jump Math: v = sqrt(2 * g * height)
+        // Gravity = 147. 
+        // 1 Block (1.0m) -> 17.1
+        // 2 Blocks (2.0m) -> 24.2
+        // 3 Blocks (3.0m) -> 29.7
+        const jumpValues = { "1": 17.5, "2": 24.5, "3": 30.0 };
+        
 
         const input = { move: { x: 0, y: 0 }, look: { x: 0, y: 0 } };
 
@@ -545,7 +581,22 @@
 
         document.getElementById('range-speed').addEventListener('input', (e) => config.moveSpeed = parseFloat(e.target.value));
 
-        document.getElementById('range-sens').addEventListener('input', (e) => config.lookSpeed = parseFloat(e.target.value));
+                document.getElementById('range-sens').addEventListener('input', (e) => config.lookSpeed = parseFloat(e.target.value));
+
+        // --- NEW SETTINGS LISTENERS ---
+        document.getElementById('range-jump').addEventListener('input', (e) => {
+            config.jumpPower = jumpValues[e.target.value];
+        });
+        document.getElementById('fly-mode-toggle').addEventListener('change', (e) => {
+            config.flyMode = e.target.checked;
+            velocity.y = 0; // Reset velocity when toggling
+        });
+        document.getElementById('auto-jump-toggle').addEventListener('change', (e) => {
+            config.autoJump = e.target.checked;
+        });
+
+                // --- CAMERA SETTINGS ---
+        
 
                 // --- CAMERA SETTINGS ---
         // Set initial slider positions
@@ -1187,13 +1238,37 @@
 
 
         // --- MOBILE JUMP BUTTON ---
-        document.getElementById('btn-jump').addEventListener('touchstart', (e) => {
-            e.preventDefault(); // Stop screen from zooming/scrolling
-            if (canJump) {
-                velocity.y += 60.0;
+        // --- MOBILE JUMP BUTTON (UPDATED) ---
+        const btnJump = document.getElementById('btn-jump');
+        
+        btnJump.addEventListener('touchstart', (e) => {
+            e.preventDefault(); 
+            jumpHeld = true;
+
+            // FLYING LOGIC
+            if (config.flyMode) {
+                const now = Date.now();
+                // Check for Double Tap (within 300ms)
+                if (now - lastJumpRelease < 300) {
+                    isFlyingDown = true; // Double tap hold = DOWN
+                } else {
+                    isFlyingDown = false; // Single press hold = UP
+                }
+            } 
+            // NORMAL JUMP LOGIC
+            else if (canJump) {
+                velocity.y = config.jumpPower; 
                 canJump = false;
             }
         }, { passive: false });
+
+        btnJump.addEventListener('touchend', (e) => {
+            e.preventDefault();
+            jumpHeld = false;
+            isFlyingDown = false;
+            lastJumpRelease = Date.now(); // Record release time for double-tap check
+        });
+        
 
 
 
@@ -1647,12 +1722,34 @@
 
 
         // --- GRAVITY FUNCTION (CORRECTLY PLACED) ---
+        // --- GRAVITY FUNCTION (CORRECTLY PLACED) ---
         function updateGravity(delta) {
-            // 1. Apply Gravity to Velocity
+            // FLY MODE LOGIC
+            if (config.flyMode) {
+                // 1. Decelerate (Drag) to stop quickly when button released
+                velocity.y *= 0.8; 
+
+                // 2. Apply Movement Force
+                if (jumpHeld) {
+                    if (isFlyingDown) {
+                        velocity.y = -15.0; // Go Down
+                    } else {
+                        velocity.y = 15.0;  // Go Up
+                    }
+                }
+
+                // 3. Apply Velocity
+                camera.position.y += velocity.y * delta;
+                return; // Skip standard gravity/collisions
+            }
+
+            // STANDARD PHYSICS
+            // 1. Apply Gravity
             velocity.y -= 9.8 * 15.0 * delta; 
             
             // 2. Move Camera Y based on Velocity
             camera.position.y += velocity.y * delta;
+
 
             // 3. Check for Floor Collision
             const yaw = camera.rotation.y;
@@ -1789,13 +1886,24 @@
             }
 
             // 2. CHECK WALL COLLISION (The Fix)
+
+            // 2. CHECK WALL COLLISION + AUTO JUMP
             const moveVec = new THREE.Vector3(moveX, 0, moveZ);
-            if (!checkWallCollision(moveVec)) {
+            const hitWall = checkWallCollision(moveVec);
+
+            if (hitWall) {
+                // If Auto-Jump is ON and we are on the ground, Jump!
+                if (config.autoJump && canJump) {
+                     velocity.y = config.jumpPower;
+                     canJump = false;
+                }
+            } else {
                 // Only move if safe
                 camera.position.x += moveX;
                 camera.position.z += moveZ;
             }
 
+            
             // 3. GRAVITY
             updateGravity(delta);
 
@@ -1938,6 +2046,7 @@
 </body>
 
 </html>
+
 
 
 
