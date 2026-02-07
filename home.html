@@ -741,18 +741,17 @@
 }
 .home-sidebar.expanded { width: 40%; }
 .sidebar-toggle {
-    align-self: center; cursor: pointer; color: #666; margin-bottom: 20px; padding: 5px;
-}
-.home-sidebar.expanded.sidebar-toggle{
+    align-self: center; 
+    cursor: pointer; 
+    margin-bottom: 20px; 
+    padding: 5px;
+    transition:transform 0.3s ease;
     transform:rotate(180deg);
-      
-    
-} 
+}
 
 
-  #friendheader.expanded{
-      transform: font-size:20px
-  }      
+
+  
         
 .friend-row {
     display: flex; align-items: center; gap: 10px; margin-bottom: 12px; 
@@ -991,6 +990,7 @@
         <button class="view-btn" onclick="window.switchView('map', this)"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg></button>
         
         <div  style="width: 1px; height: 24px; background: #333; margin: 0 10px;"></div>
+        
         <button  class="view-btn active" id="btn-home" onclick="window.switchView('home', this)" style="border-color: var(--accent);">
             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg>
         </button>
@@ -1016,7 +1016,7 @@
         </div>
         <div id="friend-list-container" style="text-align:center;">
             
-            </div>
+        </div>
     </div>
 
     <div class="home-feed">
@@ -4463,6 +4463,7 @@ window.analyzeVideoContent = async function(file) {
 </script>
 </body>
 </html>
+
 
 
 
