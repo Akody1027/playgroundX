@@ -89,7 +89,7 @@
 
 
         
-        }
+        
         .view-group { display: flex; }
         .view-btn {
             background: none; border: none; cursor: pointer; padding:10px;
@@ -4269,15 +4269,17 @@ window.analyzeVideoContent = async function(file) {
         // Try to run cleanup, but don't crash if it fails
         try { window.lazyCleanupPosts(); } catch(e) { console.warn("Cleanup warning:", e); }
 
+        
         let mediaUrl = null;
         let mediaType = null;
         
         // Disable button briefly to prevent double-click
-        const btn = event.target;
-        const originalText = btn.innerText;
+        // FIX: Use currentTarget if event exists, otherwise fallback to activeElement
+        const btn = (typeof event !== 'undefined' && event) ? event.target : (document.activeElement || document.body);
+        const originalText = btn.innerText || "POST";
         btn.innerText = "...";
         btn.disabled = true;
-
+     
         try {
             if (file) {
                 const ref = window.fbase.ref(window.storage, `posts/${currentUserUid}_${Date.now()}`);
@@ -4443,5 +4445,6 @@ window.analyzeVideoContent = async function(file) {
 </script>
 </body>
 </html>
+
 
 
