@@ -346,7 +346,7 @@
             </div>
 
 
-            <div class="slider-group" style="display: flex; align-items: center; justify-content: space-between; margin-top: 20px;">
+            <div class="slider-group" style="display: flex; align-items: center; justify-content: space-between; margin-top: 20px;"></div>
 
 
 
@@ -1935,6 +1935,21 @@
             // 3. GRAVITY
             updateGravity(delta);
 
+              if (camera.position.y > 0 && camera.position.z < -2 && camera.position.z > -4 && Math.abs(camera.position.x) < 2) {
+              camera.position.y = bigRoomY + 21.6; // Balcony
+              camera.position.z = 95; // Spawn on balcony
+               }
+              // Exit
+              if (camera.position.y < -150 && camera.position.z > 97 && Math.abs(camera.position.x) < 3) {
+              camera.position.y = eyeLevel;
+              camera.position.z = -1;
+              }
+
+
+
+
+            
+
             // 4. SYNC AVATAR TO PHYSICS POSITION
             const currentYaw = camera.rotation.y;
             myAvatar.position.x = camera.position.x - Math.sin(currentYaw) * cameraFollowDist;
@@ -1998,7 +2013,49 @@
             for (const id in players) {
                 const p = players[id];
                 p.mesh.position.lerp(p.targetPos, 0.1);
-                // ... (Keep existing player sync code) ...
+                for (const id in players) {
+    const p = players[id];
+    p.mesh.position.lerp(p.targetPos, 0.1);
+    
+    // Remote Animation
+    const dist = p.mesh.position.distanceTo(p.targetPos);
+    if(dist > 0.05) {
+        const rot = Math.sin(time*10)*0.5;
+        p.mesh.children.forEach(c => {
+            if(c.name==='leftArm'||c.name==='rightLeg') c.rotation.x = rot;
+            if(c.name==='rightArm'||c.name==='leftLeg') c.rotation.x = -rot;
+        });
+    } else {
+        p.mesh.children.forEach(c => {
+           if(c.name.includes('Arm') || c.name.includes('Leg')) c.rotation.x = THREE.MathUtils.lerp(c.rotation.x, 0, 0.1);
+        });
+    }
+
+    if (p.mesh.position.y < -50) {
+        p.ghost.visible = true;
+        p.ghost.position.set(p.mesh.position.x * 0.1, 0, -10 + (p.mesh.position.z * 0.1));
+        p.ghost.rotation.y = p.mesh.rotation.y;
+    } else {
+        p.ghost.visible = false;
+    }
+    
+    const tag = document.getElementById(`tag-${id}`);
+    const bub = document.getElementById(`bub-${id}`);
+    let target = p.mesh;
+    if(camera.position.y > 0 && p.mesh.position.y < -50) target = p.ghost;
+    
+    const headPos = target.position.clone().add(new THREE.Vector3(0, 2.2, 0));
+    headPos.project(camera);
+    if (headPos.z < 1 && Math.abs(headPos.x) < 1.2 && Math.abs(headPos.y) < 1.2) {
+        const x = (headPos.x * .5 + .5) * window.innerWidth;
+        const y = (-(headPos.y * .5) + .5) * window.innerHeight;
+        tag.style.transform = `translate(${x}px, ${y}px) translate(-50%, -100%)`;
+        bub.style.transform = `translate(${x}px, ${y}px) translate(-50%, -150%)`;
+        tag.style.display = 'block';
+    } else {
+        tag.style.display = 'none'; bub.style.display = 'none';
+    }
+                }
             }
             renderer.render(scene, camera);
 
@@ -2051,11 +2108,10 @@
 
                     return;
                 }
-                }
+             }
+          }
 
-        }
-
-        }
+        
 
 
 
@@ -2074,6 +2130,7 @@
 </body>
 
 </html>
+
 
 
 
