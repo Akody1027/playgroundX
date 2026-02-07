@@ -1982,33 +1982,40 @@ async function checkAdminStatus(uid) {
 
 
 
-        // --- 💰 WALLET SYNC LISTENER ---
+
+
+
+
+        // --- 💰 WALLET SYNC LISTENER (With Alert) ---
         if (currentUserUid) {
-            // Reference to my own user profile
             const myRef = window.fbase.doc(window.db, 'artifacts', window.APP_ID, 'public', 'data', 'users', currentUserUid);
 
-            // Watch for changes in real-time
             window.fbase.onSnapshot(myRef, (doc) => {
                 if (doc.exists()) {
                     const data = doc.data();
+                    const currentCoins = data.walletBalance || 0;
                     
-                    // Check if walletBalance exists, otherwise default to 0
-                    const coins = data.walletBalance || 0;
-                    
-                    // Update the UI
-                    const walletEl = document.getElementById('wallet-balance');
-                    if (walletEl) {
-                        walletEl.innerText = coins;
+                    // NEW: Check if balance increased (You got paid!)
+                    const lastKnown = parseInt(localStorage.getItem('pgX_wallet_balance') || "0");
+                    if (currentCoins > lastKnown) {
+                        const amount = currentCoins - lastKnown;
+                        // Trigger visual alert
+                        alert(`💰 KA-CHING!\n\nYou received ${amount} coins!`);
                     }
+
+                    // Update UI
+                    const walletEl = document.getElementById('wallet-balance');
+                    if (walletEl) walletEl.innerText = currentCoins;
                     
-                    // Optional: Update local storage for backup
-                    localStorage.setItem('pgX_wallet_balance', coins);
+                    localStorage.setItem('pgX_wallet_balance', currentCoins);
                 }
             });
         }
 
 
 
+
+        
 
 
 
@@ -2526,35 +2533,48 @@ async function ensureUserProfile() {
 
     let winkUnsubscribe = null;
 
+
+
+
+
+
+    
+
+
+    // --- MASTER NOTIFICATION STATE ---
+    window.notifState = { winks: 0, chats: 0, reqs: 0 };
+    
+    window.updateMasterBadge = function() {
+        const total = window.notifState.winks + window.notifState.chats + window.notifState.reqs;
+        const badge = document.getElementById('msg-badge');
+        if(badge) {
+            badge.innerText = total;
+            badge.style.display = total > 0 ? 'flex' : 'none';
+        }
+    }
+
+    // 1. WINKS LISTENER
+    let winkUnsubscribe = null;
     window.startWinkListener = function() {
         if (!currentUserUid) return;
-
         const winkList = document.getElementById('tab-winks');
         const winkRef = window.fbase.collection(window.db, 'users', currentUserUid, 'winks');
         const q = window.fbase.query(winkRef, window.fbase.orderBy('timestamp', 'desc'), window.fbase.limit(50));
 
         if (winkUnsubscribe) winkUnsubscribe();
-
         winkUnsubscribe = window.fbase.onSnapshot(q, (snapshot) => {
+            // Update Global Count
+            window.notifState.winks = snapshot.size;
+            window.updateMasterBadge();
+
             if (snapshot.empty) {
                 winkList.innerHTML = `<div style="padding:20px; text-align:center; color:#666;">No winks yet.</div>`;
-                const badge = document.getElementById('msg-badge');
-                if(badge) badge.style.display = 'none';
                 return;
-            }
-
-            const count = snapshot.size;
-            const badge = document.getElementById('msg-badge');
-            if(badge) {
-                badge.innerText = count;
-                badge.style.display = count > 0 ? 'flex' : 'none';
             }
 
             winkList.innerHTML = '';
             snapshot.forEach(doc => {
                 const w = doc.data();
-                const winkId = doc.id;
-                
                 const item = document.createElement('div');
                 item.className = 'msg-item';
                 if (!w.read) item.classList.add('unread'); 
@@ -2566,7 +2586,7 @@ async function ensureUserProfile() {
                         <div style="color:var(--accent); font-size:12px;">Sent you a wink! 😉</div>
                         <div style="color:#666; font-size:10px;">${w.timestamp ? new Date(w.timestamp.seconds * 1000).toLocaleTimeString() : 'Just now'}</div>
                     </div>
-                    <button onclick="window.acceptWink('${w.fromAlias}', '${w.fromUid}', '${winkId}')" style="background:var(--accent); color:white; border:none; padding:8px 12px; border-radius:20px; font-weight:bold; font-size:12px; cursor:pointer;">
+                    <button onclick="window.acceptWink('${w.fromAlias}', '${w.fromUid}', '${doc.id}')" style="background:var(--accent); color:white; border:none; padding:8px 12px; border-radius:20px; font-weight:bold; font-size:12px; cursor:pointer;">
                         Chat
                     </button>
                 `;
@@ -2582,17 +2602,18 @@ async function ensureUserProfile() {
         } catch (e) { console.error(e); }
     }
 
-    
-
-    // --- NEW: INBOX LISTENER ---
+    // 2. INBOX LISTENER (Chats)
     window.startInboxListener = function() {
         if (!currentUserUid) return;
-
         const chatList = document.getElementById('tab-chats');
         const chatsRef = window.fbase.collection(window.db, 'users', currentUserUid, 'active_chats');
         const q = window.fbase.query(chatsRef, window.fbase.orderBy('timestamp', 'desc'));
 
         window.fbase.onSnapshot(q, (snapshot) => {
+            // Update Global Count (For now, count all active threads as notifications)
+            window.notifState.chats = snapshot.size;
+            window.updateMasterBadge();
+
             if (snapshot.empty) {
                 chatList.innerHTML = `<div style="padding:20px; text-align:center; color:#666;">No conversations yet.</div>`;
                 return;
@@ -2603,11 +2624,11 @@ async function ensureUserProfile() {
                 const c = doc.data();
                 const item = document.createElement('div');
                 item.className = 'msg-item';
-                item.onclick = () => window.openChat(c.withName, c.withUid); // Clicking opens the chat
+                item.onclick = () => window.openChat(c.withName, c.withUid); 
 
                 item.innerHTML = `
                     <div class="msg-avatar" style="background:var(--accent); display:flex; align-items:center; justify-content:center; color:white; font-weight:bold;">
-                        ${c.withName[0].toUpperCase()}
+                        ${c.withName ? c.withName[0].toUpperCase() : 'U'}
                     </div>
                     <div style="flex:1;">
                         <div style="font-weight:bold; color:white; font-size:14px;">${c.withName}</div>
@@ -2623,6 +2644,11 @@ async function ensureUserProfile() {
     }
 
 
+
+
+
+
+    
   
 
 
@@ -4075,6 +4101,7 @@ window.analyzeVideoContent = async function(file) {
         }
     }
 
+
     // --- 2. FRIEND REQUEST LOGIC ---
     window.sendFriendRequest = async function(targetId) {
         if(!confirm("Send Friend Request?")) return;
@@ -4094,15 +4121,25 @@ window.analyzeVideoContent = async function(file) {
         }
     }
 
-    // --- 3. REQUEST LISTENER (Inbox) ---
+
+
+
+
+    
+
+      // 3. REQUEST LISTENER (Inbox)
     window.startRequestListener = function() {
         if (!currentUserUid) return;
         const list = document.getElementById('tab-reqs');
         const ref = window.fbase.collection(window.db, 'users', currentUserUid, 'friend_requests');
         
         window.fbase.onSnapshot(ref, (snap) => {
+            // NEW: Update Global Badge
+            window.notifState.reqs = snap.size;
+            window.updateMasterBadge();
+
             if(snap.empty) {
-                list.innerHTML = '<div style="padding:20px; text-align:center; color:#666;">No pending requests.</div>';
+                list.innerHTML = '<div style="padding:20px; text-align:center; color:#666;">No pending requests.</div>`;
                 return;
             }
             list.innerHTML = '';
@@ -4123,6 +4160,14 @@ window.analyzeVideoContent = async function(file) {
             });
         });
     }
+  
+
+
+
+
+
+
+    
 
     window.acceptFriend = async function(friendId, alias) {
         // Create Chat Entry immediately
@@ -4423,6 +4468,7 @@ window.analyzeVideoContent = async function(file) {
 </script>
 </body>
 </html>
+
 
 
 
