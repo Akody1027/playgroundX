@@ -1793,6 +1793,15 @@
         // --- NEW HELPER: Check if moving will hit a wall ---
         function checkWallCollision(moveOffset) {
             // 1. Calculate where the Avatar IS right now
+
+
+           // FIX: If we aren't moving (length is 0), don't check collisions (prevents NaN crash)
+           if (moveOffset.lengthSq() < 0.001) return false;
+
+
+
+
+          
             const yaw = camera.rotation.y;
             const avX = camera.position.x - Math.sin(yaw) * cameraFollowDist;
             const avZ = camera.position.z - Math.cos(yaw) * cameraFollowDist;
@@ -1810,6 +1819,18 @@
             return (intersects.length > 0 && intersects[0].distance < dist);
         }
 
+
+
+
+
+
+
+
+
+
+
+
+        
         // --- NEW HELPER: Smart Camera (Visual Clip) ---
         function getSmartCameraPos() {
             // 1. Where is the Avatar's Head?
@@ -2053,6 +2074,7 @@
 </body>
 
 </html>
+
 
 
 
