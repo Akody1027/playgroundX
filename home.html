@@ -1895,49 +1895,24 @@ async function checkAdminStatus(uid) {
         }
     }
 
-    // --- REVISED: Profile Loader with Header Sync ---
-    async function ensureUserProfile() {
-        const userRef = window.fbase.doc(window.db, 'artifacts', window.APP_ID, 'public', 'data', 'users', currentUserUid);
-        
-        try {
-            const snap = await window.fbase.getDoc(userRef);
 
-            if (snap.exists()) {
-                const data = snap.data();
-                console.log("Profile loaded from DB:", data.alias);
 
-                // 1. Sync to LocalStorage
-                if (data.alias) localStorage.setItem('pgX_alias', data.alias);
-                if (data.img) localStorage.setItem('my_profile_pic', data.img);
 
-                // 2. FORCE UPDATE HEADER ICON
-                if (data.img) {
-                    window.updateHeaderIcon(data.img);
-                }
 
-            } else {
-                // Create Default User
-                console.log("Creating new user profile...");
-                const defaultAlias = "User_" + Math.floor(Math.random() * 1000);
-                const defaultImg = "https://via.placeholder.com/120";
 
-                await window.fbase.setDoc(userRef, {
-                    alias: defaultAlias,
-                    age: 21,
-                    bio: "New member",
-                    img: defaultImg,
-                    joinedAt: window.fbase.serverTimestamp()
-                });
-                
-                localStorage.setItem('pgX_alias', defaultAlias);
-                localStorage.setItem('my_profile_pic', defaultImg);
-                window.updateHeaderIcon(defaultImg);
-            }
-        } catch (e) {
-            console.error("Profile check failed:", e);
-        }
-    }
 
+    
+
+
+
+
+
+
+
+
+
+
+    
     window.initBackend = async function() {
         const loading = document.getElementById('loading-overlay');
         
@@ -4468,4 +4443,5 @@ window.analyzeVideoContent = async function(file) {
 </script>
 </body>
 </html>
+
 
