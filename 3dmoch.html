@@ -679,34 +679,21 @@
 
             document.getElementById('btn-offline').style.display = 'block';
             
-            // Offline Button Logic
-            document.getElementById('btn-offline').addEventListener('click', () => {
-                isOffline = true;
-                // Generate a random temporary ID for offline play
-                myUid = "offline_" + Math.random().toString(36).substr(2, 9);
-                if (isMobile) {
-                const sens = config.lookSpeed * delta;
-    
-                  // 1. Rotate Camera (Yaw)
-                camera.rotation.y -= input.look.x * sens;
-
-                 // 2. Look Up/Down (Pitch)
-                 camera.rotation.x -= input.look.y * sens;
-                 camera.rotation.x = Math.max(-0.6, Math.min(0.6, camera.rotation.x));
-    
-                 // 3. Calculate Walk Vector (Move Avatar, NOT camera)
-                 const fwd = -input.move.y; 
-                 const strafe = input.move.x;
-                 const yaw = camera.rotation.y;
-    
-                 if(Math.abs(fwd) > 0.1 || Math.abs(strafe) > 0.1) {
-                 moveX -= (Math.sin(yaw)*fwd - Math.cos(yaw)*strafe) * speed;
-                 moveZ -= (Math.cos(yaw)*fwd + Math.sin(yaw)*strafe) * speed;
-                 }
-                } else {
-                    controls.lock();
+              document.getElementById('btn-offline').addEventListener('click', () => {
+              isOffline = true;
+              myUid = "offline_" + Math.random().toString(36).substr(2, 9);
+              if (isMobile) {
+              blocker.style.display = 'none';
+              document.querySelectorAll('.joystick-zone').forEach(el => el.style.display = 'flex');
+              } else {
+              controls.lock();
                 }
-            });
+         });
+
+
+
+                    
+                
 
 
 
@@ -2160,6 +2147,7 @@
 </body>
 
 </html>
+
 
 
 
