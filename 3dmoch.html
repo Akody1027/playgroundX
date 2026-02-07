@@ -685,8 +685,24 @@
                 // Generate a random temporary ID for offline play
                 myUid = "offline_" + Math.random().toString(36).substr(2, 9);
                 if (isMobile) {
-                    blocker.style.display = 'none';
-                    document.querySelectorAll('.joystick-zone').forEach(el => el.style.display = 'flex');
+                const sens = config.lookSpeed * delta;
+    
+                  // 1. Rotate Camera (Yaw)
+                camera.rotation.y -= input.look.x * sens;
+
+                 // 2. Look Up/Down (Pitch)
+                 camera.rotation.x -= input.look.y * sens;
+                 camera.rotation.x = Math.max(-0.6, Math.min(0.6, camera.rotation.x));
+    
+                 // 3. Calculate Walk Vector (Move Avatar, NOT camera)
+                 const fwd = -input.move.y; 
+                 const strafe = input.move.x;
+                 const yaw = camera.rotation.y;
+    
+                 if(Math.abs(fwd) > 0.1 || Math.abs(strafe) > 0.1) {
+                 moveX -= (Math.sin(yaw)*fwd - Math.cos(yaw)*strafe) * speed;
+                 moveZ -= (Math.cos(yaw)*fwd + Math.sin(yaw)*strafe) * speed;
+                 }
                 } else {
                     controls.lock();
                 }
@@ -1866,52 +1882,54 @@
             const delta = clock.getDelta();
             const time = clock.getElapsedTime();
             const speed = config.moveSpeed * delta;
+
+
+
+
+
             
+            // 1. CALCULATE INTENDED MOVEMENT
             // 1. CALCULATE INTENDED MOVEMENT
             let moveX = 0;
             let moveZ = 0;
-            const yaw = camera.rotation.y;
 
             if (isMobile) {
-                const sens = config.lookSpeed * delta;
-                
-                // Camera Rotation
-                const oldYaw = camera.rotation.y;
-                camera.rotation.y -= input.look.x * sens;
-                const newYaw = camera.rotation.y;
-                
-                // Orbit Logic (Keep distance)
-                if (input.look.x !== 0) {
-                    camera.position.x += (Math.sin(newYaw) - Math.sin(oldYaw)) * cameraFollowDist;
-                    camera.position.z += (Math.cos(newYaw) - Math.cos(oldYaw)) * cameraFollowDist;
-                }
+            const sens = config.lookSpeed * delta;
+            const yaw = camera.rotation.y;
+    
+            // Rotate camera view
+           camera.rotation.y -= input.look.x * sens;
+           camera.rotation.x -= input.look.y * sens;
+           camera.rotation.x = Math.max(-0.6, Math.min(0.6, camera.rotation.x));
+    
+            // Calculate movement
+          const fwd = -input.move.y; 
+          const strafe = input.move.x;
+          if(Math.abs(fwd) > 0.1 || Math.abs(strafe) > 0.1) {
+          moveX -= (Math.sin(yaw)*fwd - Math.cos(yaw)*strafe) * speed;
+          moveZ -= (Math.cos(yaw)*fwd + Math.sin(yaw)*strafe) * speed;
+          }
+         } else if (controls.isLocked) {
+         // PC Movement (unchanged)
+        const fwd = Number(keys.w) - Number(keys.s);
+        const strafe = Number(keys.d) - Number(keys.a);
+        if(fwd || strafe) {
+        const dir = new THREE.Vector3();
+        camera.getWorldDirection(dir);
+        dir.y = 0; dir.normalize();
+        const side = new THREE.Vector3(-dir.z, 0, dir.x);
+        
+        const v = dir.multiplyScalar(fwd * speed).add(side.multiplyScalar(strafe * speed));
+        moveX = v.x;
+        moveZ = v.z;
+    }
+}
 
-                // Look Up/Down
-                camera.rotation.x -= input.look.y * sens;
-                camera.rotation.x = Math.max(-0.6, Math.min(0.6, camera.rotation.x));
-                
-                // Calculate Walk Vector
-                const fwd = -input.move.y; 
-                const strafe = input.move.x;
-                if(Math.abs(fwd) > 0.1 || Math.abs(strafe) > 0.1) {
-                    moveX -= (Math.sin(yaw)*fwd - Math.cos(yaw)*strafe) * speed;
-                    moveZ -= (Math.cos(yaw)*fwd + Math.sin(yaw)*strafe) * speed;
-                }
-            } else if (controls.isLocked) {
-                // PC Movement
-                const fwd = Number(keys.w) - Number(keys.s);
-                const strafe = Number(keys.d) - Number(keys.a);
-                if(fwd || strafe) {
-                    const dir = new THREE.Vector3();
-                    camera.getWorldDirection(dir);
-                    dir.y = 0; dir.normalize();
-                    const side = new THREE.Vector3(-dir.z, 0, dir.x);
-                    
-                    const v = dir.multiplyScalar(fwd * speed).add(side.multiplyScalar(strafe * speed));
-                    moveX = v.x;
-                    moveZ = v.z;
-                }
-            }
+
+
+
+
+            
 
             // 2. CHECK WALL COLLISION (The Fix)
 
@@ -1951,11 +1969,23 @@
             
 
             // 4. SYNC AVATAR TO PHYSICS POSITION
-            const currentYaw = camera.rotation.y;
-            myAvatar.position.x = camera.position.x - Math.sin(currentYaw) * cameraFollowDist;
-            myAvatar.position.z = camera.position.z - Math.cos(currentYaw) * cameraFollowDist;
-            myAvatar.position.y = camera.position.y - eyeLevel;
-            myAvatar.rotation.y = currentYaw + Math.PI; 
+           // 4. SYNC AVATAR AND CAMERA POSITIONS
+           const currentYaw = camera.rotation.y;
+
+           // The AVATAR moves based on moveX/moveZ (already done above)
+           // Now position the avatar at the calculated physics position
+           myAvatar.position.x = camera.position.x - Math.sin(currentYaw) * cameraFollowDist;
+           myAvatar.position.z = camera.position.z - Math.cos(currentYaw) * cameraFollowDist;
+           myAvatar.position.y = camera.position.y - eyeLevel;
+
+           // Make avatar face away from camera
+           myAvatar.rotation.y = currentYaw + Math.PI;
+
+
+
+
+
+
             
             const myHead = myAvatar.getObjectByName('head');
             if(myHead) myHead.rotation.x = -camera.rotation.x; 
@@ -2014,18 +2044,18 @@
                 const p = players[id];
                 p.mesh.position.lerp(p.targetPos, 0.1);
                 for (const id in players) {
-    const p = players[id];
-    p.mesh.position.lerp(p.targetPos, 0.1);
+               const p = players[id];
+               p.mesh.position.lerp(p.targetPos, 0.1);
     
-    // Remote Animation
-    const dist = p.mesh.position.distanceTo(p.targetPos);
-    if(dist > 0.05) {
-        const rot = Math.sin(time*10)*0.5;
-        p.mesh.children.forEach(c => {
+            // Remote Animation
+              const dist = p.mesh.position.distanceTo(p.targetPos);
+              if(dist > 0.05) {
+             const rot = Math.sin(time*10)*0.5;
+            p.mesh.children.forEach(c => {
             if(c.name==='leftArm'||c.name==='rightLeg') c.rotation.x = rot;
             if(c.name==='rightArm'||c.name==='leftLeg') c.rotation.x = -rot;
-        });
-    } else {
+            });
+           } else {
         p.mesh.children.forEach(c => {
            if(c.name.includes('Arm') || c.name.includes('Leg')) c.rotation.x = THREE.MathUtils.lerp(c.rotation.x, 0, 0.1);
         });
@@ -2130,6 +2160,7 @@
 </body>
 
 </html>
+
 
 
 
