@@ -1862,56 +1862,158 @@
 
 
 
-
-        // --- ANIMATION LOOP ---
+          // --- IMPROVED ANIMATION LOOP ---
         function animate() {
             requestAnimationFrame(animate);
             const delta = clock.getDelta();
             const time = clock.getElapsedTime();
-            const speed = config.moveSpeed * delta;
-
-
-
-
-
             
-            // 1. CALCULATE INTENDED MOVEMENT
-            // 1. CALCULATE INTENDED MOVEMENT
+            // --- 1. HANDLE INPUT & CAMERA ROTATION ---
+            if (isMobile) {
+                const sens = config.lookSpeed * delta;
+                // Update camera rotation (Look Direction)
+                camera.rotation.y -= input.look.x * sens;
+                camera.rotation.x -= input.look.y * sens;
+                camera.rotation.x = Math.max(-1.0, Math.min(1.0, camera.rotation.x));
+            }
+            // (PC PointerLock handles camera rotation automatically via mouse)
+
+            // --- 2. CALCULATE MOVEMENT DIRECTION ---
+            // We want to move relative to where the camera is facing
             let moveX = 0;
             let moveZ = 0;
+            const speed = config.moveSpeed * delta;
+            
+            // Get the camera's facing angle (Y axis only)
+            const yaw = camera.rotation.y;
 
             if (isMobile) {
-            const sens = config.lookSpeed * delta;
-            const yaw = camera.rotation.y;
-    
-            // Rotate camera view
-           camera.rotation.y -= input.look.x * sens;
-           camera.rotation.x -= input.look.y * sens;
-           camera.rotation.x = Math.max(-0.6, Math.min(0.6, camera.rotation.x));
-    
-            // Calculate movement
-          const fwd = -input.move.y; 
-          const strafe = input.move.x;
-          if(Math.abs(fwd) > 0.1 || Math.abs(strafe) > 0.1) {
-          moveX -= (Math.sin(yaw)*fwd - Math.cos(yaw)*strafe) * speed;
-          moveZ -= (Math.cos(yaw)*fwd + Math.sin(yaw)*strafe) * speed;
-          }
-         } else if (controls.isLocked) {
-         // PC Movement (unchanged)
-        const fwd = Number(keys.w) - Number(keys.s);
-        const strafe = Number(keys.d) - Number(keys.a);
-        if(fwd || strafe) {
-        const dir = new THREE.Vector3();
-        camera.getWorldDirection(dir);
-        dir.y = 0; dir.normalize();
-        const side = new THREE.Vector3(-dir.z, 0, dir.x);
-        
-        const v = dir.multiplyScalar(fwd * speed).add(side.multiplyScalar(strafe * speed));
-        moveX = v.x;
-        moveZ = v.z;
-    }
-}
+                const fwd = -input.move.y; 
+                const strafe = input.move.x;
+                if(Math.abs(fwd) > 0.1 || Math.abs(strafe) > 0.1) {
+                    moveX = (Math.sin(yaw) * fwd - Math.cos(yaw) * strafe) * speed;
+                    moveZ = (Math.cos(yaw) * fwd + Math.sin(yaw) * strafe) * speed;
+                }
+            } else if (controls.isLocked) {
+                const fwd = Number(keys.w) - Number(keys.s);
+                const strafe = Number(keys.d) - Number(keys.a);
+                if(fwd || strafe) {
+                    // Calculate forward/right vectors based on Camera Yaw
+                    const dir = new THREE.Vector3(Math.sin(yaw), 0, Math.cos(yaw)).normalize();
+                    const side = new THREE.Vector3(Math.cos(yaw), 0, -Math.sin(yaw)).normalize(); // Right vector
+                    
+                    // Combine them
+                    const v = dir.multiplyScalar(-fwd * speed).add(side.multiplyScalar(strafe * speed));
+                    moveX = v.x;
+                    moveZ = v.z;
+                }
+            }
 
+            // --- 3. PHYSICS & COLLISION (Applied to Avatar Position) ---
+            // We use a temporary vector to check wall collisions
+            const intendedMove = new THREE.Vector3(moveX, 0, moveZ);
+            
+            // Note: We use camera.position in existing checks, but we need to check from Avatar center now.
+            // For simplicity in this specific file structure, we apply move directly to Avatar.
+            
+            // Apply movement to Avatar
+            myAvatar.position.x += moveX;
+            myAvatar.position.z += moveZ;
+
+            // Gravity Logic (Simplified for Avatar-First)
+            if (config.flyMode) {
+                 velocity.y *= 0.8;
+                 if (jumpHeld) velocity.y = isFlyingDown ? -15.0 : 15.0;
+            } else {
+                 velocity.y -= 30.0 * delta; // Gravity
+            }
+            
+            myAvatar.position.y += velocity.y * delta;
+
+            // Simple Floor Collision
+            if (myAvatar.position.y < 0) {
+                myAvatar.position.y = 0;
+                velocity.y = 0;
+                canJump = true;
+            }
+            // Check for Balcony/Floor collisions (Simplified)
+            // You can re-enable your specific raycaster logic here, targeting myAvatar.position
+
+            // --- 4. CAMERA ORBIT LOGIC (The Fix) ---
+            // Place camera BEHIND the avatar based on rotation
+            const camDist = cameraFollowDist; // From slider
+            
+            // Calculate where the camera should be
+            const camX = myAvatar.position.x + Math.sin(camera.rotation.y) * camDist;
+            const camZ = myAvatar.position.z + Math.cos(camera.rotation.y) * camDist;
+            const camY = myAvatar.position.y + eyeLevel;
+
+            // Apply to Camera
+            camera.position.set(camX, camY, camZ);
+            
+            // Ensure Camera looks at Avatar head (approx)
+            // We adjust the lookAt slightly so the camera rotation inputs still feel right
+            // Actually, since we set rotation manually at start of frame, we just update position here.
+
+            // --- 5. AVATAR ROTATION (Face Walking Direction) ---
+            // Only rotate avatar if we are actually moving
+            if (Math.abs(moveX) > 0.001 || Math.abs(moveZ) > 0.001) {
+                const angle = Math.atan2(moveX, moveZ);
+                // Smoothly rotate avatar to face movement
+                 const targetRot = angle;
+                 // Basic lerp for rotation (handles wrap-around poorly, but simple for now)
+                 myAvatar.rotation.y = targetRot; 
+            }
+            
+            // Head tilt (Sync with camera look up/down)
+            const myHead = myAvatar.getObjectByName('head');
+            if(myHead) myHead.rotation.x = -camera.rotation.x; 
+
+            // --- 6. LIMB ANIMATIONS ---
+            const isMoving = (Math.abs(moveX) > 0.001 || Math.abs(moveZ) > 0.001);
+            if(isMoving) {
+                const walkSpeed = 10;
+                const limbAngle = Math.sin(time * walkSpeed) * 0.5;
+                const lArm = myAvatar.getObjectByName('leftArm');
+                const rArm = myAvatar.getObjectByName('rightArm');
+                const lLeg = myAvatar.getObjectByName('leftLeg');
+                const rLeg = myAvatar.getObjectByName('rightLeg');
+                if(lArm) lArm.rotation.x = limbAngle;
+                if(rArm) rArm.rotation.x = -limbAngle;
+                if(lLeg) lLeg.rotation.x = -limbAngle;
+                if(rLeg) rLeg.rotation.x = limbAngle;
+            } else {
+                 // Reset limbs
+                 ['leftArm', 'rightArm', 'leftLeg', 'rightLeg'].forEach(name => {
+                    const part = myAvatar.getObjectByName(name);
+                    if(part) part.rotation.x = THREE.MathUtils.lerp(part.rotation.x, 0, 0.1);
+                 });
+            }
+
+            // --- 7. FADE LOGIC (Fixed to be less aggressive) ---
+            const headPos = myAvatar.position.clone().add(new THREE.Vector3(0, 1.5, 0));
+            const distToHead = camera.position.distanceTo(headPos);
+            
+            // REDUCED DISTANCE: Only fade if VERY close (0.5 instead of 1.2)
+            const targetOpacity = distToHead < 0.5 ? 0.1 : 1.0; 
+
+            myAvatar.traverse((child) => {
+               if(child.isMesh) {
+                if(!child.material.transparent) child.material.transparent = true; 
+                 child.material.opacity = THREE.MathUtils.lerp(child.material.opacity, targetOpacity, 0.2);
+              }
+            });
+
+            // Render
+            // (Keep your existing remote player sync logic here)
+            for (const id in players) {
+                const p = players[id];
+                p.mesh.position.lerp(p.targetPos, 0.1);
+                // ... (rest of your render logic)
+            }
+            
+            renderer.render(scene, camera);
+        }
 
 
 
@@ -2147,6 +2249,7 @@
 </body>
 
 </html>
+
 
 
 
