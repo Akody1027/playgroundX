@@ -102,7 +102,7 @@
         .filter-btn {
             background: #1A1A1A; border: 1px solid #333; color: var(--text-dim);
             width: 44px; height: 44px; border-radius: 12px; cursor: pointer;
-            display: flex; align-items: center; justify-content: center; margin-left:49% position :absolute;
+            display: flex; align-items: center; justify-content: center; margin-left:49% ; position :absolute;
         }
 
         /* --- SWIPE VIEW (Fixed Click Shield) --- */
@@ -800,7 +800,7 @@
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
         import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-        import { getFirestore, collection, doc, setDoc, getDocs, getDoc, updateDoc, addDoc, query, orderBy, onSnapshot, limit, serverTimestamp, where, increment, deleteDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js"; 
+        import { getFirestore, collection, doc, setDoc, getDocs, getDoc, updateDoc, addDoc, query, orderBy, onSnapshot, limit, serverTimestamp, Timestamp, where, increment, deleteDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js"; 
         // FIX: Import Storage Functions
         import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-storage.js";
 
@@ -831,7 +831,7 @@
         // Helper object for easier access in other scripts
         window.fbase = {
             collection, doc, setDoc, getDocs, getDoc, updateDoc, addDoc, query, orderBy, onSnapshot, limit, serverTimestamp, signInAnonymously, onAuthStateChanged, where, increment, deleteDoc,
-            ref, uploadBytes, getDownloadURL 
+            ref, uploadBytes, getDownloadURL, Timestamp
         }; 
 
         console.log("Firebase Global Tools (Auth, DB, Storage) Loaded ✅");
@@ -4445,6 +4445,7 @@ window.analyzeVideoContent = async function(file) {
 </script>
 </body>
 </html>
+
 
 
 
