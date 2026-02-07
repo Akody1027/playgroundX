@@ -3638,73 +3638,134 @@ updateConnectionStatus();
         }
     }
 
-    // 4. JOIN LOGIC
-    window.joinGlobalQueue = function() {
-        const btn = document.getElementById('btn-join-queue');
-        
-        // Visual Feedback
-        btn.innerText = "WAITING FOR ROUND...";
-        btn.style.background = "#333";
-        btn.style.color = "#aaa";
-        btn.disabled = true;
-        
-        isQueueJoined = true;
 
-        // Add "Me" to the top of the list
-        const list = document.getElementById('lounge-queue');
-        const myChip = document.createElement('div');
-        myChip.className = 'user-chip';
-        myChip.style.border = '1px solid var(--accent)';
-        myChip.innerHTML = `
-            <img src="${localStorage.getItem('my_profile_pic') || 'https://via.placeholder.com/40'}" class="chip-img">
-            <div class="chip-info">
-                <span class="chip-name">You (Pending)</span>
-                <span class="chip-status">Ready to Match</span>
-            </div>
-        `;
-        list.prepend(myChip);
+
+
+
+
+    
+        // 4. JOIN LOGIC (REAL DATABASE WRITE)
+    window.joinGlobalQueue = async function() {
+        if (!currentUserUid) {
+            alert("You must be logged in to join the Speed Lounge.");
+            return;
+        }
+
+        const btn = document.getElementById('btn-join-queue');
+        const originalText = btn.innerText;
+        
+        // UI Feedback: Loading state
+        btn.innerText = "JOINING...";
+        btn.disabled = true;
+
+        try {
+            // 1. Prepare User Data for the Queue
+            const queueData = {
+                uid: currentUserUid,
+                alias: localStorage.getItem('pgX_alias') || "User",
+                img: localStorage.getItem('my_profile_pic') || "https://via.placeholder.com/40",
+                timestamp: window.fbase.serverTimestamp(),
+                // Save coordinates so we can calculate distance filters later
+                lat: window.myLocation ? window.myLocation.lat : 0,
+                lng: window.myLocation ? window.myLocation.lng : 0,
+                status: "waiting"
+            };
+
+            // 2. Write to DB (Using setDoc with UserID prevents duplicates)
+            const queueRef = window.fbase.doc(window.db, 'artifacts', window.APP_ID, 'public', 'data', 'global_queue', currentUserUid);
+            await window.fbase.setDoc(queueRef, queueData);
+
+            // 3. UI Feedback: Success state
+            btn.innerText = "WAITING FOR ROUND...";
+            btn.style.background = "#333";
+            btn.style.color = "#aaa";
+            isQueueJoined = true;
+
+            // Note: We don't need to manually add "myChip" to the list anymore.
+            // The listener we added in Step 5 will see this new DB entry and auto-update the list!
+
+        } catch (e) {
+            console.error("Join Queue Error:", e);
+            alert("Could not join queue. Check console.");
+            btn.innerText = originalText;
+            btn.disabled = false;
+        }
     }
 
-    // 5. QUEUE SIMULATION (Creates "Fake" Activity)
-    function startQueueSimulation() {
+
+
+
+
+    
+
+
+
+
+        // 5. REAL FIREBASE QUEUE (Live Users)
+    let queueUnsub = null;
+
+    // We keep the function name 'startQueueSimulation' so we don't break the button,
+    // but now it runs REAL logic instead of a simulation.
+    window.startQueueSimulation = function() { 
+        if (!currentUserUid) return;
+
         const list = document.getElementById('lounge-queue');
         const countEl = document.getElementById('queue-count');
-        list.innerHTML = ''; // Clear previous
+        list.innerHTML = ''; 
+
+        // Listen to the 'global_queue' collection in real-time
+        const qRef = window.fbase.collection(window.db, 'artifacts', window.APP_ID, 'public', 'data', 'global_queue');
         
-        let count = Math.floor(Math.random() * 30) + 10; // Start with random number
-        countEl.innerText = count + " Online";
+        // Only show people active in the last 10 minutes to avoid showing "ghosts"
+        const tenMinsAgo = new Date(Date.now() - 10 * 60 * 1000);
+        const q = window.fbase.query(qRef, window.fbase.where('timestamp', '>', tenMinsAgo), window.fbase.orderBy('timestamp', 'desc'), window.fbase.limit(50));
 
-        // Add initial batch
-        for(let i=0; i<5; i++) addRandomUser(list);
+        if (queueUnsub) queueUnsub();
 
-        // Add new user every 2-5 seconds
-        queueSimulator = setInterval(() => {
-            if(Math.random() > 0.5) {
-                addRandomUser(list);
-                count++;
-                countEl.innerText = count + " Online";
+        queueUnsub = window.fbase.onSnapshot(q, (snapshot) => {
+            list.innerHTML = ''; // Refresh list
+            countEl.innerText = snapshot.size + " Online";
+            
+            if (snapshot.empty) {
+                list.innerHTML = '<div style="padding:20px; text-align:center; color:#666; font-size:12px;">The lounge is empty.<br>Be the first to join!</div>';
             }
-        }, 2000);
+
+            snapshot.forEach(doc => {
+                const user = doc.data();
+                // Don't show myself in the main list (I'm shown at the top separately)
+                if (user.uid === currentUserUid) return;
+
+                const chip = document.createElement('div');
+                chip.className = 'user-chip';
+                // Use a subtle fade-in animation
+                chip.style.animation = "fadeEntry 0.5s ease-out";
+                chip.innerHTML = `
+                    <img src="${user.img || 'https://via.placeholder.com/40'}" class="chip-img">
+                    <div class="chip-info">
+                        <span class="chip-name">${user.alias}</span>
+                        <span class="chip-status">Waiting...</span>
+                    </div>
+                `;
+                list.appendChild(chip);
+            });
+        });
     }
 
-    const FAKE_NAMES = ["Sarah", "Mike", "Jessica", "Davon", "Li", "Aisha", "Tom", "Chloe"];
-    function addRandomUser(list) {
-        const name = FAKE_NAMES[Math.floor(Math.random() * FAKE_NAMES.length)];
-        const chip = document.createElement('div');
-        chip.className = 'user-chip';
-        chip.innerHTML = `
-            <img src="https://i.pravatar.cc/150?u=${Math.random()}" class="chip-img">
-            <div class="chip-info">
-                <span class="chip-name">${name}</span>
-                <span class="chip-status">Just Joined</span>
-            </div>
-        `;
-        list.prepend(chip); // Add to top
-        
-        // Remove old ones to keep DOM clean
-        if(list.children.length > 20) list.lastElementChild.remove();
-    }
 
+
+
+
+
+
+
+
+    
+
+
+
+
+
+    
     // 6. FILTER TOGGLES
     window.setLoungeFilter = function(el, type) {
         // Remove active class from siblings
@@ -4123,14 +4184,51 @@ window.analyzeVideoContent = async function(file) {
 
 
 
+
+    // --- HELPER: Lazy Cleanup (Deletes posts older than 24h) ---
+    window.lazyCleanupPosts = async function() {
+        // Run this only 10% of the time to save reads/writes (Random < 0.1)
+        if (Math.random() > 0.1) return; 
+
+        const postsRef = window.fbase.collection(window.db, 'artifacts', window.APP_ID, 'public', 'data', 'posts');
+        
+        // 24 Hours Ago Logic
+        const yesterday = new Date();
+        yesterday.setHours(yesterday.getHours() - 24);
+
+        // Query posts older than 24h
+        const q = window.fbase.query(postsRef, 
+            window.fbase.where('timestamp', '<', yesterday),
+            window.fbase.limit(20) // Delete in small batches
+        );
+
+        try {
+            const snap = await window.fbase.getDocs(q);
+            if (!snap.empty) {
+                snap.forEach(async (doc) => {
+                    await window.fbase.deleteDoc(doc.ref);
+                });
+                console.log(`Cleanup: Deleted ${snap.size} expired posts.`);
+            }
+        } catch (e) {
+            console.warn("Auto-cleanup skipped (Permissions or Empty):", e);
+        }
+    }
+
+
+
+
+
+    
+
+
     // --- FIXED MANUAL POSTING ---
     window.createPost = async function() {
         const txt = document.getElementById('post-text').value;
         const fileInput = document.getElementById('post-media-up');
         const file = fileInput.files[0];
 
-        if (!txt && !file) return;
-
+        if (!txt && !file) return;     
         // Safety: Ensure User is Logged In
         if (!currentUserUid) {
             alert("You must be logged in to post.");
@@ -4325,6 +4423,7 @@ window.analyzeVideoContent = async function(file) {
 </script>
 </body>
 </html>
+
 
 
 
