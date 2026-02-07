@@ -4126,8 +4126,7 @@ window.analyzeVideoContent = async function(file) {
 
 
     
-
-      // 3. REQUEST LISTENER (Inbox)
+    // 3. REQUEST LISTENER (Inbox)
     window.startRequestListener = function() {
         if (!currentUserUid) return;
         const list = document.getElementById('tab-reqs');
@@ -4139,6 +4138,7 @@ window.analyzeVideoContent = async function(file) {
             window.updateMasterBadge();
 
             if(snap.empty) {
+                // FIXED: Now uses single quotes on both sides
                 list.innerHTML = '<div style="padding:20px; text-align:center; color:#666;">No pending requests.</div>';
                 return;
             }
@@ -4160,7 +4160,8 @@ window.analyzeVideoContent = async function(file) {
             });
         });
     }
-  
+
+      
 
 
 
@@ -4468,6 +4469,7 @@ window.analyzeVideoContent = async function(file) {
 </script>
 </body>
 </html>
+
 
 
 
