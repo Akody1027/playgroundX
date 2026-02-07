@@ -735,7 +735,7 @@
 
 /* Left Sidebar (Friends) */
 .home-sidebar {
-    width: 60px; background: #000; border-right: 1px solid #222;
+    width: 60px; background: #000; border-right: 2px solid #8B5CF6;
     display: flex; flex-direction: column; padding: 10px 5px;
     transition: width 0.3s ease; z-index: 20;
 }
@@ -743,6 +743,17 @@
 .sidebar-toggle {
     align-self: center; cursor: pointer; color: #666; margin-bottom: 20px; padding: 5px;
 }
+.home-sidebar.expanded.sidebar-toggle{
+    transform:rotate(180deg);
+      
+    
+} 
+
+
+  #friendheader.expanded{
+      transform: font-size:20px
+  }      
+        
 .friend-row {
     display: flex; align-items: center; gap: 10px; margin-bottom: 12px; 
     cursor: pointer; overflow: hidden; padding: 5px; border-radius: 8px;
@@ -4452,6 +4463,7 @@ window.analyzeVideoContent = async function(file) {
 </script>
 </body>
 </html>
+
 
 
 
