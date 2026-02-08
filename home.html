@@ -1942,6 +1942,11 @@ async function checkAdminStatus(uid) {
 
     
     window.initBackend = async function() {
+
+
+        window.renderHomeFeed(); // Load feed immediately, don't wait for auth
+
+        
         const loading = document.getElementById('loading-overlay');
         
         // --- INSTANT FIX: Load Header from Cache Immediately ---
@@ -1986,7 +1991,7 @@ async function checkAdminStatus(uid) {
 
 
 
-        window.renderHomeFeed(); // Load feed immediately, don't wait for auth
+
 
 
 
@@ -4570,6 +4575,7 @@ window.analyzeVideoContent = async function(file) {
 </script>
 </body>
 </html>
+
 
 
 
