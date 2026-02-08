@@ -2527,7 +2527,7 @@ async function ensureUserProfile() {
                 <div onclick="window.openUserProfile('${u.alias}', ${u.age}, '${u.img}', '${u.id}')" 
                      style="position: relative; width: 140px; height: 180px; cursor: pointer; display: flex; flex-direction: column;">
                     
-                    <img src="${u.img}" style="width: 100%; height: 100%; object-fit: cover; display: block;">
+                    <img src="${u.img}" style="width: 100%; height: 100%; object-fit: cover; display: block; filter:brightness(0.3);">
                     
                     <div style="position: absolute; bottom: 0; left: 0; width: 100%; padding: 12px 8px 8px 8px;
                                 background: linear-gradient(to top, rgba(0,0,0,0.9) 0%, transparent 100%);
@@ -4555,6 +4555,7 @@ window.analyzeVideoContent = async function(file) {
 </script>
 </body>
 </html>
+
 
 
 
