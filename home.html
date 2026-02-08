@@ -4279,24 +4279,30 @@ window.analyzeVideoContent = async function(file) {
 
 
 
+
+
+
+
+
+
     // --- HELPER: Lazy Cleanup (Deletes posts older than 24h) ---
     window.lazyCleanupPosts = async function() {
-        // Run this only 10% of the time to save reads/writes (Random < 0.1)
-        if (Math.random() > 0.1) return; 
-
-        const postsRef = window.fbase.collection(window.db, 'artifacts', window.APP_ID, 'public', 'data', 'posts');
-        
-        // 24 Hours Ago Logic
-        const yesterday = new Date();
-        yesterday.setHours(yesterday.getHours() - 24);
-
-        // Query posts older than 24h
-        const q = window.fbase.query(postsRef, 
-            window.fbase.where('timestamp', '<', yesterday),
-            window.fbase.limit(20) // Delete in small batches
-        );
-
         try {
+            // Run this only 10% of the time to save reads/writes
+            if (Math.random() > 0.1) return; 
+
+            // Use Helper to ensure we target the correct collection
+            const postsRef = getPublicCollection('posts');
+            
+            // 24 Hours Ago Logic
+            const yesterday = new Date();
+            yesterday.setHours(yesterday.getHours() - 24);
+
+            const q = window.fbase.query(postsRef, 
+                window.fbase.where('timestamp', '<', yesterday),
+                window.fbase.limit(20) 
+            );
+
             const snap = await window.fbase.getDocs(q);
             if (!snap.empty) {
                 snap.forEach(async (doc) => {
@@ -4305,46 +4311,41 @@ window.analyzeVideoContent = async function(file) {
                 console.log(`Cleanup: Deleted ${snap.size} expired posts.`);
             }
         } catch (e) {
-            console.warn("Auto-cleanup skipped (Permissions or Empty):", e);
+            console.warn("Auto-cleanup skipped:", e);
         }
     }
 
 
-
-
-
-    
-
-
-// --- FIXED MANUAL POSTING ---
+    // --- FIXED MANUAL POSTING ---
     window.createPost = async function(btnRef) {
         const txt = document.getElementById('post-text').value;
         const fileInput = document.getElementById('post-media-up');
         const file = fileInput.files[0];
 
-        if (!txt && !file) return;     
-        // Safety: Ensure User is Logged In
+        // 1. Basic Validation
+        if (!txt && !file) {
+            return; // Don't post empty content
+        }
+
         if (!currentUserUid) {
             alert("You must be logged in to post.");
             return;
         }
 
-        // Try to run cleanup, but don't crash if it fails
-        try { window.lazyCleanupPosts(); } catch(e) { console.warn("Cleanup warning:", e); }
+        // 2. Run Cleanup (Fire and forget, don't await/block the user)
+        window.lazyCleanupPosts();
 
-        
-        let mediaUrl = null;
-        let mediaType = null;
-        
-        // Disable button briefly to prevent double-click
-        // FIX: Use passed reference to avoid destroying document.body
+        // 3. UI Loading State
         const btn = btnRef || document.activeElement;
-        
         const originalText = btn.innerText || "POST";
-        btn.innerText = "...";
+        btn.innerText = "WAIT...";
         btn.disabled = true;
      
         try {
+            let mediaUrl = null;
+            let mediaType = null;
+
+            // 4. Upload Logic
             if (file) {
                 const ref = window.fbase.ref(window.storage, `posts/${currentUserUid}_${Date.now()}`);
                 const snap = await window.fbase.uploadBytes(ref, file);
@@ -4352,7 +4353,8 @@ window.analyzeVideoContent = async function(file) {
                 mediaType = file.type.startsWith('video') ? 'video' : 'image';
             }
 
-            await window.fbase.addDoc(window.fbase.collection(window.db, 'artifacts', window.APP_ID, 'public', 'data', 'posts'), {
+            // 5. Save to Database (USING getPublicCollection HELPER NOW)
+            await window.fbase.addDoc(getPublicCollection('posts'), {
                 uid: currentUserUid,
                 alias: localStorage.getItem('pgX_alias') || "User",
                 avatar: localStorage.getItem('my_profile_pic') || "https://via.placeholder.com/50",
@@ -4362,8 +4364,10 @@ window.analyzeVideoContent = async function(file) {
                 timestamp: window.fbase.serverTimestamp()
             });
 
+            // 6. Reset UI
             document.getElementById('post-text').value = "";
             fileInput.value = "";
+            console.log("Post created successfully!");
             
         } catch(e) {
             console.error("Post Error:", e);
@@ -4377,6 +4381,13 @@ window.analyzeVideoContent = async function(file) {
 
 
 
+
+
+
+
+
+
+    
 
 
 
@@ -4556,6 +4567,7 @@ window.analyzeVideoContent = async function(file) {
 </script>
 </body>
 </html>
+
 
 
 
