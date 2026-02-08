@@ -379,31 +379,7 @@
         }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
 
-        /* --- THROB ANIMATION FOR EMPTY STATE --- */
-        @keyframes throb {
-            0% { transform: scale(1); opacity: 0.5; }
-            50% { transform: scale(1.01); opacity: 0.8; }
-            100% { transform: scale(1); opacity: 0.5; }
-        }
-        .empty-throb-img {
-            width: 150px; height: 150px; object-fit: contain;
-            animation: throb 5s infinite ease-in-out;
-        }
-        .empty-throb-text {
-            color: gray; font-size: 14px; font-weight: bold; margin-top: 20px;
-            font-family: monospace; letter-spacing: 1px;
-        }
-        /* --- ANIMATED DOTS --- */
-        .loading-dots::after {
-            content: '';
-            animation: dot-steps 5s infinite steps(4);
-        }
-        @keyframes dot-steps {
-            0% { content: ""; }
-            25% { content: "."; }
-            50% { content: ".."; }
-            75% { content: "..."; }
-        }
+      
         /* --- NEW STYLES FOR PRODUCTION UPDATE --- */
 :root {
     --accent: #8B5CF6; /* Purple */
@@ -745,11 +721,14 @@
     cursor: pointer; 
     margin-bottom: 20px; 
     padding: 5px;
-    transition:transform 0.3s ease;
+    transition: transform 0.3s ease;
     
 }
 
-.home-sidebar.expanded.sidebar-toggle{
+.sidebar-toggle .expanded{
+     transform:rotate(180deg);
+}
+.sidebar-toggle:active{
     transform:rotate(180deg);
     
 }
@@ -1012,7 +991,7 @@
 <div id="view-home" class="app-view active">
     <div id="home-sidebar" class="home-sidebar">
 
-        <h1 id="friendsHeader" style="text-decoration:underline; color: #8b5cf6; font-weight:500; text-align:center; font-size:15px;">FRIENDS</h1>
+        <h1 id="friendsHeader" style=" color: #8b5cf6; font-weight:300;  font-size:15px;">FRIENDS</h1>
         
         <div class="sidebar-toggle" onclick="toggleHomeSidebar()">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="#8b5cf6" color="#8b5cf6" stroke="currentColor" stroke-width="2"><polyline points="13 17 18 12 13 7"></polyline><polyline points="6 17 11 12 6 7"></polyline></svg>
@@ -4466,6 +4445,7 @@ window.analyzeVideoContent = async function(file) {
 </script>
 </body>
 </html>
+
 
 
 
