@@ -4387,28 +4387,50 @@ window.analyzeVideoContent = async function(file) {
     // 4. Render Feed (24h Filter)
     let feedUnsub = null;
     window.renderHomeFeed = function() {
+
+    // 4. Render Feed (Safe Mode: No Index Needed)
+    let feedUnsub = null;
+    window.renderHomeFeed = function() {
         const container = document.getElementById('feed-container');
         const postsRef = window.fbase.collection(window.db, 'artifacts', window.APP_ID, 'public', 'data', 'posts');
         
-        // 24 Hours Ago Logic
+        // 24 Hours Ago (Calculated here)
         const yesterday = new Date();
         yesterday.setHours(yesterday.getHours() - 24);
 
+        // SAFE QUERY: Just get the newest 50. We removed the complex filter.
         const q = window.fbase.query(postsRef, 
-            window.fbase.where('timestamp', '>', yesterday),
             window.fbase.orderBy('timestamp', 'desc'),
             window.fbase.limit(50)
         );
 
         if (feedUnsub) feedUnsub();
+        
         feedUnsub = window.fbase.onSnapshot(q, (snap) => {
+            container.innerHTML = '';
+            
             if (snap.empty) {
-                container.innerHTML = '<div style="text-align:center; padding:40px; color:#444;">No Hype in the last 24h.<br>Be the first to post!</div>';
+                container.innerHTML = '<div style="text-align:center; padding:40px; color:#444;">No Hype yet.<br>Be the first to post!</div>';
                 return;
             }
-            container.innerHTML = '';
+            
+            let visibleCount = 0;
+
             snap.forEach(doc => {
                 const p = doc.data();
+                
+                // --- MANUAL FILTER: Check time inside the app ---
+                let isFresh = true;
+                if(p.timestamp) {
+                    try {
+                        const postTime = p.timestamp.toDate();
+                        if (postTime < yesterday) isFresh = false; // Too old
+                    } catch(e) {}
+                }
+                if (!isFresh) return; // Skip old posts
+                // -----------------------------------------------
+
+                visibleCount++;
                 const div = document.createElement('div');
                 div.className = 'feed-post';
                 
@@ -4418,18 +4440,19 @@ window.analyzeVideoContent = async function(file) {
                     else mediaHtml = `<img src="${p.media}" class="post-media">`;
                 }
                 
-                // Calculate time left
                 let timeMsg = "Just now";
                 if(p.timestamp) {
-                    const postTime = p.timestamp.toDate();
-                    const hoursLeft = 24 - ((new Date() - postTime) / 36e5);
-                    timeMsg = Math.max(0, Math.round(hoursLeft)) + "h left";
+                    try {
+                        const postTime = p.timestamp.toDate();
+                        const hoursLeft = 24 - ((new Date() - postTime) / 36e5);
+                        timeMsg = Math.max(0, Math.round(hoursLeft)) + "h left";
+                    } catch(e) {}
                 }
 
                 div.innerHTML = `
                     <div class="post-header">
-                        <img src="${p.avatar}" style="width:30px; height:30px; border-radius:50%; object-fit:cover;">
-                        <span style="color:var(--accent); font-weight:bold; font-size:13px;">${p.alias}</span>
+                        <img src="${p.avatar || 'https://via.placeholder.com/30'}" style="width:30px; height:30px; border-radius:50%; object-fit:cover;">
+                        <span style="color:var(--accent); font-weight:bold; font-size:13px;">${p.alias || 'User'}</span>
                     </div>
                     ${mediaHtml}
                     <div class="post-content">${p.text || ''}</div>
@@ -4439,8 +4462,27 @@ window.analyzeVideoContent = async function(file) {
                 `;
                 container.appendChild(div);
             });
+
+            // If we filtered out ALL posts because they were old
+            if (visibleCount === 0) {
+                 container.innerHTML = '<div style="text-align:center; padding:40px; color:#444;">No Hype in the last 24h.</div>';
+            }
+
+        }, (error) => {
+            console.error("Feed Error:", error);
+            container.innerHTML = `<div style="padding:20px; color:red; text-align:center;">
+                Error: ${error.message}<br>
+                (Check Console)
+            </div>`;
         });
     }
+
+
+
+
+
+        
+
 
 
          
@@ -4452,6 +4494,7 @@ window.analyzeVideoContent = async function(file) {
 </script>
 </body>
 </html>
+
 
 
 
