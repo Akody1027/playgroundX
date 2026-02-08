@@ -1944,8 +1944,7 @@ async function checkAdminStatus(uid) {
     window.initBackend = async function() {
 
 
-        window.renderHomeFeed(); // Load feed immediately, don't wait for auth
-        loading.style.display = 'none';
+        
 
         
         const loading = document.getElementById('loading-overlay');
@@ -1984,8 +1983,9 @@ async function checkAdminStatus(uid) {
             }
         } finally {
             renderDeck();
+              window.renderHomeFeed(); // Load feed immediately, don't wait for auth
+              loading.style.display = 'none';
             
-            loading.style.display = 'none';
         }
 
 
@@ -4576,6 +4576,7 @@ window.analyzeVideoContent = async function(file) {
 </script>
 </body>
 </html>
+
 
 
 
