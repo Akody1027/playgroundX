@@ -4328,15 +4328,6 @@ window.analyzeVideoContent = async function(file) {
             return;
         }
 
-
-        // CRITICAL FIX: Check if Firebase is ready
-        if (!window.db || !window.fbase || !window.APP_ID) {
-         alert("App is still loading. Please wait a moment and try again.");
-        return;
-         }
-
-
-        
         // Try to run cleanup, but don't crash if it fails
         try { window.lazyCleanupPosts(); } catch(e) { console.warn("Cleanup warning:", e); }
 
@@ -4360,17 +4351,15 @@ window.analyzeVideoContent = async function(file) {
                 mediaType = file.type.startsWith('video') ? 'video' : 'image';
             }
 
-
-           await window.fbase.addDoc(postsRef, {
-             uid: currentUserUid,
-             alias: userData.alias || "User",
-             avatar: userData.img,              // ← Changed from 'img'
-            text: postText,
-            media: imageUrl,                   // ← Changed from 'image'
-            mediaType: imageUrl ? 'image' : null,  // ← Changed from 'imageType'
-            timestamp: window.fbase.serverTimestamp()
-         });
-            
+            await window.fbase.addDoc(window.fbase.collection(window.db, 'artifacts', window.APP_ID, 'public', 'data', 'posts'), {
+                uid: currentUserUid,
+                alias: localStorage.getItem('pgX_alias') || "User",
+                avatar: localStorage.getItem('my_profile_pic') || "https://via.placeholder.com/50",
+                text: txt,
+                media: mediaUrl,
+                mediaType: mediaType,
+                timestamp: window.fbase.serverTimestamp()
+            });
 
             document.getElementById('post-text').value = "";
             fileInput.value = "";
@@ -4566,9 +4555,6 @@ window.analyzeVideoContent = async function(file) {
 </script>
 </body>
 </html>
-
-
-
 
 
 
