@@ -4328,6 +4328,15 @@ window.analyzeVideoContent = async function(file) {
             return;
         }
 
+
+        // CRITICAL FIX: Check if Firebase is ready
+        if (!window.db || !window.fbase || !window.APP_ID) {
+         alert("App is still loading. Please wait a moment and try again.");
+        return;
+         }
+
+
+        
         // Try to run cleanup, but don't crash if it fails
         try { window.lazyCleanupPosts(); } catch(e) { console.warn("Cleanup warning:", e); }
 
@@ -4557,6 +4566,7 @@ window.analyzeVideoContent = async function(file) {
 </script>
 </body>
 </html>
+
 
 
 
