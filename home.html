@@ -4316,74 +4316,90 @@ window.analyzeVideoContent = async function(file) {
     }
 
 
-    // --- FIXED MANUAL POSTING ---
-    window.createPost = async function(btnRef) {
-        const txt = document.getElementById('post-text').value;
-        const fileInput = document.getElementById('post-media-up');
-        const file = fileInput.files[0];
 
-        // 1. Basic Validation
-        if (!txt && !file) {
-            return; // Don't post empty content
-        }
 
-        if (!currentUserUid) {
-            alert("You must be logged in to post.");
-            return;
-        }
 
-        // 2. Run Cleanup (Fire and forget, don't await/block the user)
-        window.lazyCleanupPosts();
 
-        // 3. UI Loading State
-        const btn = btnRef || document.activeElement;
-        const originalText = btn.innerText || "POST";
-        btn.innerText = "WAIT...";
+
+
+// --- FIXED MANUAL POSTING ---
+window.createPost = async function(btnRef) {
+    const txt = document.getElementById('post-text').value;
+    const fileInput = document.getElementById('post-media-up');
+    const file = fileInput.files[0];
+    const previewContainer = document.getElementById('media-preview-container');
+
+    // 1. Basic Validation: Don't post if empty
+    if (!txt && !file) return;
+
+    // Safety: Ensure User is Logged In
+    if (!currentUserUid) {
+        alert("You must be logged in to post.");
+        return;
+    }
+
+    // 2. Get button reference and update UI correctly
+    const btn = btnRef || document.activeElement;
+    let originalText = "POST";
+    if (btn) {
+        originalText = btn.innerText;
+        btn.innerText = "WAIT..."; // Better feedback than just "..."
         btn.disabled = true;
-     
-        try {
-            let mediaUrl = null;
-            let mediaType = null;
+    }
 
-            // 4. Upload Logic
-            if (file) {
-                const ref = window.fbase.ref(window.storage, `posts/${currentUserUid}_${Date.now()}`);
-                const snap = await window.fbase.uploadBytes(ref, file);
-                mediaUrl = await window.fbase.getDownloadURL(snap.ref);
-                mediaType = file.type.startsWith('video') ? 'video' : 'image';
-            }
+    // FIRE AND FORGET CLEANUP: Run this in background so it doesn't block the post
+    setTimeout(() => {
+        if(window.lazyCleanupPosts) window.lazyCleanupPosts().catch(e => console.warn("Cleanup warn:", e));
+    }, 1);
 
-            // 5. Save to Database (USING getPublicCollection HELPER NOW)
-            await window.fbase.addDoc(getPublicCollection('posts'), {
-                uid: currentUserUid,
-                alias: localStorage.getItem('pgX_alias') || "User",
-                avatar: localStorage.getItem('my_profile_pic') || "https://via.placeholder.com/50",
-                text: txt,
-                media: mediaUrl,
-                mediaType: mediaType,
-                timestamp: window.fbase.serverTimestamp()
-            });
+    try {
+        let mediaUrl = null;
+        let mediaType = null;
 
-            // 6. Reset UI
-            document.getElementById('post-text').value = "";
-            fileInput.value = "";
-            console.log("Post created successfully!");
-            
-        } catch(e) {
-            console.error("Post Error:", e);
-            alert("Error posting: " + e.message); 
-        } finally {
+        // 3. Handle File Upload (if chosen)
+        if (file) {
+            console.log("Attempting file upload...");
+            // Create a unique file path in storage
+            const ref = window.fbase.ref(window.storage, `posts/${currentUserUid}_${Date.now()}_${file.name}`);
+            const snap = await window.fbase.uploadBytes(ref, file);
+            mediaUrl = await window.fbase.getDownloadURL(snap.ref);
+            mediaType = file.type.startsWith('video') ? 'video' : 'image';
+            console.log("File uploaded successfully.");
+        }
+
+        // 4. Save to Database
+        // CRITICAL FIX: Used getPublicCollection('posts') helper.
+        // The previous code used 'window.APP_ID' (undefined) instead of 'window.app_uid'.
+        console.log("Attempting Firestore write...");
+        await window.fbase.addDoc(getPublicCollection('posts'), {
+            uid: currentUserUid,
+            alias: localStorage.getItem('pgX_alias') || "User",
+            avatar: localStorage.getItem('my_profile_pic') || "https://via.placeholder.com/50",
+            text: txt,
+            media: mediaUrl,
+            mediaType: mediaType,
+            timestamp: window.fbase.serverTimestamp()
+        });
+        console.log("Firestore write successful.");
+
+        // 5. Reset UI on success
+        document.getElementById('post-text').value = "";
+        fileInput.value = "";
+        // Clear the image preview box if it exists
+        if (previewContainer) previewContainer.innerHTML = '';
+
+    } catch(e) {
+        // If it fails, log the detailed error to console and alert the user
+        console.error("POST FAILED:", e);
+        alert(`Error posting: ${e.message}\nSee console for details.`);
+    } finally {
+        // 6. ALWAYS re-enable the button, even if it crashed
+        if (btn) {
             btn.innerText = originalText;
             btn.disabled = false;
         }
     }
-
-
-
-
-
-
-
+}
 
 
 
@@ -4567,6 +4583,7 @@ window.analyzeVideoContent = async function(file) {
 </script>
 </body>
 </html>
+
 
 
 
