@@ -219,7 +219,6 @@
         }
         .custom-map-popup .leaflet-popup-tip {
             background: #222; /* Dark Mode Tip */
-            color:var(--accent) !important;
         }
 
 
@@ -1895,16 +1894,11 @@
             </div>
         `;
     }
+    
+    // --- FIRESTORE HELPERS (Rule 1 Compliance) ---
     const getPublicCollection = (colName) => {
-    // FIX: Use 'collection', 'db', and 'APP_ID' directly
-    return collection(db, 'artifacts', APP_ID, 'public', 'data', colName);
-};
-
-
-
-
-
-        
+        return window.fbase.collection(window.db, 'artifacts', window.APP_ID, 'public', 'data', colName);
+    };
 
     // --- 1. CORE BACKEND & INITIALIZATION ---
 
@@ -1913,22 +1907,27 @@
 
 
 async function checkAdminStatus(uid) {
-    try {
-        // FIX: Use direct imports 'doc' and 'db'
-        const userRef = doc(db, 'artifacts', APP_ID, 'public', 'data', 'users', uid);
-        const snap = await getDoc(userRef);
-        
-        if (snap.exists() && snap.data().isAdmin === true) {
-            const btn = document.getElementById('admin-panel-btn');
-            if (btn) {
-                btn.style.display = 'block';
-                console.log("Admin Access Granted");
+        try {
+            const userRef = window.fbase.doc(window.db, 'artifacts', window.APP_ID, 'public', 'data', 'users', uid);
+            const snap = await window.fbase.getDoc(userRef);
+            
+            if (snap.exists() && snap.data().isAdmin === true) {
+                const btn = document.getElementById('admin-panel-btn');
+                if (btn) {
+                    btn.style.display = 'block';
+                    console.log("Admin Access Granted");
+                }
             }
+        } catch (e) {
+            console.error("Admin check failed", e);
         }
-    } catch (e) {
-        console.error("Admin check failed", e);
     }
-}
+
+
+
+
+
+
 
     
 
@@ -1939,49 +1938,49 @@ async function checkAdminStatus(uid) {
 
 
 
+
+
+    
     window.initBackend = async function() {
-    const loading = document.getElementById('loading-overlay');
-    
-    // Instant Fix: Load Header from Cache
-    const cachedImg = localStorage.getItem('my_profile_pic');
-    if (cachedImg) {
-        window.updateHeaderIcon(cachedImg);
-    }
-
-    try {
-        // FIX: Use 'signInAnonymously' and 'auth' directly
-        const userCred = await signInAnonymously(auth);
-        currentUserUid = userCred.user.uid;
-        console.log("Authenticated as:", currentUserUid);
-        localStorage.setItem('pgX_myUid', currentUserUid); 
+        const loading = document.getElementById('loading-overlay');
         
-        // Start Listeners
-        if(window.startWinkListener) window.startWinkListener(); 
-        if(window.startInboxListener) window.startInboxListener();
-        if(window.startRequestListener) window.startRequestListener();
-        
-        await checkAdminStatus(currentUserUid); 
-        await ensureUserProfile();
-
-    } catch (error) {
-        console.warn("Auth Failed (Offline Mode):", error);
-        // Fallback for offline/error state
-        currentUserUid = localStorage.getItem('pgX_myUid') || 'anon_offline_' + Date.now();
-        localStorage.setItem('pgX_myUid', currentUserUid);
-        
-        await checkAdminStatus(currentUserUid);
-
-        if (!localStorage.getItem('pgX_alias')) {
-                localStorage.setItem('pgX_alias', "Guest_" + Math.floor(Math.random()*1000));
-                localStorage.setItem('my_profile_pic', "https://via.placeholder.com/120");
+        // --- INSTANT FIX: Load Header from Cache Immediately ---
+        // This prevents the icon from disappearing while waiting for DB
+        const cachedImg = localStorage.getItem('my_profile_pic');
+        if (cachedImg) {
+            window.updateHeaderIcon(cachedImg);
         }
-    } finally {
-        // Ensure UI loads even if Auth failed
-        if(window.renderDeck) window.renderDeck();
-        if(window.renderHomeFeed) window.renderHomeFeed();
-        if(loading) loading.style.display = 'none';
-    }
-}
+
+                try {
+            const userCred = await window.fbase.signInAnonymously(window.auth);
+            currentUserUid = userCred.user.uid;
+            console.log("Authenticated as:", currentUserUid);
+            localStorage.setItem('pgX_myUid', currentUserUid); 
+            
+            window.startWinkListener(); 
+            window.startInboxListener();
+            window.startRequestListener();
+            
+            await checkAdminStatus(currentUserUid); 
+            await ensureUserProfile();
+
+
+        } catch (error) {
+            console.warn("Auth Failed:", error);
+            currentUserUid = localStorage.getItem('pgX_myUid') || 'anon_offline_' + Date.now();
+            localStorage.setItem('pgX_myUid', currentUserUid);
+            
+            await checkAdminStatus(currentUserUid);
+
+            if (!localStorage.getItem('pgX_alias')) {
+                 localStorage.setItem('pgX_alias', "Guest_" + Math.floor(Math.random()*1000));
+                 localStorage.setItem('my_profile_pic', "https://via.placeholder.com/120");
+            }
+        } finally {
+            renderDeck();
+            window.renderHomeFeed();
+            loading.style.display = 'none';
+        }
 
 
 
@@ -1990,10 +1989,6 @@ async function checkAdminStatus(uid) {
 
 
 
-
-
-    
-   
 
         // --- 💰 WALLET SYNC LISTENER (With Alert) ---
         if (currentUserUid) {
@@ -2020,6 +2015,15 @@ async function checkAdminStatus(uid) {
                 }
             });
         }
+
+
+
+
+        
+
+
+
+        
 
 
         // --- 🛡️ START SYSTEM LISTENERS (Admin Controls) ---
@@ -2113,7 +2117,7 @@ async function checkAdminStatus(uid) {
 
 
         
-    
+    }
 
 
 
@@ -2178,44 +2182,37 @@ async function ensureUserProfile() {
 
 
 
-window.renderDeck = async function() {
-    const zone = document.getElementById('swipe-zone');
-    const grid = document.getElementById('grid-content');
 
-    // 1. Fetch Hidden Users List First (If logged in)
-    if (currentUserUid) {
-        try {
-            // FIX: Use 'collection' and 'getDocs' directly
-            const hiddenRef = collection(db, 'users', currentUserUid, 'hidden_swipes');
-            const hiddenSnap = await getDocs(hiddenRef);
-            window.hiddenUsersSet.clear();
-            hiddenSnap.forEach(doc => window.hiddenUsersSet.add(doc.id));
-        } catch (e) {
-            console.warn("Could not load hidden swipes", e);
-        }
-    }
+    window.renderDeck = async function() {
+        const zone = document.getElementById('swipe-zone');
+        const grid = document.getElementById('grid-content');
 
-    let realUsers = [];
-    
-    // 2. DATA: Fetch Real People & Filter out Hidden ones
-    try {
-        // FIX: Use 'getDocs' directly
-        const snapshot = await getDocs(getPublicCollection("users"));
-        snapshot.forEach(doc => {
-            // Logic: Exclude Me AND Exclude anyone in the Hidden Set
-            if (doc.id !== currentUserUid && !window.hiddenUsersSet.has(doc.id)) {
-                realUsers.push({ id: doc.id, ...doc.data() });
+        // 1. Fetch Hidden Users List First (If logged in)
+        if (currentUserUid) {
+            try {
+                const hiddenRef = window.fbase.collection(window.db, 'users', currentUserUid, 'hidden_swipes');
+                const hiddenSnap = await window.fbase.getDocs(hiddenRef);
+                window.hiddenUsersSet.clear();
+                hiddenSnap.forEach(doc => window.hiddenUsersSet.add(doc.id));
+            } catch (e) {
+                console.warn("Could not load hidden swipes", e);
             }
-        });
-    } catch (e) {
-        console.error("DB Fetch Error:", e);
-    }
+        }
 
-
-
-
-
+        let realUsers = [];
         
+        // 2. DATA: Fetch Real People & Filter out Hidden ones
+        try {
+            const snapshot = await window.fbase.getDocs(getPublicCollection("users"));
+            snapshot.forEach(doc => {
+                // Logic: Exclude Me AND Exclude anyone in the Hidden Set
+                if (doc.id !== currentUserUid && !window.hiddenUsersSet.has(doc.id)) {
+                    realUsers.push({ id: doc.id, ...doc.data() });
+                }
+            });
+        } catch (e) {
+            console.error("DB Fetch Error:", e);
+        }
 
         // 3. LOGIC: Update Deck
         if (realUsers.length > 0) {
@@ -2535,8 +2532,8 @@ window.renderDeck = async function() {
                     <div style="position: absolute; bottom: 0; left: 0; width: 100%; padding: 12px 8px 8px 8px;
                                 background: linear-gradient(to top, rgba(0,0,0,0.9) 0%, transparent 100%);
                                 display: flex; justify-content: space-between; align-items: flex-end;">
-                        <span style="color: var(--accent); font-weight: 800; font-size: 14px; text-shadow: 0 1px 3px black;">${u.alias}</span>
-                        <span style="color: var(--accent); font-weight: 600; font-size: 12px; text-shadow: 0 1px 3px black;">${u.age}</span>
+                        <span style="color: white; font-weight: 800; font-size: 14px; text-shadow: 0 1px 3px black;">${u.alias}</span>
+                        <span style="color: #ccc; font-weight: 600; font-size: 12px; text-shadow: 0 1px 3px black;">${u.age}</span>
                     </div>
                 </div>
                 `;
@@ -4281,30 +4278,24 @@ window.analyzeVideoContent = async function(file) {
 
 
 
-
-
-
-
-
-
     // --- HELPER: Lazy Cleanup (Deletes posts older than 24h) ---
     window.lazyCleanupPosts = async function() {
+        // Run this only 10% of the time to save reads/writes (Random < 0.1)
+        if (Math.random() > 0.1) return; 
+
+        const postsRef = window.fbase.collection(window.db, 'artifacts', window.APP_ID, 'public', 'data', 'posts');
+        
+        // 24 Hours Ago Logic
+        const yesterday = new Date();
+        yesterday.setHours(yesterday.getHours() - 24);
+
+        // Query posts older than 24h
+        const q = window.fbase.query(postsRef, 
+            window.fbase.where('timestamp', '<', yesterday),
+            window.fbase.limit(20) // Delete in small batches
+        );
+
         try {
-            // Run this only 10% of the time to save reads/writes
-            if (Math.random() > 0.1) return; 
-
-            // Use Helper to ensure we target the correct collection
-            const postsRef = getPublicCollection('posts');
-            
-            // 24 Hours Ago Logic
-            const yesterday = new Date();
-            yesterday.setHours(yesterday.getHours() - 24);
-
-            const q = window.fbase.query(postsRef, 
-                window.fbase.where('timestamp', '<', yesterday),
-                window.fbase.limit(20) 
-            );
-
             const snap = await window.fbase.getDocs(q);
             if (!snap.empty) {
                 snap.forEach(async (doc) => {
@@ -4313,99 +4304,78 @@ window.analyzeVideoContent = async function(file) {
                 console.log(`Cleanup: Deleted ${snap.size} expired posts.`);
             }
         } catch (e) {
-            console.warn("Auto-cleanup skipped:", e);
+            console.warn("Auto-cleanup skipped (Permissions or Empty):", e);
         }
     }
 
 
-
-
-
-
-
-
-// --- FIXED MANUAL POSTING ---
-window.createPost = async function(btnRef) {
-    const txt = document.getElementById('post-text').value;
-    const fileInput = document.getElementById('post-media-up');
-    const file = fileInput.files[0];
-    const previewContainer = document.getElementById('media-preview-container');
-
-    // 1. Basic Validation: Don't post if empty
-    if (!txt && !file) return;
-
-    // Safety: Ensure User is Logged In
-    if (!currentUserUid) {
-        alert("You must be logged in to post.");
-        return;
-    }
-
-    // 2. Get button reference and update UI correctly
-    const btn = btnRef || document.activeElement;
-    let originalText = "POST";
-    if (btn) {
-        originalText = btn.innerText;
-        btn.innerText = "WAIT..."; // Better feedback than just "..."
-        btn.disabled = true;
-    }
-
-    // FIRE AND FORGET CLEANUP: Run this in background so it doesn't block the post
-    setTimeout(() => {
-        if(window.lazyCleanupPosts) window.lazyCleanupPosts().catch(e => console.warn("Cleanup warn:", e));
-    }, 1);
-
-    try {
-        let mediaUrl = null;
-        let mediaType = null;
-
-        // 3. Handle File Upload (if chosen)
-        if (file) {
-            console.log("Attempting file upload...");
-            // Create a unique file path in storage
-            const ref = window.fbase.ref(window.storage, `posts/${currentUserUid}_${Date.now()}_${file.name}`);
-            const snap = await window.fbase.uploadBytes(ref, file);
-            mediaUrl = await window.fbase.getDownloadURL(snap.ref);
-            mediaType = file.type.startsWith('video') ? 'video' : 'image';
-            console.log("File uploaded successfully.");
-        }
-
-        // 4. Save to Database
-        // CRITICAL FIX: Used getPublicCollection('posts') helper.
-        // The previous code used 'window.APP_ID' (undefined) instead of 'window.app_uid'.
-        console.log("Attempting Firestore write...");
-        await window.fbase.addDoc(getPublicCollection('posts'), {
-            uid: currentUserUid,
-            alias: localStorage.getItem('pgX_alias') || "User",
-            avatar: localStorage.getItem('my_profile_pic') || "https://via.placeholder.com/50",
-            text: txt,
-            media: mediaUrl,
-            mediaType: mediaType,
-            timestamp: window.fbase.serverTimestamp()
-        });
-        console.log("Firestore write successful.");
-
-        // 5. Reset UI on success
-        document.getElementById('post-text').value = "";
-        fileInput.value = "";
-        // Clear the image preview box if it exists
-        if (previewContainer) previewContainer.innerHTML = '';
-
-    } catch(e) {
-        // If it fails, log the detailed error to console and alert the user
-        console.error("POST FAILED:", e);
-        alert(`Error posting: ${e.message}\nSee console for details.`);
-    } finally {
-        // 6. ALWAYS re-enable the button, even if it crashed
-        if (btn) {
-            btn.innerText = originalText;
-            btn.disabled = false;
-        }
-    }
-}
 
 
 
     
+
+
+// --- FIXED MANUAL POSTING ---
+    window.createPost = async function(btnRef) {
+        const txt = document.getElementById('post-text').value;
+        const fileInput = document.getElementById('post-media-up');
+        const file = fileInput.files[0];
+
+        if (!txt && !file) return;     
+        // Safety: Ensure User is Logged In
+        if (!currentUserUid) {
+            alert("You must be logged in to post.");
+            return;
+        }
+
+        // Try to run cleanup, but don't crash if it fails
+        try { window.lazyCleanupPosts(); } catch(e) { console.warn("Cleanup warning:", e); }
+
+        
+        let mediaUrl = null;
+        let mediaType = null;
+        
+        // Disable button briefly to prevent double-click
+        // FIX: Use passed reference to avoid destroying document.body
+        const btn = btnRef || document.activeElement;
+        
+        const originalText = btn.innerText || "POST";
+        btn.innerText = "...";
+        btn.disabled = true;
+     
+        try {
+            if (file) {
+                const ref = window.fbase.ref(window.storage, `posts/${currentUserUid}_${Date.now()}`);
+                const snap = await window.fbase.uploadBytes(ref, file);
+                mediaUrl = await window.fbase.getDownloadURL(snap.ref);
+                mediaType = file.type.startsWith('video') ? 'video' : 'image';
+            }
+
+            await window.fbase.addDoc(window.fbase.collection(window.db, 'artifacts', window.APP_ID, 'public', 'data', 'posts'), {
+                uid: currentUserUid,
+                alias: localStorage.getItem('pgX_alias') || "User",
+                avatar: localStorage.getItem('my_profile_pic') || "https://via.placeholder.com/50",
+                text: txt,
+                media: mediaUrl,
+                mediaType: mediaType,
+                timestamp: window.fbase.serverTimestamp()
+            });
+
+            document.getElementById('post-text').value = "";
+            fileInput.value = "";
+            
+        } catch(e) {
+            console.error("Post Error:", e);
+            alert("Error posting: " + e.message); 
+        } finally {
+            btn.innerText = originalText;
+            btn.disabled = false;
+        }
+    }
+
+
+
+
 
 
 
@@ -4585,13 +4555,6 @@ window.createPost = async function(btnRef) {
 </script>
 </body>
 </html>
-
-
-
-
-
-
-
 
 
 
