@@ -4573,9 +4573,28 @@ window.analyzeVideoContent = async function(file) {
     // START
     initBackend();
 
+
+
+
+console.log("Firebase Global Tools (Auth, DB, Storage) Loaded ✅");
+
+// Load feed immediately on page load (don't wait for auth)
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', () => {
+        if (window.renderHomeFeed) window.renderHomeFeed();
+    });
+} else {
+    // DOM already loaded
+    if (window.renderHomeFeed) window.renderHomeFeed();
+}
+
+
+    
+
 </script>
 </body>
 </html>
+
 
 
 
