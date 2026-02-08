@@ -4363,6 +4363,19 @@ window.analyzeVideoContent = async function(file) {
 
             document.getElementById('post-text').value = "";
             fileInput.value = "";
+
+
+
+            // Force UI update
+            if (window.renderHomeFeed) {
+            window.renderHomeFeed();
+            }
+
+
+
+
+
+
             
         } catch(e) {
             console.error("Post Error:", e);
@@ -4556,6 +4569,7 @@ window.analyzeVideoContent = async function(file) {
 </script>
 </body>
 </html>
+
 
 
 
