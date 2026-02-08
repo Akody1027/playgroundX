@@ -1895,11 +1895,11 @@
             </div>
         `;
     }
-    
-    // --- FIRESTORE HELPERS (Rule 1 Compliance) ---
     const getPublicCollection = (colName) => {
-        return collection(db, 'artifacts', APP_ID, 'public', 'data', colName);
-    };
+    // FIX: Use 'collection', 'db', and 'APP_ID' directly
+    return collection(db, 'artifacts', APP_ID, 'public', 'data', colName);
+};
+
 
 
 
@@ -1913,24 +1913,22 @@
 
 
 async function checkAdminStatus(uid) {
-
-
-try {
-            // FIX: Use 'doc' and 'db' directly, bypassing window.fbase
-            const userRef = doc(db, 'artifacts', APP_ID, 'public', 'data', 'users', uid);
-            const snap = await getDoc(userRef);
-            
-            if (snap.exists() && snap.data().isAdmin === true) {
-                const btn = document.getElementById('admin-panel-btn');
-                if (btn) {
-                    btn.style.display = 'block';
-                    console.log("Admin Access Granted");
-                }
+    try {
+        // FIX: Use direct imports 'doc' and 'db'
+        const userRef = doc(db, 'artifacts', APP_ID, 'public', 'data', 'users', uid);
+        const snap = await getDoc(userRef);
+        
+        if (snap.exists() && snap.data().isAdmin === true) {
+            const btn = document.getElementById('admin-panel-btn');
+            if (btn) {
+                btn.style.display = 'block';
+                console.log("Admin Access Granted");
             }
-        } catch (e) {
-            console.error("Admin check failed", e);
         }
+    } catch (e) {
+        console.error("Admin check failed", e);
     }
+}
 
     
 
@@ -1941,61 +1939,61 @@ try {
 
 
 
-    
-
-
-
-
-
-
-
-
-
-
-    
     window.initBackend = async function() {
-        const loading = document.getElementById('loading-overlay');
-       // Instant Fix: Load Header from Cache
-        const cachedImg = localStorage.getItem('my_profile_pic');
-        if (cachedImg) {
-            window.updateHeaderIcon(cachedImg);
-        }
-
-        try {
-            // FIX: Use 'signInAnonymously' and 'auth' directly
-            const userCred = await signInAnonymously(auth);
-            currentUserUid = userCred.user.uid;
-            console.log("Authenticated as:", currentUserUid);
-            localStorage.setItem('pgX_myUid', currentUserUid); 
-            
-            // Start Listeners
-            if(window.startWinkListener) window.startWinkListener(); 
-            if(window.startInboxListener) window.startInboxListener();
-            if(window.startRequestListener) window.startRequestListener();
-            
-            await checkAdminStatus(currentUserUid); 
-            await ensureUserProfile();
-
-        } catch (error) {
-            console.warn("Auth Failed (Offline Mode):", error);
-            // Fallback for offline/error state
-            currentUserUid = localStorage.getItem('pgX_myUid') || 'anon_offline_' + Date.now();
-            localStorage.setItem('pgX_myUid', currentUserUid);
-            
-            await checkAdminStatus(currentUserUid);
-
-            if (!localStorage.getItem('pgX_alias')) {
-                 localStorage.setItem('pgX_alias', "Guest_" + Math.floor(Math.random()*1000));
-                 localStorage.setItem('my_profile_pic', "https://via.placeholder.com/120");
-            }
-        } finally {
-            // Ensure UI loads even if Auth failed
-            if(window.renderDeck) window.renderDeck();
-            if(window.renderHomeFeed) window.renderHomeFeed();
-            if(loading) loading.style.display = 'none';
-        }
+    const loading = document.getElementById('loading-overlay');
+    
+    // Instant Fix: Load Header from Cache
+    const cachedImg = localStorage.getItem('my_profile_pic');
+    if (cachedImg) {
+        window.updateHeaderIcon(cachedImg);
     }
 
+    try {
+        // FIX: Use 'signInAnonymously' and 'auth' directly
+        const userCred = await signInAnonymously(auth);
+        currentUserUid = userCred.user.uid;
+        console.log("Authenticated as:", currentUserUid);
+        localStorage.setItem('pgX_myUid', currentUserUid); 
+        
+        // Start Listeners
+        if(window.startWinkListener) window.startWinkListener(); 
+        if(window.startInboxListener) window.startInboxListener();
+        if(window.startRequestListener) window.startRequestListener();
+        
+        await checkAdminStatus(currentUserUid); 
+        await ensureUserProfile();
+
+    } catch (error) {
+        console.warn("Auth Failed (Offline Mode):", error);
+        // Fallback for offline/error state
+        currentUserUid = localStorage.getItem('pgX_myUid') || 'anon_offline_' + Date.now();
+        localStorage.setItem('pgX_myUid', currentUserUid);
+        
+        await checkAdminStatus(currentUserUid);
+
+        if (!localStorage.getItem('pgX_alias')) {
+                localStorage.setItem('pgX_alias', "Guest_" + Math.floor(Math.random()*1000));
+                localStorage.setItem('my_profile_pic', "https://via.placeholder.com/120");
+        }
+    } finally {
+        // Ensure UI loads even if Auth failed
+        if(window.renderDeck) window.renderDeck();
+        if(window.renderHomeFeed) window.renderHomeFeed();
+        if(loading) loading.style.display = 'none';
+    }
+}
+
+
+
+
+
+
+
+
+
+
+    
+   
 
         // --- 💰 WALLET SYNC LISTENER (With Alert) ---
         if (currentUserUid) {
@@ -2180,39 +2178,44 @@ async function ensureUserProfile() {
 
 
 
+window.renderDeck = async function() {
+    const zone = document.getElementById('swipe-zone');
+    const grid = document.getElementById('grid-content');
 
-    window.renderDeck = async function() {
-        const zone = document.getElementById('swipe-zone');
-        const grid = document.getElementById('grid-content');
-
-        // 1. Fetch Hidden Users List First (If logged in)
-        if (currentUserUid) {
-            try {
-                // FIX: Use 'collection' and 'getDocs' directly
-                const hiddenRef = collection(db, 'users', currentUserUid, 'hidden_swipes');
-                const hiddenSnap = await getDocs(hiddenRef);
-                window.hiddenUsersSet.clear();
-                hiddenSnap.forEach(doc => window.hiddenUsersSet.add(doc.id));
-            } catch (e) {
-                console.warn("Could not load hidden swipes", e);
-            }
-        }
-
-        let realUsers = [];
-        
-        // 2. DATA: Fetch Real People & Filter out Hidden ones
+    // 1. Fetch Hidden Users List First (If logged in)
+    if (currentUserUid) {
         try {
-            // FIX: Use 'getDocs' directly
-            const snapshot = await getDocs(getPublicCollection("users"));
-            snapshot.forEach(doc => {
-                // Logic: Exclude Me AND Exclude anyone in the Hidden Set
-                if (doc.id !== currentUserUid && !window.hiddenUsersSet.has(doc.id)) {
-                    realUsers.push({ id: doc.id, ...doc.data() });
-                }
-            });
+            // FIX: Use 'collection' and 'getDocs' directly
+            const hiddenRef = collection(db, 'users', currentUserUid, 'hidden_swipes');
+            const hiddenSnap = await getDocs(hiddenRef);
+            window.hiddenUsersSet.clear();
+            hiddenSnap.forEach(doc => window.hiddenUsersSet.add(doc.id));
         } catch (e) {
-            console.error("DB Fetch Error:", e);
+            console.warn("Could not load hidden swipes", e);
         }
+    }
+
+    let realUsers = [];
+    
+    // 2. DATA: Fetch Real People & Filter out Hidden ones
+    try {
+        // FIX: Use 'getDocs' directly
+        const snapshot = await getDocs(getPublicCollection("users"));
+        snapshot.forEach(doc => {
+            // Logic: Exclude Me AND Exclude anyone in the Hidden Set
+            if (doc.id !== currentUserUid && !window.hiddenUsersSet.has(doc.id)) {
+                realUsers.push({ id: doc.id, ...doc.data() });
+            }
+        });
+    } catch (e) {
+        console.error("DB Fetch Error:", e);
+    }
+
+
+
+
+
+        
 
         // 3. LOGIC: Update Deck
         if (realUsers.length > 0) {
@@ -4582,6 +4585,7 @@ window.createPost = async function(btnRef) {
 </script>
 </body>
 </html>
+
 
 
 
