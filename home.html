@@ -857,11 +857,6 @@
         }; 
 
         console.log("Firebase Global Tools (Auth, DB, Storage) Loaded ✅");
-
-        // --- FIX: START APP ONLY AFTER FIREBASE IS READY ---
-        if (window.initBackend) {
-            window.initBackend();
-        }
     </script>
 
 
@@ -1846,18 +1841,11 @@
                     } catch(e) { console.error("Loc Save Error", e); }
                 }
 
-
-
-
-                if (window.mainMap) {
-                    window.mainMap.setView([lat, lng], 13);
+                if (window.map) {
+                    window.map.setView([lat, lng], 13);
                     if(activeDeck) updateMapPins(activeDeck);
                 }
             }, (err) => {
-
-
-
-                
                 console.warn("Location denied", err);
                 // Reset flag if they denied it this time
                 localStorage.removeItem('pgX_loc_allowed'); 
@@ -1907,11 +1895,11 @@
             </div>
         `;
     }
+    
+    // --- FIRESTORE HELPERS (Rule 1 Compliance) ---
     const getPublicCollection = (colName) => {
-    // FIX: Use 'collection', 'db', and 'APP_ID' directly
-    return collection(db, 'artifacts', APP_ID, 'public', 'data', colName);
-};
-
+        return collection(db, 'artifacts', APP_ID, 'public', 'data', colName);
+    };
 
 
 
@@ -1925,22 +1913,24 @@
 
 
 async function checkAdminStatus(uid) {
-    try {
-        // FIX: Use direct imports 'doc' and 'db'
-        const userRef = doc(db, 'artifacts', APP_ID, 'public', 'data', 'users', uid);
-        const snap = await getDoc(userRef);
-        
-        if (snap.exists() && snap.data().isAdmin === true) {
-            const btn = document.getElementById('admin-panel-btn');
-            if (btn) {
-                btn.style.display = 'block';
-                console.log("Admin Access Granted");
+
+
+try {
+            // FIX: Use 'doc' and 'db' directly, bypassing window.fbase
+            const userRef = doc(db, 'artifacts', APP_ID, 'public', 'data', 'users', uid);
+            const snap = await getDoc(userRef);
+            
+            if (snap.exists() && snap.data().isAdmin === true) {
+                const btn = document.getElementById('admin-panel-btn');
+                if (btn) {
+                    btn.style.display = 'block';
+                    console.log("Admin Access Granted");
+                }
             }
+        } catch (e) {
+            console.error("Admin check failed", e);
         }
-    } catch (e) {
-        console.error("Admin check failed", e);
     }
-}
 
     
 
@@ -1951,61 +1941,61 @@ async function checkAdminStatus(uid) {
 
 
 
+    
+
+
+
+
+
+
+
+
+
+
+    
     window.initBackend = async function() {
-    const loading = document.getElementById('loading-overlay');
-    
-    // Instant Fix: Load Header from Cache
-    const cachedImg = localStorage.getItem('my_profile_pic');
-    if (cachedImg) {
-        window.updateHeaderIcon(cachedImg);
-    }
-
-    try {
-        // FIX: Use 'signInAnonymously' and 'auth' directly
-        const userCred = await signInAnonymously(auth);
-        currentUserUid = userCred.user.uid;
-        console.log("Authenticated as:", currentUserUid);
-        localStorage.setItem('pgX_myUid', currentUserUid); 
-        
-        // Start Listeners
-        if(window.startWinkListener) window.startWinkListener(); 
-        if(window.startInboxListener) window.startInboxListener();
-        if(window.startRequestListener) window.startRequestListener();
-        
-        await checkAdminStatus(currentUserUid); 
-        await ensureUserProfile();
-
-    } catch (error) {
-        console.warn("Auth Failed (Offline Mode):", error);
-        // Fallback for offline/error state
-        currentUserUid = localStorage.getItem('pgX_myUid') || 'anon_offline_' + Date.now();
-        localStorage.setItem('pgX_myUid', currentUserUid);
-        
-        await checkAdminStatus(currentUserUid);
-
-        if (!localStorage.getItem('pgX_alias')) {
-                localStorage.setItem('pgX_alias', "Guest_" + Math.floor(Math.random()*1000));
-                localStorage.setItem('my_profile_pic', "https://via.placeholder.com/120");
+        const loading = document.getElementById('loading-overlay');
+       // Instant Fix: Load Header from Cache
+        const cachedImg = localStorage.getItem('my_profile_pic');
+        if (cachedImg) {
+            window.updateHeaderIcon(cachedImg);
         }
-    } finally {
-        // Ensure UI loads even if Auth failed
-        if(window.renderDeck) window.renderDeck();
-        if(window.renderHomeFeed) window.renderHomeFeed();
-        if(loading) loading.style.display = 'none';
+
+        try {
+            // FIX: Use 'signInAnonymously' and 'auth' directly
+            const userCred = await signInAnonymously(auth);
+            currentUserUid = userCred.user.uid;
+            console.log("Authenticated as:", currentUserUid);
+            localStorage.setItem('pgX_myUid', currentUserUid); 
+            
+            // Start Listeners
+            if(window.startWinkListener) window.startWinkListener(); 
+            if(window.startInboxListener) window.startInboxListener();
+            if(window.startRequestListener) window.startRequestListener();
+            
+            await checkAdminStatus(currentUserUid); 
+            await ensureUserProfile();
+
+        } catch (error) {
+            console.warn("Auth Failed (Offline Mode):", error);
+            // Fallback for offline/error state
+            currentUserUid = localStorage.getItem('pgX_myUid') || 'anon_offline_' + Date.now();
+            localStorage.setItem('pgX_myUid', currentUserUid);
+            
+            await checkAdminStatus(currentUserUid);
+
+            if (!localStorage.getItem('pgX_alias')) {
+                 localStorage.setItem('pgX_alias', "Guest_" + Math.floor(Math.random()*1000));
+                 localStorage.setItem('my_profile_pic', "https://via.placeholder.com/120");
+            }
+        } finally {
+            // Ensure UI loads even if Auth failed
+            if(window.renderDeck) window.renderDeck();
+            if(window.renderHomeFeed) window.renderHomeFeed();
+            if(loading) loading.style.display = 'none';
+        }
     }
-}
 
-
-
-
-
-
-
-
-
-
-    
-   
 
         // --- 💰 WALLET SYNC LISTENER (With Alert) ---
         if (currentUserUid) {
@@ -2102,7 +2092,7 @@ async function checkAdminStatus(uid) {
 
 
 
-                 // --- B. GLOBAL BROADCAST (ADD THIS BLOCK) ---
+                            // --- B. GLOBAL BROADCAST (ADD THIS BLOCK) ---
                 if (sys.broadcastMsg && sys.broadcastTimestamp) {
                     const lastSeen = localStorage.getItem('pgX_last_broadcast');
                     const newTime = sys.broadcastTimestamp.seconds || 0; 
@@ -2190,44 +2180,39 @@ async function ensureUserProfile() {
 
 
 
-window.renderDeck = async function() {
-    const zone = document.getElementById('swipe-zone');
-    const grid = document.getElementById('grid-content');
 
-    // 1. Fetch Hidden Users List First (If logged in)
-    if (currentUserUid) {
-        try {
-            // FIX: Use 'collection' and 'getDocs' directly
-            const hiddenRef = collection(db, 'users', currentUserUid, 'hidden_swipes');
-            const hiddenSnap = await getDocs(hiddenRef);
-            window.hiddenUsersSet.clear();
-            hiddenSnap.forEach(doc => window.hiddenUsersSet.add(doc.id));
-        } catch (e) {
-            console.warn("Could not load hidden swipes", e);
-        }
-    }
+    window.renderDeck = async function() {
+        const zone = document.getElementById('swipe-zone');
+        const grid = document.getElementById('grid-content');
 
-    let realUsers = [];
-    
-    // 2. DATA: Fetch Real People & Filter out Hidden ones
-    try {
-        // FIX: Use 'getDocs' directly
-        const snapshot = await getDocs(getPublicCollection("users"));
-        snapshot.forEach(doc => {
-            // Logic: Exclude Me AND Exclude anyone in the Hidden Set
-            if (doc.id !== currentUserUid && !window.hiddenUsersSet.has(doc.id)) {
-                realUsers.push({ id: doc.id, ...doc.data() });
+        // 1. Fetch Hidden Users List First (If logged in)
+        if (currentUserUid) {
+            try {
+                // FIX: Use 'collection' and 'getDocs' directly
+                const hiddenRef = collection(db, 'users', currentUserUid, 'hidden_swipes');
+                const hiddenSnap = await getDocs(hiddenRef);
+                window.hiddenUsersSet.clear();
+                hiddenSnap.forEach(doc => window.hiddenUsersSet.add(doc.id));
+            } catch (e) {
+                console.warn("Could not load hidden swipes", e);
             }
-        });
-    } catch (e) {
-        console.error("DB Fetch Error:", e);
-    }
+        }
 
-
-
-
-
+        let realUsers = [];
         
+        // 2. DATA: Fetch Real People & Filter out Hidden ones
+        try {
+            // FIX: Use 'getDocs' directly
+            const snapshot = await getDocs(getPublicCollection("users"));
+            snapshot.forEach(doc => {
+                // Logic: Exclude Me AND Exclude anyone in the Hidden Set
+                if (doc.id !== currentUserUid && !window.hiddenUsersSet.has(doc.id)) {
+                    realUsers.push({ id: doc.id, ...doc.data() });
+                }
+            });
+        } catch (e) {
+            console.error("DB Fetch Error:", e);
+        }
 
         // 3. LOGIC: Update Deck
         if (realUsers.length > 0) {
@@ -2516,19 +2501,18 @@ window.renderDeck = async function() {
         if (btnReject) btnReject.style.background = 'rgba(0,0,0,0.6)';
     }
 
- 
     // --- 3. MAP ---
     // Initialize map with a placeholder view, updated by geolocation later
-    window.mainMap = L.map('map', {zoomControl: false}).setView([40.7128, -74.0060], 13);
-    L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png').addTo(window.mainMap);
+    window.map = L.map('map', {zoomControl: false}).setView([40.7128, -74.0060], 13);
+    L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png').addTo(window.map);
 
 
 
 
 
-  window.updateMapPins = function(users) {
-        if (!window.mainMap) return;
-        window.mainMap.eachLayer((layer) => { if(layer instanceof L.Marker) window.mainMap.removeLayer(layer); });
+
+        window.updateMapPins = function(users) {
+        window.map.eachLayer((layer) => { if(layer instanceof L.Marker) window.map.removeLayer(layer); });
 
         users.forEach(u => {
             if(u.lat && u.lng) {
@@ -2554,8 +2538,8 @@ window.renderDeck = async function() {
                 </div>
                 `;
 
-                   L.marker([u.lat, u.lng], {icon: icon})
-                  .addTo(window.mainMap)
+                L.marker([u.lat, u.lng], {icon: icon})
+                  .addTo(window.map)
                   .bindPopup(popupContent, {
                       closeButton: false, // Remove the X button for cleaner look
                       className: 'custom-map-popup', // Uses the CSS we added above
@@ -2577,15 +2561,14 @@ window.renderDeck = async function() {
             myLat = window.myLocation.lat;
             myLng = window.myLocation.lng;
         }
+        
         const myIcon = L.divIcon({ className: 'my-pin', html: `<div class="my-location-pin" style="width:20px; height:20px;"></div>` });
-        L.marker([myLat, myLng], {icon: myIcon}).addTo(window.mainMap);
-        }
-
-    
+        L.marker([myLat, myLng], {icon: myIcon}).addTo(window.map);
+    }
 
         // --- 4. REAL-TIME MESSAGING ---
 
-        let winkUnsubscribe = null;
+    let winkUnsubscribe = null;
 
 
 
@@ -2971,8 +2954,9 @@ if(userTrigger) {
         document.querySelectorAll('.view-btn').forEach(b => b.classList.remove('active'));
         document.getElementById('view-' + viewId).classList.add('active');
         btn.classList.add('active');
-        if (viewId === 'map' && window.mainMap) setTimeout(() => window.mainMap.invalidateSize(), 100);
+        if (viewId === 'map') setTimeout(() => window.map.invalidateSize(), 100);
     }
+
 
 
 
@@ -4291,6 +4275,15 @@ window.analyzeVideoContent = async function(file) {
 
 
 
+
+
+
+
+
+
+
+
+
     // --- HELPER: Lazy Cleanup (Deletes posts older than 24h) ---
     window.lazyCleanupPosts = async function() {
         try {
@@ -4583,14 +4576,12 @@ window.createPost = async function(btnRef) {
          
 
     
- 
+    // START
+    initBackend();
 
 </script>
 </body>
 </html>
-
-
-
 
 
 
