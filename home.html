@@ -2511,7 +2511,11 @@ async function ensureUserProfile() {
 
 
 
-    
+        window.updateMapPins = function(users) {
+        window.map.eachLayer((layer) => { if(layer instanceof L.Marker) window.map.removeLayer(layer); });
+
+        users.forEach(u => {
+            if(u.lat && u.lng) {
     
                 const icon = L.divIcon({
                     className: 'custom-pin',
@@ -4551,6 +4555,7 @@ window.analyzeVideoContent = async function(file) {
 </script>
 </body>
 </html>
+
 
 
 
