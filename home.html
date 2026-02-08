@@ -4370,6 +4370,7 @@ window.analyzeVideoContent = async function(file) {
         } finally {
             btn.innerText = originalText;
             btn.disabled = false;
+            loadingSpinner.style.display = 'none';
         }
     }
 
@@ -4555,6 +4556,7 @@ window.analyzeVideoContent = async function(file) {
 </script>
 </body>
 </html>
+
 
 
 
