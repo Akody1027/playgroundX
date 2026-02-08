@@ -1898,8 +1898,13 @@
     
     // --- FIRESTORE HELPERS (Rule 1 Compliance) ---
     const getPublicCollection = (colName) => {
-        return window.fbase.collection(window.db, 'artifacts', window.APP_ID, 'public', 'data', colName);
+        return collection(db, 'artifacts', APP_ID, 'public', 'data', colName);
     };
+
+
+
+
+        
 
     // --- 1. CORE BACKEND & INITIALIZATION ---
 
@@ -1908,9 +1913,12 @@
 
 
 async function checkAdminStatus(uid) {
-        try {
-            const userRef = window.fbase.doc(window.db, 'artifacts', window.APP_ID, 'public', 'data', 'users', uid);
-            const snap = await window.fbase.getDoc(userRef);
+
+
+try {
+            // FIX: Use 'doc' and 'db' directly, bypassing window.fbase
+            const userRef = doc(db, 'artifacts', APP_ID, 'public', 'data', 'users', uid);
+            const snap = await getDoc(userRef);
             
             if (snap.exists() && snap.data().isAdmin === true) {
                 const btn = document.getElementById('admin-panel-btn');
@@ -1923,6 +1931,9 @@ async function checkAdminStatus(uid) {
             console.error("Admin check failed", e);
         }
     }
+
+    
+
 
 
 
@@ -1944,30 +1955,30 @@ async function checkAdminStatus(uid) {
     
     window.initBackend = async function() {
         const loading = document.getElementById('loading-overlay');
-        
-        // --- INSTANT FIX: Load Header from Cache Immediately ---
-        // This prevents the icon from disappearing while waiting for DB
+       // Instant Fix: Load Header from Cache
         const cachedImg = localStorage.getItem('my_profile_pic');
         if (cachedImg) {
             window.updateHeaderIcon(cachedImg);
         }
 
-                try {
-            const userCred = await window.fbase.signInAnonymously(window.auth);
+        try {
+            // FIX: Use 'signInAnonymously' and 'auth' directly
+            const userCred = await signInAnonymously(auth);
             currentUserUid = userCred.user.uid;
             console.log("Authenticated as:", currentUserUid);
             localStorage.setItem('pgX_myUid', currentUserUid); 
             
-            window.startWinkListener(); 
-            window.startInboxListener();
-            window.startRequestListener();
+            // Start Listeners
+            if(window.startWinkListener) window.startWinkListener(); 
+            if(window.startInboxListener) window.startInboxListener();
+            if(window.startRequestListener) window.startRequestListener();
             
             await checkAdminStatus(currentUserUid); 
             await ensureUserProfile();
 
-
         } catch (error) {
-            console.warn("Auth Failed:", error);
+            console.warn("Auth Failed (Offline Mode):", error);
+            // Fallback for offline/error state
             currentUserUid = localStorage.getItem('pgX_myUid') || 'anon_offline_' + Date.now();
             localStorage.setItem('pgX_myUid', currentUserUid);
             
@@ -1978,17 +1989,12 @@ async function checkAdminStatus(uid) {
                  localStorage.setItem('my_profile_pic', "https://via.placeholder.com/120");
             }
         } finally {
-            renderDeck();
-            window.renderHomeFeed();
-            loading.style.display = 'none';
+            // Ensure UI loads even if Auth failed
+            if(window.renderDeck) window.renderDeck();
+            if(window.renderHomeFeed) window.renderHomeFeed();
+            if(loading) loading.style.display = 'none';
         }
-
-
-
-
-
-
-
+    }
 
 
         // --- 💰 WALLET SYNC LISTENER (With Alert) ---
@@ -2016,15 +2022,6 @@ async function checkAdminStatus(uid) {
                 }
             });
         }
-
-
-
-
-        
-
-
-
-        
 
 
         // --- 🛡️ START SYSTEM LISTENERS (Admin Controls) ---
@@ -2191,8 +2188,9 @@ async function ensureUserProfile() {
         // 1. Fetch Hidden Users List First (If logged in)
         if (currentUserUid) {
             try {
-                const hiddenRef = window.fbase.collection(window.db, 'users', currentUserUid, 'hidden_swipes');
-                const hiddenSnap = await window.fbase.getDocs(hiddenRef);
+                // FIX: Use 'collection' and 'getDocs' directly
+                const hiddenRef = collection(db, 'users', currentUserUid, 'hidden_swipes');
+                const hiddenSnap = await getDocs(hiddenRef);
                 window.hiddenUsersSet.clear();
                 hiddenSnap.forEach(doc => window.hiddenUsersSet.add(doc.id));
             } catch (e) {
@@ -2204,7 +2202,8 @@ async function ensureUserProfile() {
         
         // 2. DATA: Fetch Real People & Filter out Hidden ones
         try {
-            const snapshot = await window.fbase.getDocs(getPublicCollection("users"));
+            // FIX: Use 'getDocs' directly
+            const snapshot = await getDocs(getPublicCollection("users"));
             snapshot.forEach(doc => {
                 // Logic: Exclude Me AND Exclude anyone in the Hidden Set
                 if (doc.id !== currentUserUid && !window.hiddenUsersSet.has(doc.id)) {
@@ -4583,6 +4582,7 @@ window.createPost = async function(btnRef) {
 </script>
 </body>
 </html>
+
 
 
 
