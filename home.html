@@ -1957,6 +1957,7 @@ async function checkAdminStatus(uid) {
             }
         } finally {
             renderDeck();
+            window.renderHomeFeed();
             loading.style.display = 'none';
         }
 
@@ -4491,6 +4492,7 @@ window.analyzeVideoContent = async function(file) {
 </script>
 </body>
 </html>
+
 
 
 
