@@ -857,6 +857,11 @@
         }; 
 
         console.log("Firebase Global Tools (Auth, DB, Storage) Loaded ✅");
+
+        // --- FIX: START APP ONLY AFTER FIREBASE IS READY ---
+        if (window.initBackend) {
+            window.initBackend();
+        }
     </script>
 
 
@@ -1841,11 +1846,18 @@
                     } catch(e) { console.error("Loc Save Error", e); }
                 }
 
-                if (window.map) {
-                    window.map.setView([lat, lng], 13);
+
+
+
+                if (window.mainMap) {
+                    window.mainMap.setView([lat, lng], 13);
                     if(activeDeck) updateMapPins(activeDeck);
                 }
             }, (err) => {
+
+
+
+                
                 console.warn("Location denied", err);
                 // Reset flag if they denied it this time
                 localStorage.removeItem('pgX_loc_allowed'); 
@@ -2090,7 +2102,7 @@ async function checkAdminStatus(uid) {
 
 
 
-                            // --- B. GLOBAL BROADCAST (ADD THIS BLOCK) ---
+                 // --- B. GLOBAL BROADCAST (ADD THIS BLOCK) ---
                 if (sys.broadcastMsg && sys.broadcastTimestamp) {
                     const lastSeen = localStorage.getItem('pgX_last_broadcast');
                     const newTime = sys.broadcastTimestamp.seconds || 0; 
@@ -2504,18 +2516,19 @@ window.renderDeck = async function() {
         if (btnReject) btnReject.style.background = 'rgba(0,0,0,0.6)';
     }
 
+ 
     // --- 3. MAP ---
     // Initialize map with a placeholder view, updated by geolocation later
-    window.map = L.map('map', {zoomControl: false}).setView([40.7128, -74.0060], 13);
-    L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png').addTo(window.map);
+    window.mainMap = L.map('map', {zoomControl: false}).setView([40.7128, -74.0060], 13);
+    L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png').addTo(window.mainMap);
 
 
 
 
 
-
-        window.updateMapPins = function(users) {
-        window.map.eachLayer((layer) => { if(layer instanceof L.Marker) window.map.removeLayer(layer); });
+  window.updateMapPins = function(users) {
+        if (!window.mainMap) return;
+        window.mainMap.eachLayer((layer) => { if(layer instanceof L.Marker) window.mainMap.removeLayer(layer); });
 
         users.forEach(u => {
             if(u.lat && u.lng) {
@@ -2541,8 +2554,8 @@ window.renderDeck = async function() {
                 </div>
                 `;
 
-                L.marker([u.lat, u.lng], {icon: icon})
-                  .addTo(window.map)
+                   L.marker([u.lat, u.lng], {icon: icon})
+                  .addTo(window.mainMap)
                   .bindPopup(popupContent, {
                       closeButton: false, // Remove the X button for cleaner look
                       className: 'custom-map-popup', // Uses the CSS we added above
@@ -2564,14 +2577,15 @@ window.renderDeck = async function() {
             myLat = window.myLocation.lat;
             myLng = window.myLocation.lng;
         }
-        
         const myIcon = L.divIcon({ className: 'my-pin', html: `<div class="my-location-pin" style="width:20px; height:20px;"></div>` });
-        L.marker([myLat, myLng], {icon: myIcon}).addTo(window.map);
-    }
+        L.marker([myLat, myLng], {icon: myIcon}).addTo(window.mainMap);
+        }
+
+    
 
         // --- 4. REAL-TIME MESSAGING ---
 
-    let winkUnsubscribe = null;
+        let winkUnsubscribe = null;
 
 
 
@@ -2957,9 +2971,8 @@ if(userTrigger) {
         document.querySelectorAll('.view-btn').forEach(b => b.classList.remove('active'));
         document.getElementById('view-' + viewId).classList.add('active');
         btn.classList.add('active');
-        if (viewId === 'map') setTimeout(() => window.map.invalidateSize(), 100);
+        if (viewId === 'map' && window.mainMap) setTimeout(() => window.mainMap.invalidateSize(), 100);
     }
-
 
 
 
@@ -4278,15 +4291,6 @@ window.analyzeVideoContent = async function(file) {
 
 
 
-
-
-
-
-
-
-
-
-
     // --- HELPER: Lazy Cleanup (Deletes posts older than 24h) ---
     window.lazyCleanupPosts = async function() {
         try {
@@ -4579,12 +4583,12 @@ window.createPost = async function(btnRef) {
          
 
     
-    // START
-    initBackend();
+ 
 
 </script>
 </body>
 </html>
+
 
 
 
