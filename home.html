@@ -2067,55 +2067,7 @@ async function checkAdminStatus(uid) {
         
         
 
-        // 2. GLOBAL SYSTEM LISTENER
-        // MAKE SURE THIS PATH MATCHES THE ADMIN PATH EXACTLY
-        const systemRef = window.fbase.doc(window.db, 'artifacts', window.APP_ID, 'public', 'data', 'system_status', 'settings');
         
-        window.fbase.onSnapshot(systemRef, async (sysDoc) => {
-            if (sysDoc.exists()) {
-                const sys = sysDoc.data();
-                const maintScreen = document.getElementById('maintenance-overlay');
-                
-                // Debugging: Check console to see if signal arrives
-                console.log("System Update Received:", sys);
-
-                if (sys.maintenanceMode === true && maintScreen) {
-                    // ... (Rest of your checkAdminStatus logic goes here) ...
-                     const myProfile = await window.fbase.getDoc(
-                        window.fbase.doc(window.db, 'artifacts', window.APP_ID, 'public', 'data', 'users', currentUserUid)
-                    );
-                    const amIAdmin = myProfile.exists() && myProfile.data().isAdmin === true;
-
-                    if (amIAdmin) {
-                        maintScreen.style.display = 'none'; 
-                    } else {
-                        maintScreen.style.display = 'flex';
-                    }
-                } else if (maintScreen) {
-                    maintScreen.style.display = 'none';
-                }
-            
-
-
-
-                            // --- B. GLOBAL BROADCAST (ADD THIS BLOCK) ---
-                if (sys.broadcastMsg && sys.broadcastTimestamp) {
-                    const lastSeen = localStorage.getItem('pgX_last_broadcast');
-                    const newTime = sys.broadcastTimestamp.seconds || 0; 
-                    
-                    // Show if this message is newer than the last one we saw
-                    if (newTime > (parseInt(lastSeen) || 0)) {
-                        alert("📢 SYSTEM ANNOUNCEMENT:\n\n" + sys.broadcastMsg);
-                        localStorage.setItem('pgX_last_broadcast', newTime);
-                    }
-                }
-
-            }
-
-
-
-            
-        });
 
 
 
@@ -4690,6 +4642,7 @@ if (document.readyState === 'loading') {
 </script>
 </body>
 </html>
+
 
 
 
