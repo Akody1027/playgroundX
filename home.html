@@ -1961,7 +1961,6 @@ async function checkAdminStatus(uid) {
         
 
 
-
         try {
             const userCred = await window.fbase.signInAnonymously(window.auth);
             currentUserUid = userCred.user.uid;
@@ -1971,6 +1970,38 @@ async function checkAdminStatus(uid) {
             await checkAdminStatus(currentUserUid); 
             await ensureUserProfile();
 
+        } catch (error) {
+            console.warn("Auth Failed:", error);
+            currentUserUid = localStorage.getItem('pgX_myUid') || 'anon_offline_' + Date.now();
+            localStorage.setItem('pgX_myUid', currentUserUid);
+            
+            await checkAdminStatus(currentUserUid);
+
+            if (!localStorage.getItem('pgX_alias')) {
+                 localStorage.setItem('pgX_alias', "Guest_" + Math.floor(Math.random()*1000));
+                 localStorage.setItem('my_profile_pic', "https://via.placeholder.com/120");
+            }
+        } finally {
+            // MOVED LISTENERS HERE: They will now run 100% of the time
+            if (currentUserUid) {
+                window.startWinkListener(); 
+                window.startInboxListener();
+                window.startRequestListener();
+            }
+
+            renderDeck();
+            window.renderHomeFeed(); 
+            loading.style.display = 'none';
+        }
+
+        
+
+
+
+
+
+
+            
         } catch (error) {
             console.warn("Auth Failed:", error);
             currentUserUid = localStorage.getItem('pgX_myUid') || 'anon_offline_' + Date.now();
@@ -3011,7 +3042,8 @@ window.closeModal = function(id) {
 
     
 
-        window.closeChat = function() {
+
+    window.closeChat = function() {
         // If we are currently looking at a specific chat, just go back to the list
         const chatView = document.getElementById('chat-view');
         if (chatView.style.display === 'flex' || chatView.style.display === 'block') {
@@ -4616,6 +4648,7 @@ if (document.readyState === 'loading') {
 </script>
 </body>
 </html>
+
 
 
 
