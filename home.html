@@ -2050,7 +2050,18 @@ async function checkAdminStatus(uid) {
                 window.location.replace("index.html"); 
             }
         });
+    // Render Content & Hide Loader
+        renderDeck();
+        window.renderHomeFeed(); 
+        loading.style.display = 'none';
+
+    } else {
+        // --- ACCESS DENIED ---
+        console.warn("No account detected. Redirecting to Login...");
+        window.location.replace("index.html"); 
     }
+});
+};
 
 
         
@@ -4679,6 +4690,7 @@ if (document.readyState === 'loading') {
 </script>
 </body>
 </html>
+
 
 
 
