@@ -1535,14 +1535,11 @@
             <button class="tab-btn" onclick="window.openTab('tab-chats', this)">Messages</button>
         </div>
 
-        <div id="tab-reqs" class="tab-pane active"></div>
+        <div id="tab-reqs" class="tab-pane"></div>
         <div id="tab-winks" class="tab-pane"></div>
-        <div id="tab-chats" class="tab-pane"></div>
+        <div id="tab-chats" class="tab-pane active"></div>
 
-
-    
-
-    <div id="chat-view" style="display:none;">
+    </div> <div id="chat-view" style="display:none;">
         <div style="padding:10px; background:#111; border-bottom:1px solid #333; display:flex; align-items:center; gap:10px;">
             <div style="width:30px; height:30px; background:#444; border-radius:50%;"></div>
             <span style="font-weight:bold; color:white;" id="chat-target-name">User</span>
@@ -1552,10 +1549,23 @@
         </div>
         <div class="chat-input-area">
             <input type="text" class="chat-input" placeholder="Type a message...">
-            <button style="background:var(--accent); color:white; border:none; padding:8px 15px; border-radius:15px;">Send</button>
+            <button onclick="window.sendMessage()" style="background:var(--accent); color:white; border:none; padding:8px 15px; border-radius:15px;">Send</button>
         </div>
     </div>
-</div>
+
+
+
+        
+
+
+
+
+
+
+
+
+
+    
 
 <div id="confirm-modal" style="display:none;"> 
     <div class="confirm-box">
@@ -4702,6 +4712,7 @@ if (document.readyState === 'loading') {
 </script>
 </body>
 </html>
+
 
 
 
