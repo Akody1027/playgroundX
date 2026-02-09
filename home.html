@@ -1944,6 +1944,43 @@ async function checkAdminStatus(uid) {
 
 
 
+    window.initBackend = async function() {
+        const loading = document.getElementById('loading-overlay');
+        
+        // AUTH GATEKEEPER
+        // This checks if a user is ALREADY logged in.
+        // It does NOT sign them in anonymously.
+        window.auth.onAuthStateChanged(async (user) => {
+            if (user) {
+                // --- ACCESS GRANTED ---
+                console.log("Authorized User:", user.uid);
+                currentUserUid = user.uid;
+                localStorage.setItem('pgX_myUid', currentUserUid);
+
+                // Initialize App Data
+                await checkAdminStatus(currentUserUid); 
+                await ensureUserProfile();
+                
+                // Start Listeners
+                if(window.startWinkListener) window.startWinkListener(); 
+                if(window.startInboxListener) window.startInboxListener();
+                if(window.startRequestListener) window.startRequestListener();
+
+                // Render Content
+                renderDeck();
+                window.renderHomeFeed(); 
+                
+                loading.style.display = 'none';
+
+            } else {
+                // --- ACCESS DENIED ---
+                console.warn("No account detected. Redirecting to Login...");
+                
+                // Kicks them back to the landing page immediately
+                window.location.replace("index.html"); 
+            }
+        });
+    }
 
 
 
@@ -1951,60 +1988,7 @@ async function checkAdminStatus(uid) {
 
 
     
-    window.initBackend = async function() {
-
-
-        
-
-        
-        const loading = document.getElementById('loading-overlay');
-        
-        // --- INSTANT FIX: Load Header from Cache Immediately ---
-        // This prevents the icon from disappearing while waiting for DB
-        const cachedImg = localStorage.getItem('my_profile_pic');
-        if (cachedImg) {
-            window.updateHeaderIcon(cachedImg);
-        }
-
-
-
-        
-
-
-        try {
-            const userCred = await window.fbase.signInAnonymously(window.auth);
-            currentUserUid = userCred.user.uid;
-            console.log("Authenticated as:", currentUserUid);
-            localStorage.setItem('pgX_myUid', currentUserUid); 
-            
-            await checkAdminStatus(currentUserUid); 
-            await ensureUserProfile();
-
-        } catch (error) {
-            console.warn("Auth Failed:", error);
-            currentUserUid = localStorage.getItem('pgX_myUid') || 'anon_offline_' + Date.now();
-            localStorage.setItem('pgX_myUid', currentUserUid);
-            
-            await checkAdminStatus(currentUserUid);
-
-            if (!localStorage.getItem('pgX_alias')) {
-                 localStorage.setItem('pgX_alias', "Guest_" + Math.floor(Math.random()*1000));
-                 localStorage.setItem('my_profile_pic', "https://via.placeholder.com/120");
-            }
-        } finally {
-            // MOVED LISTENERS HERE: They will now run 100% of the time
-            if (currentUserUid) {
-                window.startWinkListener(); 
-                window.startInboxListener();
-                window.startRequestListener();
-            }
-
-            renderDeck();
-            window.renderHomeFeed(); 
-            loading.style.display = 'none';
-        }
-
-        
+    
 
 
 
@@ -4712,6 +4696,7 @@ if (document.readyState === 'loading') {
 </script>
 </body>
 </html>
+
 
 
 
