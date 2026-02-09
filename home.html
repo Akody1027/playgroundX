@@ -1956,19 +1956,20 @@ async function checkAdminStatus(uid) {
             window.updateHeaderIcon(cachedImg);
         }
 
-                try {
+
+
+        
+
+
+
+        try {
             const userCred = await window.fbase.signInAnonymously(window.auth);
             currentUserUid = userCred.user.uid;
             console.log("Authenticated as:", currentUserUid);
             localStorage.setItem('pgX_myUid', currentUserUid); 
             
-            window.startWinkListener(); 
-            window.startInboxListener();
-            window.startRequestListener();
-            
             await checkAdminStatus(currentUserUid); 
             await ensureUserProfile();
-
 
         } catch (error) {
             console.warn("Auth Failed:", error);
@@ -1982,13 +1983,17 @@ async function checkAdminStatus(uid) {
                  localStorage.setItem('my_profile_pic', "https://via.placeholder.com/120");
             }
         } finally {
+            // MOVED LISTENERS HERE: They will now run 100% of the time
+            if (currentUserUid) {
+                window.startWinkListener(); 
+                window.startInboxListener();
+                window.startRequestListener();
+            }
+
             renderDeck();
-              window.renderHomeFeed(); // Load feed immediately, don't wait for auth
-              loading.style.display = 'none';
-            
+            window.renderHomeFeed(); 
+            loading.style.display = 'none';
         }
-
-
 
 
 
@@ -3001,11 +3006,28 @@ window.closeModal = function(id) {
     if (el) el.style.display = 'none';
 }
 
-    window.closeChat = function() {
-        document.getElementById('msg-modal').style.display = 'none';
-        document.getElementById('msg-list-view').style.display = 'block';
-        document.getElementById('chat-view').style.display = 'none';
+
+
+
+    
+
+        window.closeChat = function() {
+        // If we are currently looking at a specific chat, just go back to the list
+        const chatView = document.getElementById('chat-view');
+        if (chatView.style.display === 'flex' || chatView.style.display === 'block') {
+            chatView.style.display = 'none';
+            document.getElementById('msg-list-view').style.display = 'block';
+        } else {
+            // If we are already at the list, THEN close the modal
+            document.getElementById('msg-modal').style.display = 'none';
+        }
     }
+
+
+
+
+
+    
 
     window.openTab = function(tabId, btn) {
         document.querySelectorAll('.tab-pane').forEach(t => t.style.display = 'none');
@@ -4594,6 +4616,7 @@ if (document.readyState === 'loading') {
 </script>
 </body>
 </html>
+
 
 
 
