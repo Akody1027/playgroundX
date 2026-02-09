@@ -1481,21 +1481,21 @@
             </div>
         </div>
 
-        <div style="display:flex; justify-content:space-between; align-items:center; gap:10px;">
+        <div style="display:flex; justify-content:center; align-items:center; gap:5%;">
             
-            <button onclick="window.sendWink(currentTargetId)" style="width:60px; height:60px; border-radius:50%; background:#222; border:1px solid var(--accent); color:var(--accent); display:flex; align-items:center; justify-content:center; cursor:pointer;">
+            <button onclick="window.sendWink(currentTargetId)" style="width:60px; height:60px;  background:transparent;  color:var(--accent); display:flex; align-items:center; justify-content:center; cursor:pointer;">
                 <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><path d="M8 15a6 6 0 0 0 8 0"></path><line x1="9" y1="9" x2="9.01" y2="9" stroke-width="3"></line><path d="M15 9h2"></path></svg>
             </button>
 
-            <button onclick="window.sendFriendRequest(currentTargetId)" style="width:60px; height:60px; border-radius:50%; background:#222; border:1px solid #10B981; color:#10B981; display:flex; align-items:center; justify-content:center; cursor:pointer;">
+            <button onclick="window.sendFriendRequest(currentTargetId)" style="width:60px; height:60px;  background:transparent;  color:var(--accent); display:flex; align-items:center; justify-content:center; cursor:pointer;">
                 <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="8.5" cy="7" r="4"></circle><line x1="20" y1="8" x2="20" y2="14"></line><line x1="23" y1="11" x2="17" y2="11"></line></svg>
             </button>
 
-            <button onclick="document.getElementById('coin-popup').style.display='block'" style="width:60px; height:60px; border-radius:50%; background:#222; border:1px solid #FFD700; color:#FFD700; display:flex; align-items:center; justify-content:center; cursor:pointer;">
+            <button onclick="document.getElementById('coin-popup').style.display='block'" style="width:60px; height:60px;  background:transparent;  color:var(--accent); display:flex; align-items:center; justify-content:center; cursor:pointer;">
                 <span style="font-weight:bold; font-size:20px;">$</span>
             </button>
 
-            <button onclick="window.closeModal('view-user-modal'); window.openChat(document.getElementById('view-user-name').innerText.split(',')[0], currentTargetId)" style="width:60px; height:60px; border-radius:50%; background:var(--accent); border:none; color:white; display:flex; align-items:center; justify-content:center; cursor:pointer; box-shadow:0 0 15px var(--accent-glow);">
+            <button onclick="window.closeModal('view-user-modal'); window.openChat(document.getElementById('view-user-name').innerText.split(',')[0], currentTargetId)" style="width:60px; height:60px;  background:transparent; border:none; color:var(--accent); display:flex; align-items:center; justify-content:center; cursor:pointer; box-shadow:0 0 15px var(--accent-glow);">
                 <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
             </button>
 
@@ -4594,6 +4594,7 @@ if (document.readyState === 'loading') {
 </script>
 </body>
 </html>
+
 
 
 
