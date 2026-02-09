@@ -1948,8 +1948,6 @@ async function checkAdminStatus(uid) {
         const loading = document.getElementById('loading-overlay');
         
         // AUTH GATEKEEPER
-        // This checks if a user is ALREADY logged in.
-        // It does NOT sign them in anonymously.
         window.auth.onAuthStateChanged(async (user) => {
             if (user) {
                 // --- ACCESS GRANTED ---
@@ -1966,6 +1964,80 @@ async function checkAdminStatus(uid) {
                 if(window.startInboxListener) window.startInboxListener();
                 if(window.startRequestListener) window.startRequestListener();
 
+                // --- 💰 WALLET SYNC LISTENER ---
+                // We reference the user doc once here for both Wallet and Security
+                const myRef = window.fbase.doc(window.db, 'artifacts', window.APP_ID, 'public', 'data', 'users', currentUserUid);
+
+                window.fbase.onSnapshot(myRef, (doc) => {
+                    if (doc.exists()) {
+                        const data = doc.data();
+
+                        // 1. Wallet Logic
+                        const currentCoins = data.walletBalance || 0;
+                        // Check if balance increased (You got paid!)
+                        const lastKnown = parseInt(localStorage.getItem('pgX_wallet_balance') || "0");
+                        if (currentCoins > lastKnown) {
+                            const amount = currentCoins - lastKnown;
+                            alert(`💰 KA-CHING!\n\nYou received ${amount} coins!`);
+                        }
+                        // Update UI
+                        const walletEl = document.getElementById('wallet-balance');
+                        if (walletEl) walletEl.innerText = currentCoins;
+                        localStorage.setItem('pgX_wallet_balance', currentCoins);
+
+                        // 2. Security Logic (Bans & Kicks)
+                        if (data.isBanned === true) {
+                            document.body.innerHTML = `
+                                <div style="background:black; color:red; height:100vh; display:flex; flex-direction:column; align-items:center; justify-content:center; font-family:sans-serif;">
+                                    <h1>🚫 ACCOUNT SUSPENDED</h1>
+                                    <p style="color:#666">Access has been revoked by an administrator.</p>
+                                </div>`;
+                            localStorage.clear();
+                        }
+                        if (data.forceLogout === true) {
+                            window.location.reload(); 
+                        }
+                    } else {
+                        console.log("User profile not found (Deleted by Admin?)");
+                    }
+                });
+
+                // --- 🛡️ GLOBAL SYSTEM LISTENER ---
+                const systemRef = window.fbase.doc(window.db, 'artifacts', window.APP_ID, 'public', 'data', 'system_status', 'settings');
+                
+                window.fbase.onSnapshot(systemRef, async (sysDoc) => {
+                    if (sysDoc.exists()) {
+                        const sys = sysDoc.data();
+                        const maintScreen = document.getElementById('maintenance-overlay');
+                        
+                        if (sys.maintenanceMode === true && maintScreen) {
+                            // Check if Admin to bypass maintenance
+                            const myProfile = await window.fbase.getDoc(
+                                window.fbase.doc(window.db, 'artifacts', window.APP_ID, 'public', 'data', 'users', currentUserUid)
+                            );
+                            const amIAdmin = myProfile.exists() && myProfile.data().isAdmin === true;
+
+                            if (amIAdmin) {
+                                maintScreen.style.display = 'none'; 
+                            } else {
+                                maintScreen.style.display = 'flex';
+                            }
+                        } else if (maintScreen) {
+                            maintScreen.style.display = 'none';
+                        }
+
+                        // Broadcast Messages
+                        if (sys.broadcastMsg && sys.broadcastTimestamp) {
+                            const lastSeen = localStorage.getItem('pgX_last_broadcast');
+                            const newTime = sys.broadcastTimestamp.seconds || 0; 
+                            if (newTime > (parseInt(lastSeen) || 0)) {
+                                alert("📢 SYSTEM ANNOUNCEMENT:\n\n" + sys.broadcastMsg);
+                                localStorage.setItem('pgX_last_broadcast', newTime);
+                            }
+                        }
+                    }
+                });
+
                 // Render Content
                 renderDeck();
                 window.renderHomeFeed(); 
@@ -1975,101 +2047,12 @@ async function checkAdminStatus(uid) {
             } else {
                 // --- ACCESS DENIED ---
                 console.warn("No account detected. Redirecting to Login...");
-                
-                // Kicks them back to the landing page immediately
                 window.location.replace("index.html"); 
             }
         });
-    
+    }
 
 
-
-
-
-
-    
-    
-
-
-
-
-
-
-
-
-
-
-
-        // --- 💰 WALLET SYNC LISTENER (With Alert) ---
-        if (currentUserUid) {
-            const myRef = window.fbase.doc(window.db, 'artifacts', window.APP_ID, 'public', 'data', 'users', currentUserUid);
-
-            window.fbase.onSnapshot(myRef, (doc) => {
-                if (doc.exists()) {
-                    const data = doc.data();
-                    const currentCoins = data.walletBalance || 0;
-                    
-                    // NEW: Check if balance increased (You got paid!)
-                    const lastKnown = parseInt(localStorage.getItem('pgX_wallet_balance') || "0");
-                    if (currentCoins > lastKnown) {
-                        const amount = currentCoins - lastKnown;
-                        // Trigger visual alert
-                        alert(`💰 KA-CHING!\n\nYou received ${amount} coins!`);
-                    }
-
-                    // Update UI
-                    const walletEl = document.getElementById('wallet-balance');
-                    if (walletEl) walletEl.innerText = currentCoins;
-                    
-                    localStorage.setItem('pgX_wallet_balance', currentCoins);
-                }
-            });
-        }
-
-
-
-
-        
-
-
-
-        
-
-
-        // --- 🛡️ START SYSTEM LISTENERS (Admin Controls) ---
-
-        // 1. USER SECURITY LISTENER (Detects Bans & Kicks)
-        if (currentUserUid) {
-            const myProfileRef = window.fbase.doc(window.db, 'artifacts', window.APP_ID, 'public', 'data', 'users', currentUserUid);
-            
-            window.fbase.onSnapshot(myProfileRef, (doc) => {
-                if (doc.exists()) {
-                    const data = doc.data();
-                    
-                    // A. IMMEDIATE BAN CHECK
-                    if (data.isBanned === true) {
-                        document.body.innerHTML = `
-                            <div style="background:black; color:red; height:100vh; display:flex; flex-direction:column; align-items:center; justify-content:center; font-family:sans-serif;">
-                                <h1>🚫 ACCOUNT SUSPENDED</h1>
-                                <p style="color:#666">Access has been revoked by an administrator.</p>
-                            </div>`;
-                        // Optional: Clear local credentials
-                        localStorage.clear();
-                    }
-
-                    // B. FORCE KICK CHECK (Optional feature)
-                    if (data.forceLogout === true) {
-                        window.location.reload(); // Refreshes app, effectively kicking them to intro
-                    }
-                } else {
-                    // C. IF DOC DELETED (Hard Wipe)
-                    // If the user doc disappears while they are logged in, kick them.
-                    console.log("User profile not found (Deleted by Admin?)");
-                }
-            });
-        }
-
-        
         
         
 
@@ -4696,6 +4679,7 @@ if (document.readyState === 'loading') {
 </script>
 </body>
 </html>
+
 
 
 
