@@ -936,15 +936,17 @@
  <div class="header-icons">
 
 
+                <div class="icon-btn" id="creator-feed-btn" onclick="openCreatorFeed()">
+                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-2.072-4-3-6a9.97 9.97 0 0 1 5.051 2.37A9.953 9.953 0 0 1 19 13a7 7 0 1 1-7-7c0 1.948.846 3.864 2.534 5.37C14.743 12.396 15 13.064 15 14a2 2 0 0 1-2 2h-4.5z"></path>
+                  </svg>
+                </div>
 
-<div onclick="window.openSpeedIntro()" style="cursor: pointer; ">
-    <img src="speedheart.png" style=" height: 19px; object-fit: contain;">
-</div>
 
+                <div onclick="window.openSpeedIntro()" style="cursor: pointer; ">
+                    <img src="speedheart.png" style=" height: 19px; object-fit: contain;">
+                </div>
 
-
-
-     
                 <div onclick="openModal('camera-modal')" style="cursor: pointer;">
                     <svg  height="26" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                         <path d="M23 7l-7 5 7 5V7z"></path>
@@ -1348,8 +1350,54 @@
                 <button class="admin-btn" style="background:#444; margin-top:15px; cursor:default;">Save Card (Demo Only)</button>
             </div>
         </div>
-
     </div>
+
+
+
+    <div id="tab-creator" class="tab-content" style="display: none;">
+    <div class="profile-section">
+        <h3>Creator Persona</h3>
+        <div style="display: flex; align-items: center; gap: 15px; margin-bottom: 20px;">
+            <div style="position: relative;">
+                <img id="creator-avatar-preview" src="https://via.placeholder.com/80" style="width: 80px; height: 80px; border-radius: 50%; object-fit: cover; border: 2px solid #8B5CF6;">
+                <button onclick="document.getElementById('creator-avatar-input').click()" style="position: absolute; bottom: 0; right: 0; background: #8B5CF6; border: none; border-radius: 50%; width: 24px; height: 24px; color: white; cursor: pointer;">+</button>
+                <input type="file" id="creator-avatar-input" accept="image/*" style="display: none;" onchange="previewCreatorAvatar(this)">
+            </div>
+            <div style="flex: 1;">
+                <input type="text" id="creator-alias" placeholder="Creator Alias (e.g. SexyLexy)" class="edit-input" style="width: 100%; margin-bottom: 5px;">
+                <div style="font-size: 12px; color: #9CA3AF;">Separate from your dating profile.</div>
+            </div>
+        </div>
+
+        <h3>Upload Premium Content</h3>
+        <div style="background: #2D2D2D; padding: 15px; border-radius: 12px; border: 1px dashed #4B5563;">
+            <input type="file" id="premium-file" accept="image/*,video/*" style="display: none;" onchange="previewPremiumFile(this)">
+            <button onclick="document.getElementById('premium-file').click()" class="action-btn primary-btn" style="width: 100%; margin-bottom: 10px;">Select Photo/Video</button>
+            <div id="premium-preview-area" style="text-align: center; margin-bottom: 10px; display: none;">
+                </div>
+            
+            <label style="font-size: 12px; color: #9CA3AF;">Unlock Price (Coins)</label>
+            <input type="number" id="premium-price" placeholder="e.g. 50" class="edit-input" style="width: 100%; margin-bottom: 10px;">
+            
+            <label style="font-size: 12px; color: #9CA3AF;">Teaser Description</label>
+            <input type="text" id="premium-desc" placeholder="What is this? (e.g. Beach Day)" class="edit-input" style="width: 100%; margin-bottom: 15px;">
+            
+            <button onclick="uploadPremiumContent()" class="action-btn" style="background: #10B981;">Post to Vault</button>
+        </div>
+
+        <h3 style="margin-top: 20px;">My Subscribers</h3>
+        <div id="creator-subscriber-list" style="max-height: 150px; overflow-y: auto; font-size: 13px; color: #9CA3AF;">
+            <div style="padding: 10px; text-align: center;">No subscribers yet.</div>
+        </div>
+    </div>
+    </div>
+    
+
+
+
+
+
+    
 </div>
 
 
@@ -4589,11 +4637,177 @@ if (document.readyState === 'loading') {
 }
 
 
+
+
+
+/* =========================================
+   NEW FEATURE: CREATOR STUDIO & COIN ECONOMY
+   ========================================= */
+
+// 1. Tab Switching (Updated to handle 3 tabs)
+window.switchProfileTab = function(tabName) {
+    // Hide all tabs first
+    const tabs = ['profile', 'wallet', 'creator'];
+    tabs.forEach(t => {
+        const el = document.getElementById('tab-' + t);
+        if (el) el.style.display = 'none';
+    });
+
+    // Remove 'active' class from all buttons
+    document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+
+    // Show the selected tab
+    const target = document.getElementById('tab-' + tabName);
+    if (target) target.style.display = 'block';
+
+    // Highlight the clicked button
+    // (This matches the ID we added in Step 2, or falls back to existing buttons)
+    if (tabName === 'creator') {
+        const btn = document.getElementById('tab-btn-creator');
+        if (btn) btn.classList.add('active');
+    } else if (tabName === 'wallet') {
+        // Assuming the 2nd button is wallet if no ID
+        const btns = document.querySelectorAll('.tab-btn');
+        if (btns[1]) btns[1].classList.add('active');
+    } else {
+        // Default to profile
+        const btns = document.querySelectorAll('.tab-btn');
+        if (btns[0]) btns[0].classList.add('active');
+    }
+}
+
+// 2. Creator Avatar Preview
+window.previewCreatorAvatar = function(input) {
+    if (input.files && input.files[0]) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            document.getElementById('creator-avatar-preview').src = e.target.result;
+        }
+        reader.readAsDataURL(input.files[0]);
+    }
+}
+
+// 3. Premium Content Upload Preview
+window.previewPremiumFile = function(input) {
+    const previewArea = document.getElementById('premium-preview-area');
+    const previewImg = document.getElementById('premium-preview-img');
+    const uploadBtn = document.getElementById('premium-upload-ui');
+
+    if (input.files && input.files[0]) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            previewImg.src = e.target.result;
+            previewArea.style.display = 'block'; // Show image
+            uploadBtn.style.display = 'none';    // Hide the big button
+        }
+        reader.readAsDataURL(input.files[0]);
+    }
+}
+
+// 4. Upload Logic (Simulation)
+window.uploadPremiumContent = function() {
+    const price = document.getElementById('premium-price').value;
+    const desc = document.getElementById('premium-desc').value;
+    const fileInput = document.getElementById('premium-file');
+
+    if (!fileInput.files[0]) return alert("Please select a photo or video to lock.");
+    if (!price) return alert("Please set a Coin price.");
+
+    // SUCCESS SIMULATION
+    alert(`SUCCESS! \n\nlocked Item: ${desc}\nPrice: ${price} Coins\n\n(This would now upload to Firebase Storage/Secure Vault)`);
     
+    // Reset Form
+    document.getElementById('premium-price').value = '';
+    document.getElementById('premium-desc').value = '';
+    document.getElementById('premium-preview-area').style.display = 'none';
+    document.getElementById('premium-upload-ui').style.display = 'block'; // Show button again
+    fileInput.value = ''; // Clear file
+}
+
+// 5. Coin Store Logic
+window.openCoinStore = function() {
+    const modal = document.getElementById('coin-store-modal');
+    if (modal) modal.style.display = 'flex';
+}
+
+window.closeCoinStore = function() {
+    const modal = document.getElementById('coin-store-modal');
+    if (modal) modal.style.display = 'none';
+}
+
+window.purchaseCoins = function(amount, price) {
+    // This is where Stripe integration goes
+    if(confirm(`Simulate Payment?\n\nGet ${amount} Coins for $${price}?`)) {
+        alert("Payment Successful! (Simulation)\nCoins would be added to your wallet now.");
+        closeCoinStore();
+    }
+}
+
+// 6. Creator Feed Logic
+window.openCreatorFeed = function() {
+    alert("Opening Creator Grid...\n(This is the Netflix-style module coming in Phase 3)");
+}
+
+
+
+
+
+                            
 
 </script>
+
+
+
+
+
+
+<div id="coin-store-modal" class="modal">
+    <div class="modal-content" style="max-width: 380px;">
+        <div class="modal-header">
+            <h2>Reload Wallet</h2>
+            <button class="close-modal" onclick="closeCoinStore()">×</button>
+        </div>
+        <div class="modal-body" style="padding: 0 20px 20px;">
+            <div style="text-align: center; margin-bottom: 20px; color: #9CA3AF; font-size: 14px;">
+                Current Balance: <span id="store-balance-display" style="color: white; font-weight: bold;">0</span> Coins
+            </div>
+
+            <div onclick="purchaseCoins(5000, 54.99)" style="background: linear-gradient(135deg, #8B5CF6, #6D28D9); padding: 2px; border-radius: 12px; margin-bottom: 15px; cursor: pointer; position: relative;">
+                <div style="position: absolute; top: -8px; right: 10px; background: #F59E0B; color: black; font-weight: bold; font-size: 10px; padding: 2px 8px; border-radius: 10px;">BEST VALUE</div>
+                <div style="background: #1E1E1E; border-radius: 10px; padding: 15px; display: flex; align-items: center; justify-content: space-between;">
+                    <div>
+                        <div style="font-weight: bold; color: white;">5,000 Coins</div>
+                        <div style="font-size: 12px; color: #A7F3D0;">Baller Status</div>
+                    </div>
+                    <div style="background: #8B5CF6; color: white; padding: 8px 16px; border-radius: 8px; font-weight: bold;">$54.99</div>
+                </div>
+            </div>
+
+            <div onclick="purchaseCoins(1000, 10.99)" style="display: flex; justify-content: space-between; align-items: center; background: #2D2D2D; padding: 12px; border-radius: 8px; margin-bottom: 10px; border: 1px solid #333; cursor: pointer;">
+                <div><span style="font-size: 18px;">🔥</span> <b>1,000 Coins</b></div>
+                <div style="background: #374151; padding: 5px 10px; border-radius: 6px;">$10.99</div>
+            </div>
+
+            <div onclick="purchaseCoins(100, 1.19)" style="display: flex; justify-content: space-between; align-items: center; background: #2D2D2D; padding: 12px; border-radius: 8px; margin-bottom: 10px; border: 1px solid #333; cursor: pointer;">
+                <div><span style="font-size: 18px;">👋</span> <b>100 Coins</b></div>
+                <div style="background: #374151; padding: 5px 10px; border-radius: 6px;">$1.19</div>
+            </div>
+
+            <div style="text-align: center; margin-top: 15px; font-size: 10px; color: #6B7280;">
+                🔒 Secure Payment via Stripe. No adult descriptors.
+            </div>
+        </div>
+    </div>
+</div>
+
+
+
+
+
+                            
 </body>
 </html>
+
 
 
 
