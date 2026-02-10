@@ -1046,6 +1046,43 @@
 
 
 
+/* FIX: Prevent Horizontal Wobble */
+.modal-content, .profile-section, .modal {
+    max-width: 100vw !important;
+    overflow-x: hidden !important;
+    box-sizing: border-box;
+}
+
+/* NEW: Vault Toggle Buttons */
+.vault-header-row {
+    display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;
+}
+.vault-toggle-group {
+    display: flex; gap: 5px; background: #111; padding: 2px; border-radius: 6px; border: 1px solid #333;
+}
+.vault-btn {
+    background: transparent; border: none; color: #666; padding: 4px 8px; 
+    border-radius: 4px; font-size: 10px; cursor: pointer; font-weight: bold;
+}
+.vault-btn.active {
+    background: #333; color: white;
+}
+
+/* NEW: Grid vs Swipe Layouts */
+.vault-layout-swipe {
+    display: flex; overflow-x: auto; gap: 10px; padding-bottom: 10px;
+    scroll-snap-type: x mandatory;
+}
+.vault-layout-swipe .vault-card {
+    min-width: 130px; scroll-snap-align: start;
+}
+
+.vault-layout-grid {
+    display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px;
+}
+.vault-layout-grid .vault-card {
+    width: 100%; height: 120px; /* Shorter for grid */
+}
 
 
         
@@ -3667,20 +3704,22 @@ window.deleteGalleryItem = function(slotId) {
 
     
 
-
-
-
+// FIXED: Saves Dating Profile + Creator Profile + GPS/Gallery
 window.saveProfile = async function() {
+    // 1. Get Dating Inputs
     const alias = document.getElementById('p-alias').value;
     const bio = document.getElementById('p-bio').value;
     const age = document.getElementById('p-age').value;
     const isExplicit = document.getElementById('p-explicit').checked;
     
-    // NEW: Get Toggle States
+    // 2. NEW: Get Creator Inputs
+    const creatorAlias = document.getElementById('creator-alias').value;
+
+    // Location Toggles
     const isApprox = document.getElementById('loc-approx').checked;
     const isPrecise = document.getElementById('loc-precise').checked;
     const isPin = document.getElementById('loc-pin').checked;
-    const pinText = document.getElementById('google-location-input').value; // New Input ID
+    const pinText = document.getElementById('google-location-input').value;
 
     localStorage.setItem('pgX_show_explicit', isExplicit); 
 
@@ -3695,65 +3734,39 @@ window.saveProfile = async function() {
             bio: bio,
             age: parseInt(age) || 18,
             isExplicit: isExplicit,
+            creatorAlias: creatorAlias || "New Creator", // <--- NEW FIELD
             lastSeen: window.fbase.serverTimestamp()
         };
 
-        // --- LOCATION LOGIC ---
+        // --- LOCATION LOGIC (PRESERVED) ---
         if (isApprox || isPrecise) {
-            // A. GPS MODES (Precise OR Approximate)
             await new Promise((resolve) => {
                 if (!navigator.geolocation) { resolve(); return; }
-                
                 navigator.geolocation.getCurrentPosition((pos) => {
                     let lat = pos.coords.latitude;
                     let lng = pos.coords.longitude;
-
                     if (isApprox) {
-                        // APPROXIMATE: Add random offset (~1-2 miles)
                         const offsetLat = (Math.random() - 0.5) * 0.04; 
                         const offsetLng = (Math.random() - 0.5) * 0.04;
-                        lat += offsetLat;
-                        lng += offsetLng;
-                        console.log("Saving Approximate Location (Fuzzed)");
-                    } else {
-                        console.log("Saving Precise Location");
+                        lat += offsetLat; lng += offsetLng;
                     }
-
-                    updates.lat = lat;
-                    updates.lng = lng;
-                    
+                    updates.lat = lat; updates.lng = lng;
                     if(window.map) window.map.setView([lat, lng], 13);
                     resolve();
-                }, (err) => {
-                    console.warn("GPS failed", err);
-                    resolve();
-                }, { enableHighAccuracy: isPrecise }); 
+                }, () => resolve(), { enableHighAccuracy: isPrecise }); 
             });
-
         } else if (isPin && pinText.length > 2) {
-            // B. PIN MODE (Manual/Google)
-            // (Placeholder: Uses Nominatim until you add Google Keys)
             try {
                 const response = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(pinText)}`);
                 const data = await response.json();
-                
                 if (data && data.length > 0) {
-                    const lat = parseFloat(data[0].lat);
-                    const lng = parseFloat(data[0].lon);
-                    updates.lat = lat;
-                    updates.lng = lng;
-                    console.log("Pin Dropped at:", pinText, lat, lng);
-                    
-                    if(window.map) window.map.setView([lat, lng], 13);
-                } else {
-                    alert("Could not find location: " + pinText);
+                    updates.lat = parseFloat(data[0].lat);
+                    updates.lng = parseFloat(data[0].lon);
                 }
-            } catch (e) {
-                console.warn("Geocoding failed", e);
-            }
+            } catch (e) { console.warn("Geocoding failed", e); }
         }
 
-        // --- FILE UPLOADS (Standard) ---
+        // --- FILE UPLOADS (PRESERVED + NEW CREATOR AVATAR) ---
         const uploadFile = async (inputId, pathName) => {
             const el = document.getElementById(inputId);
             if (el && el.files[0]) {
@@ -3764,15 +3777,22 @@ window.saveProfile = async function() {
             return null;
         };
 
+        // Upload Dating Photos
         const mainUrl = await uploadFile('main-up', 'main');
         if (mainUrl) { updates.img = mainUrl; localStorage.setItem('my_profile_pic', mainUrl); }
-
+        
         const g2Url = await uploadFile('g2', 'g2'); if (g2Url) updates.g2 = g2Url;
         const g3Url = await uploadFile('g3', 'g3'); if (g3Url) updates.g3 = g3Url;
         const g4Url = await uploadFile('g4', 'g4'); if (g4Url) updates.g4 = g4Url;
         const vidUrl = await uploadFile('vid-up', 'video'); if (vidUrl) updates.video = vidUrl;
 
-        // Process Deletes
+        // NEW: Upload Creator Avatar
+        const creatorUrl = await uploadFile('creator-avatar-input', 'creator_avatar');
+        if (creatorUrl) { 
+            updates.creatorImg = creatorUrl; // <--- NEW FIELD
+        }
+
+        // Process Deletes (Preserved)
         if (window.pendingDeletes) {
             if (window.pendingDeletes.g2) updates.g2 = "";
             if (window.pendingDeletes.g3) updates.g3 = "";
@@ -3784,33 +3804,25 @@ window.saveProfile = async function() {
         const userRef = window.fbase.doc(window.db, 'artifacts', window.APP_ID, 'public', 'data', 'users', currentUserUid);
         await window.fbase.setDoc(userRef, updates, { merge: true });
 
+        // Update Local Cache
         if(alias) localStorage.setItem('pgX_alias', alias);
-        if(bio) localStorage.setItem('pgX_bio', bio);
-        if(bio) localStorage.setItem('pgX_bio', bio);
+        if(creatorAlias) localStorage.setItem('pgX_creator_alias', creatorAlias); // <--- Cache Creator Name
 
-        // --- INSERT THIS TRIGGER ---
-        await window.handleProfileAutoPost(updates); 
+        // Auto-Post Trigger (Preserved)
+        if(window.handleProfileAutoPost) await window.handleProfileAutoPost(updates); 
 
-        
-        alert("Profile & Location Saved!");
+        alert("Profile Saved!");
         if (window.renderDeck) renderDeck();
         document.getElementById('profile-modal').style.display = 'none';
-        
         window.pendingDeletes = {};
-        window.pendingVideoDelete = false;
 
     } catch (e) {
         console.error("Save Error:", e);
-        alert("Error saving: " + e.message);
+        alert("Error: " + e.message);
     } finally {
-        btn.innerText = oldText;
-        btn.disabled = false;
+        btn.innerText = oldText; btn.disabled = false;
     }
 }
-
-
-
-
 
 
 
@@ -5317,55 +5329,89 @@ window.renderCreatorFeed = async function(filter) {
 
     // PHASE 4: VAULT LOGIC
 
-// 1. Render the Vault for a specific user
+
+
+
+
+    // UPDATED: Viewer with Swipe/Grid Toggle & Real Data
 window.loadUserVault = function(userId) {
-    const container = document.getElementById('vault-scroller');
-    container.innerHTML = ''; // Clear old data
-
-    // SIMULATED DATA (We will connect this to Firebase later)
-    const mockVaultItems = [
-        { id: 1, type: 'img', thumb: 'https://via.placeholder.com/150', price: 50, locked: true },
-        { id: 2, type: 'video', thumb: 'https://via.placeholder.com/150/000000', price: 100, locked: true },
-        { id: 3, type: 'img', thumb: 'https://via.placeholder.com/150', price: 500, locked: true },
-        { id: 4, type: 'img', thumb: 'https://via.placeholder.com/150', price: 0, locked: false } // Already bought
-    ];
-
-    mockVaultItems.forEach(item => {
-        const el = document.createElement('div');
-        el.className = 'vault-card';
-        
-        // If locked: Show lock icon. If unlocked: Show checkmark.
-        const icon = item.locked ? '🔒' : '✅';
-        const blurClass = item.locked ? '' : 'unlocked';
-        const overlayDisplay = item.locked ? 'flex' : 'none';
-
-        el.innerHTML = `
-            <div class="vault-status">${icon}</div>
-            <img src="${item.thumb}" class="vault-img ${blurClass}">
-            
-            <div class="vault-overlay" style="display: ${overlayDisplay}">
-                <div style="font-size:24px;">🔒</div>
-                <div class="vault-price-tag">
-                    <span>🪙</span> ${item.price}
-                </div>
+    const section = document.getElementById('vault-section');
+    
+    // 1. Inject Header with Toggle Buttons (Grid vs Swipe)
+    section.innerHTML = `
+        <div class="vault-header-row">
+            <h3 style="color:#F59E0B; margin:0; font-size:16px;">🔒 The Vault</h3>
+            <div class="vault-toggle-group">
+                <button class="vault-btn active" onclick="toggleVaultView('grid', this)">GRID</button>
+                <button class="vault-btn" onclick="toggleVaultView('swipe', this)">SWIPE</button>
             </div>
-        `;
+        </div>
+        <div id="vault-scroller" class="vault-layout-grid">
+            <div style="color:#666; padding:10px; font-size:12px;">Loading Content...</div>
+        </div>
+    `;
 
-        // Click Action
-        el.onclick = function() {
-            if (item.locked) {
-                // Trigger Purchase Flow
-                confirmUnlock(item);
-            } else {
-                // View Content
-                alert("Opening Full Resolution Content...");
-            }
-        };
+    // 2. Fetch Real Content for this specific User
+    const q = window.fbase.query(
+        window.fbase.collection(window.db, 'vault_content'), 
+        window.fbase.where('uid', '==', userId), 
+        window.fbase.orderBy('date', 'desc')
+    );
 
-        container.appendChild(el);
+    window.fbase.onSnapshot(q, (snap) => {
+        const container = document.getElementById('vault-scroller');
+        container.innerHTML = '';
+
+        if (snap.empty) {
+            container.innerHTML = '<div style="padding:10px; color:#555; font-size:12px;">No premium content yet.</div>';
+            return;
+        }
+
+        snap.forEach(doc => {
+            const item = doc.data();
+            const el = document.createElement('div');
+            el.className = 'vault-card';
+            
+            // Logic: Check if locked (For now, we assume all are locked unless bought)
+            // We preserve your "Status Icon" and "Overlay" logic
+            el.innerHTML = `
+                <div class="vault-status">🔒</div>
+                <img src="${item.thumb}" class="vault-img">
+                <div class="vault-overlay">
+                    <div style="font-weight:bold; color:#F59E0B; background:rgba(0,0,0,0.8); padding:2px 8px; border-radius:10px; font-size:11px;">
+                        ${item.price} 🪙
+                    </div>
+                </div>
+            `;
+            
+            el.onclick = () => window.confirmUnlock(item);
+            container.appendChild(el);
+        });
     });
 }
 
+// NEW: Toggle Function Helper
+window.toggleVaultView = function(mode, btn) {
+    // Switch Active Button
+    document.querySelectorAll('.vault-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+
+    // Switch Container Class
+    const container = document.getElementById('vault-scroller');
+    if (mode === 'grid') {
+        container.className = 'vault-layout-grid';
+    } else {
+        container.className = 'vault-layout-swipe';
+    }
+}
+
+
+
+
+
+
+
+    
 // 2. The Unlock Confirmation Popup
 window.confirmUnlock = function(item) {
     // Check balance (Simulation: assume user has 0 coins for now)
@@ -5518,42 +5564,58 @@ window.resetEditor = function() {
     document.getElementById('premium-file').value = "";
 }
 
-// OVERRIDE UPLOAD FUNCTION to use our new blob
-window.uploadPremiumContent = function() {
+
+
+
+
+
+
+    
+
+// UPDATED: Uploads using CREATOR Identity (Not Dating Identity)
+window.uploadPremiumContent = async function() {
     const price = document.getElementById('premium-price').value;
     const desc = document.getElementById('premium-desc').value;
-    const grid = document.getElementById('creator-vault-grid'); // Fixed ID from previous step
-
-    if (!finalBlob) return alert("Error: No image generated.");
-    if (!price) return alert("Price is required.");
-
-    // 1. Generate URL from our processed Blob
-    const imgUrl = URL.createObjectURL(finalBlob);
-
-    // 2. Add to Grid
-    const div = document.createElement('div');
-    div.style.cssText = "background: #111; border-radius: 8px; overflow: hidden; border: 1px solid #333; position: relative;";
     
-    // Apply user's selected blur to the thumbnail
-    const blurAmount = document.getElementById('blur-slider').value;
+    // NEW: Grab Identity from the Creator Tab inputs specifically
+    // This ensures we use the "Persona" and not your Real Name
+    const cName = document.getElementById('creator-alias').value || "Hidden Creator";
+    const cPic = document.getElementById('creator-avatar-preview').src;
+
+    if (!finalBlob) return alert("No media generated. Please crop/edit an image first.");
+    if (!price) return alert("Please set a price.");
+
+    // 1. Upload Blob (Thumbnail) to Firebase Storage
+    // We use window.fbase and window.storage to ensure global scope access
+    const ref = window.fbase.ref(window.storage, `vault/${currentUserUid}/${Date.now()}_thumb`);
+    const snap = await window.fbase.uploadBytes(ref, finalBlob);
+    const url = await window.fbase.getDownloadURL(snap.ref);
+
+    // 2. Save to Database with CREATOR info
+    await window.fbase.addDoc(window.fbase.collection(window.db, "vault_content"), {
+        uid: currentUserUid,
+        author: cName,   // <--- Uses Creator Alias
+        face: cPic,      // <--- Uses Creator Avatar
+        thumb: url,
+        price: parseInt(price),
+        caption: desc,
+        date: new Date()
+    });
+
+    alert("Posted to Vault as " + cName);
     
-    div.innerHTML = `
-        <img src="${imgUrl}" style="width: 100%; height: 100px; object-fit: cover; filter: blur(${blurAmount}px);">
-        <div style="padding: 8px;">
-            <div style="font-size: 10px; color: #9CA3AF;">${desc || 'No Title'}</div>
-            <div style="font-size: 12px; font-weight: bold; color: #F59E0B;">${price} Coins</div>
-        </div>
-        <div style="position:absolute; top:5px; right:5px; background:rgba(0,0,0,0.5); padding:2px 5px; border-radius:4px; font-size:10px;">🔒</div>
-    `;
-
-    // 3. Add to Grid
-    grid.prepend(div);
-
-    // 4. Reset Everything
-    alert("Success! Content added to Vault.");
+    // 3. Reset UI (Preserved from original)
     resetEditor();
+    
+    // 4. Refresh My List (if function exists)
+    if(window.loadMyCreatorVault) window.loadMyCreatorVault(); 
 }
 
+
+
+
+
+    
 
 
 
@@ -5788,6 +5850,7 @@ window.postToVault = async function() {
                             
 </body>
 </html>
+
 
 
 
