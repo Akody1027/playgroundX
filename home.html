@@ -813,6 +813,72 @@
 }
 
 
+
+
+
+
+
+/* CREATOR FEED STYLES */
+.creator-card {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    cursor: pointer;
+    transition: transform 0.1s;
+}
+
+.creator-card:active {
+    transform: scale(0.95);
+}
+
+.creator-avatar-ring {
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    padding: 3px;
+    background: linear-gradient(45deg, #F59E0B, #EF4444); /* Fire Gradient */
+    margin-bottom: 8px;
+    position: relative;
+}
+
+.creator-avatar-img {
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 3px solid #121212; /* Spacing between ring and img */
+    background: #333;
+}
+
+.creator-alias {
+    font-size: 13px;
+    font-weight: 600;
+    color: #E5E7EB;
+    text-align: center;
+    max-width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.creator-badge {
+    position: absolute;
+    bottom: 0;
+    right: 0;
+    background: #F59E0B;
+    color: black;
+    font-size: 10px;
+    font-weight: bold;
+    padding: 2px 6px;
+    border-radius: 8px;
+    border: 2px solid #121212;
+}
+
+      
+
+
+
+        
         
         
 
@@ -1788,6 +1854,85 @@
     
 
 
+
+
+
+<div id="coin-store-modal" class="modal">
+    <div class="modal-content" style="max-width: 380px;">
+        <div class="modal-header">
+            <h2>Reload Wallet</h2>
+            <button class="close-modal" onclick="closeCoinStore()">×</button>
+        </div>
+        <div class="modal-body" style="padding: 0 20px 20px;">
+            <div style="text-align: center; margin-bottom: 20px; color: #9CA3AF; font-size: 14px;">
+                Current Balance: <span id="store-balance-display" style="color: white; font-weight: bold;">0</span> Coins
+            </div>
+
+            <div onclick="purchaseCoins(5000, 54.99)" style="background: linear-gradient(135deg, #8B5CF6, #6D28D9); padding: 2px; border-radius: 12px; margin-bottom: 15px; cursor: pointer; position: relative;">
+                <div style="position: absolute; top: -8px; right: 10px; background: #F59E0B; color: black; font-weight: bold; font-size: 10px; padding: 2px 8px; border-radius: 10px;">BEST VALUE</div>
+                <div style="background: #1E1E1E; border-radius: 10px; padding: 15px; display: flex; align-items: center; justify-content: space-between;">
+                    <div>
+                        <div style="font-weight: bold; color: white;">5,000 Coins</div>
+                        <div style="font-size: 12px; color: #A7F3D0;">Baller Status</div>
+                    </div>
+                    <div style="background: #8B5CF6; color: white; padding: 8px 16px; border-radius: 8px; font-weight: bold;">$54.99</div>
+                </div>
+            </div>
+
+            <div onclick="purchaseCoins(1000, 10.99)" style="display: flex; justify-content: space-between; align-items: center; background: #2D2D2D; padding: 12px; border-radius: 8px; margin-bottom: 10px; border: 1px solid #333; cursor: pointer;">
+                <div><span style="font-size: 18px;">🔥</span> <b>1,000 Coins</b></div>
+                <div style="background: #374151; padding: 5px 10px; border-radius: 6px;">$10.99</div>
+            </div>
+
+            <div onclick="purchaseCoins(100, 1.19)" style="display: flex; justify-content: space-between; align-items: center; background: #2D2D2D; padding: 12px; border-radius: 8px; margin-bottom: 10px; border: 1px solid #333; cursor: pointer;">
+                <div><span style="font-size: 18px;">👋</span> <b>100 Coins</b></div>
+                <div style="background: #374151; padding: 5px 10px; border-radius: 6px;">$1.19</div>
+            </div>
+
+            <div style="text-align: center; margin-top: 15px; font-size: 10px; color: #6B7280;">
+                🔒 Secure Payment via Stripe. No adult descriptors.
+            </div>
+        </div>
+    </div>
+</div>
+
+
+
+
+
+
+
+<div id="creator-feed-modal" class="modal" style="display:none; align-items:flex-start; padding-top: 60px;">
+    <div class="modal-content" style="width: 100%; height: 100%; max-width: 600px; background: #121212; border-radius: 0; overflow-y: auto;">
+        
+        <div style="position: sticky; top: 0; background: rgba(18, 18, 18, 0.95); padding: 15px 20px; border-bottom: 1px solid #333; display: flex; justify-content: space-between; align-items: center; z-index: 10;">
+            <h2 style="margin: 0; display:flex; align-items:center; gap:10px;">
+                <span style="color:#F59E0B">🔥</span> Creator Hub
+            </h2>
+            <button onclick="document.getElementById('creator-feed-modal').style.display='none'" style="background:none; border:none; color:white; font-size:28px; cursor:pointer;">×</button>
+        </div>
+
+        <div id="creator-grid-container" style="padding: 20px; display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px;">
+            <div style="text-align:center; color:#666; grid-column: 1/-1; padding: 40px;">
+                Loading Creators...
+            </div>
+        </div>
+
+        <div style="height: 100px;"></div>
+    </div>
+</div>
+
+
+
+
+
+
+
+
+
+
+
+    
 
 
 
@@ -4743,11 +4888,59 @@ window.purchaseCoins = function(amount, price) {
     }
 }
 
-// 6. Creator Feed Logic
+
+
+
+// UPDATED: Creator Feed Logic (Phase 3)
 window.openCreatorFeed = function() {
-    alert("Opening Creator Grid...\n(This is the Netflix-style module coming in Phase 3)");
+    const modal = document.getElementById('creator-feed-modal');
+    const container = document.getElementById('creator-grid-container');
+    
+    if (modal) {
+        modal.style.display = 'flex'; // Open Modal
+    }
+
+    // SIMULATED DATA (In Phase 5 we connect this to Firebase 'users' collection)
+    // We will generate fake creators to test the UI layout.
+    const mockCreators = [
+        { name: "SexyLexy", img: "https://i.pravatar.cc/150?u=1", isLive: true },
+        { name: "VipQueen", img: "https://i.pravatar.cc/150?u=2", isLive: false },
+        { name: "GymHunk", img: "https://i.pravatar.cc/150?u=3", isLive: false },
+        { name: "SweetPea", img: "https://i.pravatar.cc/150?u=4", isLive: true },
+        { name: "BadBoy99", img: "https://i.pravatar.cc/150?u=5", isLive: false },
+        { name: "GamerGirl", img: "https://i.pravatar.cc/150?u=6", isLive: false },
+        { name: "YogaMistress", img: "https://i.pravatar.cc/150?u=7", isLive: true },
+        { name: "FitLife", img: "https://i.pravatar.cc/150?u=8", isLive: false },
+        { name: "NightOwl", img: "https://i.pravatar.cc/150?u=9", isLive: false },
+    ];
+
+    // Clear loading state
+    container.innerHTML = '';
+
+    // Render Grid
+    mockCreators.forEach(creator => {
+        const div = document.createElement('div');
+        div.className = 'creator-card';
+        div.onclick = function() {
+            // When clicked, open their profile (Mock action for now)
+            alert(`Opening Creator Profile: ${creator.name}\n(This will open the Vault in Phase 4)`);
+        };
+
+        const liveBadge = creator.isLive ? 
+            `<div class="creator-badge" style="background:#10B981; color:white;">NEW</div>` : '';
+
+        div.innerHTML = `
+            <div class="creator-avatar-ring">
+                <img src="${creator.img}" class="creator-avatar-img">
+                ${liveBadge}
+            </div>
+            <div class="creator-alias">${creator.name}</div>
+        `;
+        container.appendChild(div);
+    });
 }
 
+    
 
 
 
@@ -4761,45 +4954,6 @@ window.openCreatorFeed = function() {
 
 
 
-<div id="coin-store-modal" class="modal">
-    <div class="modal-content" style="max-width: 380px;">
-        <div class="modal-header">
-            <h2>Reload Wallet</h2>
-            <button class="close-modal" onclick="closeCoinStore()">×</button>
-        </div>
-        <div class="modal-body" style="padding: 0 20px 20px;">
-            <div style="text-align: center; margin-bottom: 20px; color: #9CA3AF; font-size: 14px;">
-                Current Balance: <span id="store-balance-display" style="color: white; font-weight: bold;">0</span> Coins
-            </div>
-
-            <div onclick="purchaseCoins(5000, 54.99)" style="background: linear-gradient(135deg, #8B5CF6, #6D28D9); padding: 2px; border-radius: 12px; margin-bottom: 15px; cursor: pointer; position: relative;">
-                <div style="position: absolute; top: -8px; right: 10px; background: #F59E0B; color: black; font-weight: bold; font-size: 10px; padding: 2px 8px; border-radius: 10px;">BEST VALUE</div>
-                <div style="background: #1E1E1E; border-radius: 10px; padding: 15px; display: flex; align-items: center; justify-content: space-between;">
-                    <div>
-                        <div style="font-weight: bold; color: white;">5,000 Coins</div>
-                        <div style="font-size: 12px; color: #A7F3D0;">Baller Status</div>
-                    </div>
-                    <div style="background: #8B5CF6; color: white; padding: 8px 16px; border-radius: 8px; font-weight: bold;">$54.99</div>
-                </div>
-            </div>
-
-            <div onclick="purchaseCoins(1000, 10.99)" style="display: flex; justify-content: space-between; align-items: center; background: #2D2D2D; padding: 12px; border-radius: 8px; margin-bottom: 10px; border: 1px solid #333; cursor: pointer;">
-                <div><span style="font-size: 18px;">🔥</span> <b>1,000 Coins</b></div>
-                <div style="background: #374151; padding: 5px 10px; border-radius: 6px;">$10.99</div>
-            </div>
-
-            <div onclick="purchaseCoins(100, 1.19)" style="display: flex; justify-content: space-between; align-items: center; background: #2D2D2D; padding: 12px; border-radius: 8px; margin-bottom: 10px; border: 1px solid #333; cursor: pointer;">
-                <div><span style="font-size: 18px;">👋</span> <b>100 Coins</b></div>
-                <div style="background: #374151; padding: 5px 10px; border-radius: 6px;">$1.19</div>
-            </div>
-
-            <div style="text-align: center; margin-top: 15px; font-size: 10px; color: #6B7280;">
-                🔒 Secure Payment via Stripe. No adult descriptors.
-            </div>
-        </div>
-    </div>
-</div>
-
 
 
 
@@ -4807,6 +4961,7 @@ window.openCreatorFeed = function() {
                             
 </body>
 </html>
+
 
 
 
