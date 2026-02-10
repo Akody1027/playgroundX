@@ -878,6 +878,68 @@
 
 
 
+        /* VAULT STYLES */
+.vault-card {
+    min-width: 130px;
+    height: 180px;
+    background: #1E1E1E;
+    border-radius: 12px;
+    position: relative;
+    overflow: hidden;
+    cursor: pointer;
+    border: 1px solid #333;
+    transition: transform 0.2s;
+}
+
+.vault-card:active {
+    transform: scale(0.95);
+}
+
+/* The Blurred Content */
+.vault-img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    filter: blur(15px); /* The "NSFW" Blur */
+    opacity: 0.6;
+}
+
+.vault-img.unlocked {
+    filter: blur(0);
+    opacity: 1;
+}
+
+/* The Lock Overlay */
+.vault-overlay {
+    position: absolute;
+    top: 0; left: 0; right: 0; bottom: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    z-index: 2;
+}
+
+.vault-price-tag {
+    background: rgba(0,0,0,0.8);
+    color: #F59E0B;
+    padding: 5px 10px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: bold;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    margin-top: 10px;
+    border: 1px solid #F59E0B;
+}
+
+.vault-status {
+    position: absolute;
+    top: 10px; right: 10px;
+    font-size: 16px;
+    z-index: 3;
+}
         
         
         
@@ -1571,6 +1633,31 @@
             <div class="gallery-slot" style="background: #222; border-color: var(--accent);">▶</div>
         </div>
 
+
+
+
+
+        <div id="vault-section" style="margin-top: 30px; border-top: 1px solid #333; padding-top: 20px;">
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
+        <h3 style="color: #F59E0B; margin: 0; display:flex; align-items:center; gap:8px;">
+            🔒 The Vault
+            <span style="font-size:10px; background:#F59E0B; color:black; padding:2px 6px; border-radius:4px;">PREMIUM</span>
+        </h3>
+        <div style="font-size:12px; color:#9CA3AF;">Exclusive Content</div>
+    </div>
+
+    <div id="vault-scroller" style="display: flex; overflow-x: auto; gap: 15px; padding-bottom: 10px; scrollbar-width: thin;">
+        <div style="min-width: 120px; height: 160px; background: #2D2D2D; border-radius: 12px; display:flex; align-items:center; justify-content:center; color:#555; font-size:12px;">
+            (Vault Empty)
+        </div>
+    </div>
+</div>
+
+
+
+
+
+        
 
 
         <h1 id="view-user-name" style="margin: 0; font-size: 28px; color: var(--accent);">Alias</h1>
@@ -3690,6 +3777,10 @@ window.openUserProfile = async function(alias, age, img, id) {
     } catch (e) {
         console.error("Error loading user details", e);
     }
+
+        loadUserVault(uid);
+
+    
 }
 
 
@@ -4945,6 +5036,89 @@ window.openCreatorFeed = function() {
 
 
 
+
+    // PHASE 4: VAULT LOGIC
+
+// 1. Render the Vault for a specific user
+window.loadUserVault = function(userId) {
+    const container = document.getElementById('vault-scroller');
+    container.innerHTML = ''; // Clear old data
+
+    // SIMULATED DATA (We will connect this to Firebase later)
+    const mockVaultItems = [
+        { id: 1, type: 'img', thumb: 'https://via.placeholder.com/150', price: 50, locked: true },
+        { id: 2, type: 'video', thumb: 'https://via.placeholder.com/150/000000', price: 100, locked: true },
+        { id: 3, type: 'img', thumb: 'https://via.placeholder.com/150', price: 500, locked: true },
+        { id: 4, type: 'img', thumb: 'https://via.placeholder.com/150', price: 0, locked: false } // Already bought
+    ];
+
+    mockVaultItems.forEach(item => {
+        const el = document.createElement('div');
+        el.className = 'vault-card';
+        
+        // If locked: Show lock icon. If unlocked: Show checkmark.
+        const icon = item.locked ? '🔒' : '✅';
+        const blurClass = item.locked ? '' : 'unlocked';
+        const overlayDisplay = item.locked ? 'flex' : 'none';
+
+        el.innerHTML = `
+            <div class="vault-status">${icon}</div>
+            <img src="${item.thumb}" class="vault-img ${blurClass}">
+            
+            <div class="vault-overlay" style="display: ${overlayDisplay}">
+                <div style="font-size:24px;">🔒</div>
+                <div class="vault-price-tag">
+                    <span>🪙</span> ${item.price}
+                </div>
+            </div>
+        `;
+
+        // Click Action
+        el.onclick = function() {
+            if (item.locked) {
+                // Trigger Purchase Flow
+                confirmUnlock(item);
+            } else {
+                // View Content
+                alert("Opening Full Resolution Content...");
+            }
+        };
+
+        container.appendChild(el);
+    });
+}
+
+// 2. The Unlock Confirmation Popup
+window.confirmUnlock = function(item) {
+    // Check balance (Simulation: assume user has 0 coins for now)
+    const userBalance = 0; 
+    
+    if (userBalance < item.price) {
+        // Not enough money -> Open Store
+        if(confirm(`🔒 Locked Content\n\nPrice: ${item.price} Coins\nYou have: ${userBalance} Coins\n\nGo to Store to top up?`)) {
+            openCoinStore();
+        }
+    } else {
+        // Has money -> Buy
+        if(confirm(`Unlock this for ${item.price} Coins?`)) {
+            alert("Unlocked! (Simulation)");
+            // Here we would update the database
+        }
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+    
                             
 
 </script>
@@ -4961,6 +5135,7 @@ window.openCreatorFeed = function() {
                             
 </body>
 </html>
+
 
 
 
