@@ -943,7 +943,66 @@
         
         
         
+/* FIX FOR CREATOR TAB STYLING */
+.profile-section {
+    background: #1E1E1E; /* Card Dark */
+    padding: 20px;
+    border-radius: 16px;
+    margin-bottom: 20px;
+    border: 1px solid #333;
+}
 
+.profile-section h3 {
+    margin-top: 0;
+    margin-bottom: 15px;
+    color: white;
+    font-size: 16px;
+    border-bottom: 1px solid #333;
+    padding-bottom: 10px;
+}
+
+/* Fix for Input Fields in Creator Tab */
+.profile-section input[type="text"],
+.profile-section input[type="number"] {
+    background: #111;
+    border: 1px solid #444;
+    color: white;
+    padding: 12px;
+    border-radius: 8px;
+    width: 100%;
+    box-sizing: border-box; /* Prevents input from overflowing */
+    font-size: 14px;
+}
+
+.profile-section input:focus {
+    border-color: #8B5CF6; /* Accent Purple */
+    outline: none;
+}
+
+/* Fix for File Upload Button */
+.action-btn.primary-btn {
+    background: #2563EB; /* Blue */
+    color: white;
+    font-weight: 600;
+    border: none;
+    padding: 12px;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+.action-btn.primary-btn:hover {
+    background: #1D4ED8;
+}
+
+
+
+
+
+
+
+
+        
         
     </style>
     <script type="module">
@@ -5155,6 +5214,7 @@ window.confirmUnlock = function(item) {
                             
 </body>
 </html>
+
 
 
 
