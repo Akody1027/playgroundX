@@ -4982,7 +4982,13 @@ window.purchaseCoins = function(amount, price) {
 
 
 
-// UPDATED: Creator Feed Logic (Phase 3)
+
+
+
+
+
+
+
 window.openCreatorFeed = function() {
     const modal = document.getElementById('creator-feed-modal');
     const container = document.getElementById('creator-grid-container');
@@ -4991,18 +4997,17 @@ window.openCreatorFeed = function() {
         modal.style.display = 'flex'; // Open Modal
     }
 
-    // SIMULATED DATA (In Phase 5 we connect this to Firebase 'users' collection)
-    // We will generate fake creators to test the UI layout.
+    // SIMULATED DATA
     const mockCreators = [
-        { name: "SexyLexy", img: "https://i.pravatar.cc/150?u=1", isLive: true },
-        { name: "VipQueen", img: "https://i.pravatar.cc/150?u=2", isLive: false },
-        { name: "GymHunk", img: "https://i.pravatar.cc/150?u=3", isLive: false },
-        { name: "SweetPea", img: "https://i.pravatar.cc/150?u=4", isLive: true },
-        { name: "BadBoy99", img: "https://i.pravatar.cc/150?u=5", isLive: false },
-        { name: "GamerGirl", img: "https://i.pravatar.cc/150?u=6", isLive: false },
-        { name: "YogaMistress", img: "https://i.pravatar.cc/150?u=7", isLive: true },
-        { name: "FitLife", img: "https://i.pravatar.cc/150?u=8", isLive: false },
-        { name: "NightOwl", img: "https://i.pravatar.cc/150?u=9", isLive: false },
+        { name: "SexyLexy", img: "https://i.pravatar.cc/150?u=1", isLive: true, id: "mock_1" },
+        { name: "VipQueen", img: "https://i.pravatar.cc/150?u=2", isLive: false, id: "mock_2" },
+        { name: "GymHunk", img: "https://i.pravatar.cc/150?u=3", isLive: false, id: "mock_3" },
+        { name: "SweetPea", img: "https://i.pravatar.cc/150?u=4", isLive: true, id: "mock_4" },
+        { name: "BadBoy99", img: "https://i.pravatar.cc/150?u=5", isLive: false, id: "mock_5" },
+        { name: "GamerGirl", img: "https://i.pravatar.cc/150?u=6", isLive: false, id: "mock_6" },
+        { name: "YogaMistress", img: "https://i.pravatar.cc/150?u=7", isLive: true, id: "mock_7" },
+        { name: "FitLife", img: "https://i.pravatar.cc/150?u=8", isLive: false, id: "mock_8" },
+        { name: "NightOwl", img: "https://i.pravatar.cc/150?u=9", isLive: false, id: "mock_9" },
     ];
 
     // Clear loading state
@@ -5012,9 +5017,11 @@ window.openCreatorFeed = function() {
     mockCreators.forEach(creator => {
         const div = document.createElement('div');
         div.className = 'creator-card';
+        
+        // CLICK ACTION: Close Feed -> Open Profile
         div.onclick = function() {
-            // When clicked, open their profile (Mock action for now)
-            alert(`Opening Creator Profile: ${creator.name}\n(This will open the Vault in Phase 4)`);
+            document.getElementById('creator-feed-modal').style.display = 'none'; // Close Feed
+            window.openUserProfile(creator.name, '21', creator.img, creator.id); // Open Profile
         };
 
         const liveBadge = creator.isLive ? 
@@ -5030,6 +5037,8 @@ window.openCreatorFeed = function() {
         container.appendChild(div);
     });
 }
+
+
 
     
 
@@ -5135,6 +5144,7 @@ window.confirmUnlock = function(item) {
                             
 </body>
 </html>
+
 
 
 
