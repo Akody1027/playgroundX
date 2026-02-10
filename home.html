@@ -5241,20 +5241,35 @@ window.switchCreatorFilter = function(gender, btn) {
 
     
 
-// UPDATED: Real Firebase Feed
+
+
+    // FIXED: Real Firebase Feed (Namespace Corrected)
 window.renderCreatorFeed = async function(filter) {
     const container = document.getElementById('creator-grid-container');
     container.innerHTML = '<div style="color:#666; text-align:center; padding:20px;">Loading...</div>';
 
     try {
-        let q = query(collection(db, "vault_content"), orderBy("date", "desc"), limit(20));
+        // 1. Define the Collection
+        const vaultCol = window.fbase.collection(window.db, "vault_content");
+
+        // 2. Build the Query using window.fbase prefix
+        let q = window.fbase.query(
+            vaultCol, 
+            window.fbase.orderBy("date", "desc"), 
+            window.fbase.limit(20)
+        );
         
-        // Apply Filter if not 'any'
+        // 3. Apply Filter if needed
         if(filter !== 'any') {
-            q = query(collection(db, "vault_content"), where("gender", "==", filter), orderBy("date", "desc"), limit(20));
+            q = window.fbase.query(
+                vaultCol, 
+                window.fbase.where("gender", "==", filter), 
+                window.fbase.orderBy("date", "desc"), 
+                window.fbase.limit(20)
+            );
         }
 
-        const snap = await getDocs(q);
+        const snap = await window.fbase.getDocs(q);
         container.innerHTML = '';
 
         if (snap.empty) {
@@ -5267,7 +5282,6 @@ window.renderCreatorFeed = async function(filter) {
             const el = document.createElement('div');
             el.className = 'feed-card';
             
-            // Render: Avatar + Thumb + Price
             el.innerHTML = `
                 <img src="${data.face}" class="feed-creator-badge">
                 <img src="${data.thumb}" class="feed-media">
@@ -5277,7 +5291,6 @@ window.renderCreatorFeed = async function(filter) {
                 </div>
             `;
             
-            // Click -> Open Profile
             el.onclick = () => {
                 document.getElementById('creator-feed-modal').style.display = 'none';
                 window.openUserProfile(data.author, '25', data.face, data.uid);
@@ -5287,12 +5300,11 @@ window.renderCreatorFeed = async function(filter) {
         });
 
     } catch (err) {
-        console.error(err);
-        // Hint: This usually happens if the Index is missing. Check Console!
-        container.innerHTML = `<div style="color:red; text-align:center;">Feed Error (Check Console)</div>`;
+        console.error("Feed Error:", err);
+        // If the Index is missing, the link will appear in the Console now that the code actually runs!
+        container.innerHTML = `<div style="color:red; text-align:center;">Feed Error (See Console for Index Link)</div>`;
     }
 }
-
 
 
 
@@ -5696,12 +5708,17 @@ window.resetCreator = function() {
 
 
 
-    
-// UPDATED: Real Firebase Upload
+
+
+
+
+
+
+// FIXED: Real Firebase Upload (Namespace Corrected)
 window.postToVault = async function() {
     const price = document.getElementById('final-price').value;
     const caption = document.getElementById('final-caption').value;
-    const user = auth.currentUser;
+    const user = window.auth.currentUser;
 
     if (!user) return alert("Please log in.");
     if (!creator.blob) return alert("No media prepared.");
@@ -5710,24 +5727,23 @@ window.postToVault = async function() {
     btn.innerText = "Uploading..."; btn.disabled = true;
 
     try {
-        // 1. Upload Original & Thumbnail
-        const tRef = ref(storage, `vault/${user.uid}/${Date.now()}_thumb.jpg`);
-        const oRef = ref(storage, `vault/${user.uid}/${Date.now()}_orig`);
+        // 1. Upload Original & Thumbnail (Using window.fbase prefix)
+        // Note: We use window.storage because your init script exposes it globally
+        const tRef = window.fbase.ref(window.storage, `vault/${user.uid}/${Date.now()}_thumb.jpg`);
+        const oRef = window.fbase.ref(window.storage, `vault/${user.uid}/${Date.now()}_orig`);
         
-        // Parallel uploads for speed
         const [thumbSnap, origSnap] = await Promise.all([
-            uploadBytes(tRef, creator.blob),
-            uploadBytes(oRef, creator.file)
+            window.fbase.uploadBytes(tRef, creator.blob),
+            window.fbase.uploadBytes(oRef, creator.file)
         ]);
 
-        const thumbUrl = await getDownloadURL(thumbSnap.ref);
-        const origUrl = await getDownloadURL(origSnap.ref);
+        const thumbUrl = await window.fbase.getDownloadURL(thumbSnap.ref);
+        const origUrl = await window.fbase.getDownloadURL(origSnap.ref);
 
         // 2. Save to Database
-        // Note: Defaults to 'any' if profile isn't loaded yet
         const gender = window.currentUserProfile ? window.currentUserProfile.gender : 'any'; 
         
-        await addDoc(collection(db, "vault_content"), {
+        await window.fbase.addDoc(window.fbase.collection(window.db, "vault_content"), {
             uid: user.uid,
             author: user.displayName || "Creator",
             face: user.photoURL || "https://via.placeholder.com/150",
@@ -5737,7 +5753,7 @@ window.postToVault = async function() {
             thumb: thumbUrl,
             price: Number(price),
             caption: caption,
-            date: new Date()
+            date: new Date() // This will use client time, which is fine
         });
 
         alert("Posted!");
@@ -5750,6 +5766,9 @@ window.postToVault = async function() {
     btn.innerText = "POST TO VAULT"; btn.disabled = false;
 }
 
+
+
+    
 
 
     
@@ -5769,6 +5788,7 @@ window.postToVault = async function() {
                             
 </body>
 </html>
+
 
 
 
