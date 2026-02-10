@@ -1242,11 +1242,21 @@
     </div>
 
     <div style="padding:20px;">
-        <div style="display:flex; gap:20px; border-bottom:1px solid #222; margin-bottom:20px;">
-            <button onclick="window.openTab('profile-tab-edit', this); document.getElementById('tab-btn-wallet').classList.remove('active');" id="tab-btn-edit" class="tab-btn active" style="padding: 10px 0; color:var(--accent); border-bottom:2px solid var(--accent);">Profile</button>
-            <button onclick="window.openTab('profile-tab-wallet', this); document.getElementById('tab-btn-edit').classList.remove('active');" id="tab-btn-wallet" class="tab-btn" style="padding: 10px 0; color:#888;">Wallet</button>
-        </div>
 
+
+        
+        <div style="display:flex; gap:20px; border-bottom:1px solid #222; margin-bottom:20px;">
+    <button onclick="window.openTab('profile-tab-edit', this)" class="tab-btn active" style="padding: 10px 0; color:var(--accent); border-bottom:2px solid var(--accent);">Profile</button>
+    <button onclick="window.openTab('profile-tab-wallet', this)" class="tab-btn" style="padding: 10px 0; color:#888;">Wallet</button>
+    <button onclick="window.openTab('tab-creator', this)" class="tab-btn" style="padding: 10px 0; color:#888;">Creator</button>
+        </div>
+        
+
+
+
+
+
+        
         <div id="profile-tab-edit" class="tab-pane active" style="display:block; padding:0;">
             
             <div style="text-align: center; margin: 20px 0;">
@@ -5144,6 +5154,7 @@ window.confirmUnlock = function(item) {
                             
 </body>
 </html>
+
 
 
 
