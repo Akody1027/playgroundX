@@ -1583,6 +1583,34 @@
             <button onclick="uploadPremiumContent()" class="action-btn" style="background: #10B981;">Post to Vault</button>
         </div>
 
+
+
+
+<h3 style="margin-top: 25px; margin-bottom: 10px; color:white;">My Active Content</h3>
+<div id="creator-vault-grid" style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 20px;">
+    <div style="background: #111; border-radius: 8px; overflow: hidden; border: 1px solid #333; position: relative;">
+        <img src="https://via.placeholder.com/150" style="width: 100%; height: 100px; object-fit: cover; opacity: 0.7;">
+        <div style="padding: 8px;">
+            <div style="font-size: 10px; color: #9CA3AF;">Beach Day</div>
+            <div style="font-size: 12px; font-weight: bold; color: #F59E0B;">50 Coins</div>
+        </div>
+    </div>
+    <div style="background: #111; border-radius: 8px; overflow: hidden; border: 1px solid #333; position: relative;">
+        <img src="https://via.placeholder.com/150" style="width: 100%; height: 100px; object-fit: cover; opacity: 0.7;">
+        <div style="padding: 8px;">
+            <div style="font-size: 10px; color: #9CA3AF;">Shower...</div>
+            <div style="font-size: 12px; font-weight: bold; color: #F59E0B;">100 Coins</div>
+        </div>
+    </div>
+</div>
+
+
+
+
+
+
+        
+
         <h3 style="margin-top: 20px;">My Subscribers</h3>
         <div id="creator-subscriber-list" style="max-height: 150px; overflow-y: auto; font-size: 13px; color: #9CA3AF;">
             <div style="padding: 10px; text-align: center;">No subscribers yet.</div>
@@ -5010,43 +5038,50 @@ window.previewPremiumFile = function(input) {
     }
 }
 
-// 4. Upload Logic (Simulation)
+
+
+
+
+// UPDATED: Upload Logic (Adds to Grid)
 window.uploadPremiumContent = function() {
     const price = document.getElementById('premium-price').value;
     const desc = document.getElementById('premium-desc').value;
     const fileInput = document.getElementById('premium-file');
+    const grid = document.getElementById('creator-vault-grid');
 
     if (!fileInput.files[0]) return alert("Please select a photo or video to lock.");
     if (!price) return alert("Please set a Coin price.");
 
-    // SUCCESS SIMULATION
-    alert(`SUCCESS! \n\nlocked Item: ${desc}\nPrice: ${price} Coins\n\n(This would now upload to Firebase Storage/Secure Vault)`);
-    
-    // Reset Form
-    document.getElementById('premium-price').value = '';
-    document.getElementById('premium-desc').value = '';
-    document.getElementById('premium-preview-area').style.display = 'none';
-    document.getElementById('premium-upload-ui').style.display = 'block'; // Show button again
-    fileInput.value = ''; // Clear file
-}
+    // 1. Get the Image URL
+    const reader = new FileReader();
+    reader.onload = function(e) {
+        const imgUrl = e.target.result;
 
-// 5. Coin Store Logic
-window.openCoinStore = function() {
-    const modal = document.getElementById('coin-store-modal');
-    if (modal) modal.style.display = 'flex';
-}
+        // 2. Create the HTML Card
+        const div = document.createElement('div');
+        div.style.cssText = "background: #111; border-radius: 8px; overflow: hidden; border: 1px solid #333; position: relative;";
+        div.innerHTML = `
+            <img src="${imgUrl}" style="width: 100%; height: 100px; object-fit: cover; opacity: 0.7;">
+            <div style="padding: 8px;">
+                <div style="font-size: 10px; color: #9CA3AF;">${desc || 'No Title'}</div>
+                <div style="font-size: 12px; font-weight: bold; color: #F59E0B;">${price} Coins</div>
+            </div>
+        `;
 
-window.closeCoinStore = function() {
-    const modal = document.getElementById('coin-store-modal');
-    if (modal) modal.style.display = 'none';
-}
+        // 3. Add to Grid (at the top)
+        grid.prepend(div);
 
-window.purchaseCoins = function(amount, price) {
-    // This is where Stripe integration goes
-    if(confirm(`Simulate Payment?\n\nGet ${amount} Coins for $${price}?`)) {
-        alert("Payment Successful! (Simulation)\nCoins would be added to your wallet now.");
-        closeCoinStore();
+        // 4. Success Message
+        alert("Success! Content locked and added to your Vault.");
+        
+        // 5. Reset Form
+        document.getElementById('premium-price').value = '';
+        document.getElementById('premium-desc').value = '';
+        document.getElementById('premium-preview-area').style.display = 'none';
+        document.getElementById('premium-upload-ui').style.display = 'block'; 
+        fileInput.value = ''; 
     }
+    reader.readAsDataURL(fileInput.files[0]);
 }
 
 
@@ -5214,6 +5249,7 @@ window.confirmUnlock = function(item) {
                             
 </body>
 </html>
+
 
 
 
