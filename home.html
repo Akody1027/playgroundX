@@ -5821,12 +5821,14 @@ window.postToVault = async function() {
         alert("Posted!");
         resetCreator();
 
-    } catch (err) {
+        } catch (err) {
         console.error(err);
         alert("Error: " + err.message);
+    } finally {
+        btn.innerText = "POST TO VAULT"; 
+        btn.disabled = false;
     }
-    btn.innerText = "POST TO VAULT"; btn.disabled = false;
-}
+    
 
 
 
@@ -5850,6 +5852,7 @@ window.postToVault = async function() {
                             
 </body>
 </html>
+
 
 
 
