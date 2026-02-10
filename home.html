@@ -1011,6 +1011,43 @@
 
 
 
+
+
+/* FEED FILTER TOGGLE */
+.filter-toggle-group {
+    display: flex;
+    background: #1E1E1E;
+    padding: 4px;
+    border-radius: 25px;
+    margin: 15px 20px 20px; /* Spacing below header */
+    border: 1px solid #333;
+}
+
+.filter-toggle-btn {
+    flex: 1;
+    text-align: center;
+    padding: 10px 0;
+    font-size: 13px;
+    font-weight: 600;
+    color: #9CA3AF; /* Gray */
+    border-radius: 20px;
+    cursor: pointer;
+    transition: all 0.2s;
+    background: transparent;
+    border: none;
+}
+
+.filter-toggle-btn.active {
+    background: var(--accent); /* Purple */
+    color: white;
+    box-shadow: 0 2px 8px rgba(139, 92, 246, 0.3);
+}
+
+
+
+
+
+
         
         
     </style>
@@ -2174,6 +2211,16 @@
             </h2>
             <button onclick="document.getElementById('creator-feed-modal').style.display='none'" style="background:none; border:none; color:white; font-size:28px; cursor:pointer;">×</button>
         </div>
+
+
+<div class="filter-toggle-group">
+    <button class="filter-toggle-btn active" onclick="switchCreatorFilter('any', this)">Any</button>
+    <button class="filter-toggle-btn" onclick="switchCreatorFilter('female', this)">Women</button>
+    <button class="filter-toggle-btn" onclick="switchCreatorFilter('male', this)">Men</button>
+</div>
+
+
+        
 
         <div id="creator-grid-container" style="padding: 20px; display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px;">
             <div style="text-align:center; color:#666; grid-column: 1/-1; padding: 40px;">
@@ -5169,57 +5216,91 @@ window.uploadPremiumContent = function() {
 
 
 
-
-
+// PHASE 5: PREMIUM FEED WITH FILTERS
+let currentFeedFilter = 'any';
 
 window.openCreatorFeed = function() {
-    const modal = document.getElementById('creator-feed-modal');
-    const container = document.getElementById('creator-grid-container');
-    
-    if (modal) {
-        modal.style.display = 'flex'; // Open Modal
-    }
+    document.getElementById('creator-feed-modal').style.display = 'flex';
+    // Load default view
+    renderCreatorFeed('any');
+}
 
-    // SIMULATED DATA
-    const mockCreators = [
-        { name: "SexyLexy", img: "https://i.pravatar.cc/150?u=1", isLive: true, id: "mock_1" },
-        { name: "VipQueen", img: "https://i.pravatar.cc/150?u=2", isLive: false, id: "mock_2" },
-        { name: "GymHunk", img: "https://i.pravatar.cc/150?u=3", isLive: false, id: "mock_3" },
-        { name: "SweetPea", img: "https://i.pravatar.cc/150?u=4", isLive: true, id: "mock_4" },
-        { name: "BadBoy99", img: "https://i.pravatar.cc/150?u=5", isLive: false, id: "mock_5" },
-        { name: "GamerGirl", img: "https://i.pravatar.cc/150?u=6", isLive: false, id: "mock_6" },
-        { name: "YogaMistress", img: "https://i.pravatar.cc/150?u=7", isLive: true, id: "mock_7" },
-        { name: "FitLife", img: "https://i.pravatar.cc/150?u=8", isLive: false, id: "mock_8" },
-        { name: "NightOwl", img: "https://i.pravatar.cc/150?u=9", isLive: false, id: "mock_9" },
+window.switchCreatorFilter = function(gender, btn) {
+    // 1. Update Buttons
+    document.querySelectorAll('.filter-toggle-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    
+    // 2. Update Filter & Render
+    currentFeedFilter = gender;
+    renderCreatorFeed(gender);
+}
+
+window.renderCreatorFeed = function(filter) {
+    const container = document.getElementById('creator-grid-container');
+    container.innerHTML = '';
+    
+    // Update Grid Layout
+    container.style.display = 'grid';
+    container.style.gridTemplateColumns = 'repeat(3, 1fr)';
+    container.style.gap = '10px';
+
+    // SIMULATED DATA (Now with 'gender')
+    const allItems = [
+        { id: 1, type: 'video', gender: 'female', src: 'https://assets.mixkit.co/videos/preview/mixkit-waves-in-the-water-1164-large.mp4', price: 100, creator: 'SexyLexy', avatar: 'https://i.pravatar.cc/150?u=1' },
+        { id: 2, type: 'img',   gender: 'female', src: 'https://via.placeholder.com/300', price: 50,  creator: 'VipQueen', avatar: 'https://i.pravatar.cc/150?u=2' },
+        { id: 3, type: 'video', gender: 'male',   src: 'https://assets.mixkit.co/videos/preview/mixkit-stars-in-space-1610-large.mp4', price: 200, creator: 'GymHunk',  avatar: 'https://i.pravatar.cc/150?u=3' },
+        { id: 4, type: 'img',   gender: 'female', src: 'https://via.placeholder.com/300', price: 25,  creator: 'SweetPea', avatar: 'https://i.pravatar.cc/150?u=4' },
+        { id: 5, type: 'video', gender: 'male',   src: 'https://assets.mixkit.co/videos/preview/mixkit-waves-in-the-water-1164-large.mp4', price: 500, creator: 'BadBoy99', avatar: 'https://i.pravatar.cc/150?u=5' },
+        { id: 6, type: 'img',   gender: 'female', src: 'https://via.placeholder.com/300', price: 75,  creator: 'GamerGirl',avatar: 'https://i.pravatar.cc/150?u=6' },
+        { id: 7, type: 'img',   gender: 'female', src: 'https://via.placeholder.com/300', price: 100, creator: 'YogaMistress', avatar: 'https://i.pravatar.cc/150?u=7' },
+        { id: 8, type: 'video', gender: 'male',   src: 'https://assets.mixkit.co/videos/preview/mixkit-stars-in-space-1610-large.mp4', price: 150, creator: 'FitLife',  avatar: 'https://i.pravatar.cc/150?u=8' },
+        { id: 9, type: 'img',   gender: 'male',   src: 'https://via.placeholder.com/300', price: 50,  creator: 'NightOwl', avatar: 'https://i.pravatar.cc/150?u=9' },
     ];
 
-    // Clear loading state
-    container.innerHTML = '';
+    // FILTER LOGIC
+    const filteredItems = filter === 'any' 
+        ? allItems 
+        : allItems.filter(item => item.gender === filter);
 
-    // Render Grid
-    mockCreators.forEach(creator => {
+    if (filteredItems.length === 0) {
+        container.innerHTML = `<div style="grid-column:1/-1; text-align:center; padding:40px; color:#666;">No content found.</div>`;
+        return;
+    }
+
+    // RENDER CARDS
+    filteredItems.forEach(item => {
         const div = document.createElement('div');
-        div.className = 'creator-card';
+        div.className = 'feed-card';
         
-        // CLICK ACTION: Close Feed -> Open Profile
         div.onclick = function() {
-            document.getElementById('creator-feed-modal').style.display = 'none'; // Close Feed
-            window.openUserProfile(creator.name, '21', creator.img, creator.id); // Open Profile
+            document.getElementById('creator-feed-modal').style.display = 'none'; 
+            window.openUserProfile(item.creator, '21', item.avatar, 'mock_id'); 
         };
 
-        const liveBadge = creator.isLive ? 
-            `<div class="creator-badge" style="background:#10B981; color:white;">NEW</div>` : '';
+        // Media (No forced blur here, assumes creator blurred it if they wanted)
+        let mediaHtml = '';
+        if (item.type === 'video') {
+            mediaHtml = `<video src="${item.src}" class="feed-media" autoplay muted loop playsinline></video>`;
+        } else {
+            mediaHtml = `<img src="${item.src}" class="feed-media">`;
+        }
 
         div.innerHTML = `
-            <div class="creator-avatar-ring">
-                <img src="${creator.img}" class="creator-avatar-img">
-                ${liveBadge}
+            <img src="${item.avatar}" class="feed-creator-badge" title="${item.creator}">
+            ${mediaHtml}
+            <div class="feed-overlay">
+                <div style="font-size:20px;">🔒</div>
+                <div style="font-weight:bold; font-size:12px; background:rgba(0,0,0,0.6); padding:2px 8px; border-radius:10px; margin-top:5px;">
+                    ${item.price} 🪙
+                </div>
             </div>
-            <div class="creator-alias">${creator.name}</div>
         `;
         container.appendChild(div);
     });
 }
+
+
+
 
 
 
@@ -5660,6 +5741,7 @@ window.postToVault = function() {
                             
 </body>
 </html>
+
 
 
 
