@@ -92,41 +92,51 @@
         ::-webkit-scrollbar-thumb { background: #444; border-radius: 4px; }
         ::-webkit-scrollbar-track { background: #1e1e1e; }
 
+        /* FLOATING KEYBOARD TOGGLE */
+        #kb-toggle {
+            position: absolute;
+            bottom: 20px;
+            right: 20px;
+            width: 50px;
+            height: 50px;
+            background: rgba(0, 123, 255, 0.5); /* Semi-transparent Blue */
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            color: white;
+            font-size: 24px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+            z-index: 200;
+            backdrop-filter: blur(4px);
+            box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+            transition: all 0.2s ease;
+        }
+        #kb-toggle.active {
+            background: rgba(40, 167, 69, 0.8); /* Green when active */
+            box-shadow: 0 0 15px rgba(40, 167, 69, 0.6);
+        }
 
-
-
-/* FLOATING KEYBOARD TOGGLE */
-#kb-toggle {
-    position: absolute;
-    bottom: 20px;
-    right: 20px;
-    width: 50px;
-    height: 50px;
-    background: rgba(0, 123, 255, 0.5); /* Semi-transparent Blue */
-    border: 1px solid rgba(255, 255, 255, 0.3);
-    border-radius: 50%;
-    color: white;
-    font-size: 24px;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    cursor: pointer;
-    z-index: 200;
-    backdrop-filter: blur(4px);
-    box-shadow: 0 4px 10px rgba(0,0,0,0.3);
-    transition: all 0.2s ease;
-}
-#kb-toggle.active {
-    background: rgba(40, 167, 69, 0.8); /* Green when active */
-    box-shadow: 0 0 15px rgba(40, 167, 69, 0.6);
-}
-
-
-
-
-
-
-        
+        /* SETTINGS TOGGLE (Bottom Left) */
+        #settings-toggle {
+            position: absolute; bottom: 20px; left: 20px; width: 50px; height: 50px;
+            background: #444; border: 1px solid #666; border-radius: 50%; color: white;
+            font-size: 24px; display: flex; justify-content: center; align-items: center;
+            cursor: pointer; z-index: 200; box-shadow: 0 4px 10px rgba(0,0,0,0.3); transition: 0.2s;
+        }
+        #settings-menu {
+            position: absolute; bottom: 25px; left: 80px; display: flex; gap: 10px;
+            background: rgba(30, 30, 30, 0.9); padding: 8px 12px; border-radius: 30px;
+            border: 1px solid #555; backdrop-filter: blur(5px); transform: translateX(-20px);
+            opacity: 0; pointer-events: none; transition: 0.3s ease; z-index: 199;
+        }
+        #settings-menu.open { transform: translateX(0); opacity: 1; pointer-events: auto; }
+        .menu-btn {
+            background: transparent; border: none; color: white; font-size: 14px; 
+            cursor: pointer; padding: 5px 10px; border-radius: 4px;
+        }
+        .menu-btn:hover { background: rgba(255,255,255,0.1); }
     </style>
 </head>
 <body>
@@ -137,6 +147,8 @@
             <span style="font-weight:bold; color:#fff; margin-right:10px;">DevPiP</span>
             <button onclick="downloadCode()">Download .html</button>
             <button onclick="prettifyCode()">✨ Prettify</button>
+            <button class="icon-btn" onclick="editor.undo()" title="Undo">↶</button>
+            <button class="icon-btn" onclick="editor.redo()" title="Redo">↷</button>
         </div>
         
         <div class="tool-group">
@@ -150,8 +162,12 @@
             <button onclick="togglePiP()">Toggle Preview</button>
         </div>
 
-
-
+        <button id="settings-toggle" onclick="toggleSettings()">⚙️</button>
+        <div id="settings-menu">
+            <button class="menu-btn" onclick="copyAll()">Copy All</button>
+            <button class="menu-btn" onclick="pasteCode()">Paste</button>
+            <button class="menu-btn" onclick="selectAll()">Select All</button>
+        </div>
 
         <button id="kb-toggle" onclick="toggleKeyboard()">⌨</button>
         
@@ -249,7 +265,6 @@
 
     window.onload = function() {
         // Init CodeMirror
-        // Init CodeMirror
         editor = CodeMirror.fromTextArea(document.getElementById("code-editor"), {
             mode: "htmlmixed",
             theme: "dracula",
@@ -258,7 +273,6 @@
             lineWrapping: true,
             matchBrackets: true
         });
-
 
         // Load saved code or default
         const saved = localStorage.getItem(STORAGE_KEY);
@@ -289,12 +303,10 @@
         const code = editor.getValue();
         
         // Base Tag Injection (Relative Path Support)
-        // We inject <base href="..."> so relative images/css work if this file is in a repo
         const currentPath = window.location.href.substring(0, window.location.href.lastIndexOf('/') + 1);
         const baseTag = `<base href="${currentPath}">`;
         
         // Console Capture Script
-        // We inject this script to catch console.log inside the iframe and send it to our parent window
         const consoleScript = `
             <script>
                 (function(){
@@ -316,7 +328,6 @@
         `;
 
         // Combine
-        // Note: Simple replace to insert base tag after head, or at start if no head
         let finalCode = code;
         if (finalCode.includes('<head>')) {
             finalCode = finalCode.replace('<head>', `<head>${baseTag}${consoleScript}`);
@@ -504,9 +515,39 @@
         editor.refresh();
     }
 
+    // --- SETTINGS MENU LOGIC ---
+    function toggleSettings() {
+        const menu = document.getElementById('settings-menu');
+        menu.classList.toggle('open');
+    }
 
+    function selectAll() {
+        editor.execCommand('selectAll');
+        editor.focus();
+        toggleSettings(); // Auto-close menu
+    }
 
-        // --- 9. KEYBOARD TOGGLE LOGIC ---
+    function copyAll() {
+        const code = editor.getValue();
+        navigator.clipboard.writeText(code).then(() => {
+            alert("Code copied to clipboard!");
+            toggleSettings();
+        }).catch(err => {
+            console.error("Failed to copy: ", err);
+        });
+    }
+
+    async function pasteCode() {
+        try {
+            const text = await navigator.clipboard.readText();
+            editor.replaceSelection(text);
+            toggleSettings();
+        } catch (err) {
+            alert("Paste permission denied or not supported. Please paste manually.");
+        }
+    }
+
+    // --- 9. KEYBOARD TOGGLE LOGIC ---
     function toggleKeyboard() {
         const btn = document.getElementById('kb-toggle');
         // Check if currently read-only (which means "nocursor" or true)
@@ -525,10 +566,7 @@
         }
     }
 
-
 </script>
 
 </body>
 </html>
-
-
