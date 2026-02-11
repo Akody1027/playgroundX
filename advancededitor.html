@@ -91,6 +91,42 @@
         ::-webkit-scrollbar { width: 8px; height: 8px; }
         ::-webkit-scrollbar-thumb { background: #444; border-radius: 4px; }
         ::-webkit-scrollbar-track { background: #1e1e1e; }
+
+
+
+
+/* FLOATING KEYBOARD TOGGLE */
+#kb-toggle {
+    position: absolute;
+    bottom: 20px;
+    right: 20px;
+    width: 50px;
+    height: 50px;
+    background: rgba(0, 123, 255, 0.5); /* Semi-transparent Blue */
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    border-radius: 50%;
+    color: white;
+    font-size: 24px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    cursor: pointer;
+    z-index: 200;
+    backdrop-filter: blur(4px);
+    box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+    transition: all 0.2s ease;
+}
+#kb-toggle.active {
+    background: rgba(40, 167, 69, 0.8); /* Green when active */
+    box-shadow: 0 0 15px rgba(40, 167, 69, 0.6);
+}
+
+
+
+
+
+
+        
     </style>
 </head>
 <body>
@@ -113,6 +149,12 @@
             <button onclick="toggleConsole()">Console</button>
             <button onclick="togglePiP()">Toggle Preview</button>
         </div>
+
+
+
+
+        <button id="kb-toggle" onclick="toggleKeyboard()">⌨</button>
+        
     </div>
 
     <div id="search-overlay">
@@ -207,6 +249,7 @@
 
     window.onload = function() {
         // Init CodeMirror
+        // Init CodeMirror
         editor = CodeMirror.fromTextArea(document.getElementById("code-editor"), {
             mode: "htmlmixed",
             theme: "dracula",
@@ -215,6 +258,7 @@
             lineWrapping: true,
             matchBrackets: true
         });
+
 
         // Load saved code or default
         const saved = localStorage.getItem(STORAGE_KEY);
@@ -460,7 +504,30 @@
         editor.refresh();
     }
 
+
+
+        // --- 9. KEYBOARD TOGGLE LOGIC ---
+    function toggleKeyboard() {
+        const btn = document.getElementById('kb-toggle');
+        // Check if currently read-only (which means "nocursor" or true)
+        const isLocked = editor.getOption("readOnly");
+
+        if (isLocked) {
+            // UNLOCK: Enable editing and show cursor
+            editor.setOption("readOnly", false);
+            btn.classList.add('active'); // Turn Green
+            editor.focus();
+        } else {
+            // LOCK: Disable editing and hide cursor
+            editor.setOption("readOnly", "nocursor");
+            btn.classList.remove('active'); // Turn Blue
+            document.activeElement.blur(); // Force keyboard down
+        }
+    }
+
+
 </script>
 
 </body>
 </html>
+
