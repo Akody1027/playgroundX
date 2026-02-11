@@ -58,7 +58,6 @@
             background: #111; border: 1px solid #555; border-radius: 8px;
             box-shadow: 0 10px 30px rgba(0,0,0,0.5); z-index: 100;
             display: flex; flex-direction: column; overflow: hidden;
-            /* Resizing handled via JS now */
         }
         #pip-header {
             height: 30px; background: #333; cursor: grab; display: flex; align-items: center; justify-content: space-between; padding: 0 10px; user-select: none;
@@ -73,7 +72,7 @@
         /* Overlay to capture mouse events while dragging iframe */
         #iframe-blocker { position: absolute; top: 30px; bottom: 0; left: 0; right: 0; display: none; z-index: 101; }
 
-        /* NEW RESIZE HANDLE (Bottom Right Grip) */
+        /* RESIZE HANDLE */
         #pip-resizer {
             width: 20px; height: 20px;
             background: linear-gradient(135deg, transparent 50%, #666 50%);
@@ -131,6 +130,21 @@
             cursor: pointer; padding: 5px 10px; border-radius: 4px;
         }
         .menu-btn:hover { background: rgba(255,255,255,0.1); }
+
+        /* SYNTAX ERROR MODAL */
+        #syntax-modal {
+            position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
+            width: 80%; max-width: 400px; background: #252526; border: 1px solid #ff5f56;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.8); z-index: 300; display: none;
+            flex-direction: column; border-radius: 8px; overflow: hidden;
+            animation: fadeIn 0.2s ease-out;
+        }
+        @keyframes fadeIn { from { opacity: 0; transform: translate(-50%, -60%); } to { opacity: 1; transform: translate(-50%, -50%); } }
+        #syntax-header { background: #ff5f56; color: white; padding: 10px; font-weight: bold; display: flex; justify-content: space-between; align-items: center; }
+        #syntax-body { padding: 15px; color: #ddd; font-family: monospace; font-size: 13px; white-space: pre-wrap; max-height: 300px; overflow-y: auto; }
+        #syntax-footer { padding: 10px; background: #1e1e1e; text-align: right; border-top: 1px solid #333; }
+        .jump-btn { background: #007bff; color: white; border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer; }
+        .close-btn { background: transparent; border: none; color: white; cursor: pointer; font-size: 16px; }
     </style>
 </head>
 <body>
@@ -139,8 +153,10 @@
     <div id="toolbar">
         <div class="tool-group">
             <span style="font-weight:bold; color:#fff; margin-right:10px;">DevPiP</span>
-            <button onclick="downloadCode()">Download .html</button>
+            <button onclick="downloadCode()">Download</button>
             <button onclick="prettifyCode()">✨ Prettify</button>
+            <button onclick="checkSyntax()">⚠️ Check</button>
+            
             <button class="icon-btn" onclick="editor.undo()" title="Undo">↶</button>
             <button class="icon-btn" onclick="editor.redo()" title="Redo">↷</button>
         </div>
@@ -166,6 +182,17 @@
 
         <button id="kb-toggle" onclick="toggleKeyboard()">⌨</button>
         
+    </div>
+
+    <div id="syntax-modal">
+        <div id="syntax-header">
+            <span>Syntax Error Detected</span>
+            <button class="close-btn" onclick="closeSyntaxModal()">✕</button>
+        </div>
+        <div id="syntax-body" id="syntax-msg"></div>
+        <div id="syntax-footer">
+            <button id="syntax-jump" class="jump-btn">Jump to Line</button>
+        </div>
     </div>
 
     <div id="search-overlay">
@@ -299,11 +326,9 @@
         const frame = document.getElementById('preview-frame');
         const code = editor.getValue();
         
-        // Base Tag Injection (Relative Path Support)
         const currentPath = window.location.href.substring(0, window.location.href.lastIndexOf('/') + 1);
         const baseTag = `<base href="${currentPath}">`;
         
-        // Console Capture Script
         const consoleScript = `
             <script>
                 (function(){
@@ -324,7 +349,6 @@
             <\/script>
         `;
 
-        // Combine
         let finalCode = code;
         if (finalCode.includes('<head>')) {
             finalCode = finalCode.replace('<head>', `<head>${baseTag}${consoleScript}`);
@@ -378,7 +402,7 @@
         }
     }
 
-    // --- 4. PRETTIFY LOGIC ---
+    // --- 4. PRETTIFY & SYNTAX CHECK LOGIC ---
     function prettifyCode() {
         try {
             const currentCode = editor.getValue();
@@ -389,9 +413,51 @@
             });
             editor.setValue(formatted);
         } catch (err) {
-            alert("Could not format code. Check for syntax errors.");
-            console.error(err);
+            // If prettify fails, show the syntax checker
+            showSyntaxError(err);
         }
+    }
+
+    function checkSyntax() {
+        try {
+            const currentCode = editor.getValue();
+            // Just try to format it. If it throws, we have syntax error.
+            prettier.format(currentCode, {
+                parser: "html",
+                plugins: prettierPlugins,
+                tabWidth: 2
+            });
+            alert("✅ No syntax errors found!");
+        } catch (err) {
+            showSyntaxError(err);
+        }
+    }
+
+    function showSyntaxError(err) {
+        const modal = document.getElementById('syntax-modal');
+        const body = document.getElementById('syntax-body');
+        const jumpBtn = document.getElementById('syntax-jump');
+        
+        modal.style.display = 'flex';
+        body.innerText = err.message || err;
+
+        // Try to extract line number
+        if(err.loc && err.loc.start) {
+            const line = err.loc.start.line;
+            jumpBtn.onclick = function() {
+                editor.setCursor({line: line - 1, ch: 0});
+                editor.focus();
+                closeSyntaxModal();
+            };
+            jumpBtn.style.display = 'inline-block';
+            jumpBtn.innerText = "Jump to Line " + line;
+        } else {
+            jumpBtn.style.display = 'none';
+        }
+    }
+
+    function closeSyntaxModal() {
+        document.getElementById('syntax-modal').style.display = 'none';
     }
 
     // --- 5. SEARCH LOGIC ---
