@@ -58,7 +58,7 @@
             background: #111; border: 1px solid #555; border-radius: 8px;
             box-shadow: 0 10px 30px rgba(0,0,0,0.5); z-index: 100;
             display: flex; flex-direction: column; overflow: hidden;
-            resize: both; /* Native resize handle */
+            /* Resizing handled via JS now */
         }
         #pip-header {
             height: 30px; background: #333; cursor: grab; display: flex; align-items: center; justify-content: space-between; padding: 0 10px; user-select: none;
@@ -72,6 +72,14 @@
         iframe { flex: 1; width: 100%; border: none; background: white; pointer-events: auto; }
         /* Overlay to capture mouse events while dragging iframe */
         #iframe-blocker { position: absolute; top: 30px; bottom: 0; left: 0; right: 0; display: none; z-index: 101; }
+
+        /* NEW RESIZE HANDLE (Bottom Right Grip) */
+        #pip-resizer {
+            width: 20px; height: 20px;
+            background: linear-gradient(135deg, transparent 50%, #666 50%);
+            position: absolute; right: 0; bottom: 0;
+            cursor: nwse-resize; z-index: 102;
+        }
 
         /* CONSOLE */
         #console-panel {
@@ -92,30 +100,16 @@
         ::-webkit-scrollbar-thumb { background: #444; border-radius: 4px; }
         ::-webkit-scrollbar-track { background: #1e1e1e; }
 
-        /* FLOATING KEYBOARD TOGGLE */
+        /* FLOATING KEYBOARD TOGGLE (Right) */
         #kb-toggle {
-            position: absolute;
-            bottom: 20px;
-            right: 20px;
-            width: 50px;
-            height: 50px;
-            background: rgba(0, 123, 255, 0.5); /* Semi-transparent Blue */
-            border: 1px solid rgba(255, 255, 255, 0.3);
-            border-radius: 50%;
-            color: white;
-            font-size: 24px;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            cursor: pointer;
-            z-index: 200;
-            backdrop-filter: blur(4px);
-            box-shadow: 0 4px 10px rgba(0,0,0,0.3);
-            transition: all 0.2s ease;
+            position: absolute; bottom: 20px; right: 20px; width: 50px; height: 50px;
+            background: rgba(0, 123, 255, 0.5); border: 1px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50%; color: white; font-size: 24px; display: flex;
+            justify-content: center; align-items: center; cursor: pointer; z-index: 200;
+            backdrop-filter: blur(4px); box-shadow: 0 4px 10px rgba(0,0,0,0.3); transition: all 0.2s ease;
         }
         #kb-toggle.active {
-            background: rgba(40, 167, 69, 0.8); /* Green when active */
-            box-shadow: 0 0 15px rgba(40, 167, 69, 0.6);
+            background: rgba(40, 167, 69, 0.8); box-shadow: 0 0 15px rgba(40, 167, 69, 0.6);
         }
 
         /* SETTINGS TOGGLE (Bottom Left) */
@@ -167,6 +161,7 @@
             <button class="menu-btn" onclick="copyAll()">Copy All</button>
             <button class="menu-btn" onclick="pasteCode()">Paste</button>
             <button class="menu-btn" onclick="selectAll()">Select All</button>
+            <button class="menu-btn" onclick="clearAll()" style="color: #ff6b6b;">Clear All</button>
         </div>
 
         <button id="kb-toggle" onclick="toggleKeyboard()">⌨</button>
@@ -184,7 +179,8 @@
         <textarea id="code-editor"></textarea>
         
         <div id="pip-window">
-            <div id="iframe-blocker"></div> <div id="pip-header">
+            <div id="iframe-blocker"></div> 
+            <div id="pip-header">
                 <span class="pip-title">Live Preview</span>
                 <div class="pip-controls">
                     <div class="pip-dot pip-min" onclick="minimizePiP()" title="Minimize"></div>
@@ -193,6 +189,7 @@
                 </div>
             </div>
             <iframe id="preview-frame"></iframe>
+            <div id="pip-resizer"></div>
         </div>
     </div>
 
@@ -285,7 +282,7 @@
             timeout = setTimeout(() => {
                 updatePreview();
                 localStorage.setItem(STORAGE_KEY, editor.getValue());
-            }, 500); // 500ms delay to prevent freezing while typing
+            }, 500); 
         });
 
         // Initial Run
@@ -348,7 +345,6 @@
             logs.innerHTML += `<div class="log-entry log-info">> ${escapeHtml(event.data.msg)}</div>`;
         } else if (event.data.type === 'error') {
             logs.innerHTML += `<div class="log-entry log-error">! ${escapeHtml(event.data.msg)}</div>`;
-            // Auto open console on error
             const panel = document.getElementById('console-panel');
             if(panel.style.height === '30px') panel.style.height = '150px';
         }
@@ -411,7 +407,6 @@
         }
     }
 
-    // Simple search impl using CodeMirror's cursor
     let searchCursor = null;
     function handleSearch(val) {
         if(!val) return;
@@ -425,7 +420,6 @@
             editor.setSelection(searchCursor.from(), searchCursor.to());
             editor.scrollIntoView(searchCursor.from(), 200);
         } else {
-            // Reset to top to loop
             searchCursor = editor.getSearchCursor(document.getElementById('search-input').value);
             if(searchCursor.findNext()) {
                 editor.setSelection(searchCursor.from(), searchCursor.to());
@@ -452,12 +446,12 @@
 
     header.addEventListener("mousedown", (e) => {
         isDragging = true;
-        blocker.style.display = "block"; // Cover iframe so mouse events don't get lost
+        blocker.style.display = "block"; 
         startX = e.clientX;
         startY = e.clientY;
         initialLeft = pip.offsetLeft;
         initialTop = pip.offsetTop;
-        pip.style.transition = 'none'; // Disable transition for smooth drag
+        pip.style.transition = 'none'; 
     });
 
     document.addEventListener("mousemove", (e) => {
@@ -472,9 +466,63 @@
         if (isDragging) {
             isDragging = false;
             blocker.style.display = "none";
-            pip.style.transition = ''; // Re-enable transitions
+            pip.style.transition = ''; 
         }
     });
+
+    // --- 6.5 RESIZE PIP LOGIC (Custom Grip) ---
+    const resizer = document.getElementById('pip-resizer');
+    
+    let isResizing = false;
+    let startW, startH, startX_Resize, startY_Resize;
+
+    function initResize(e) {
+        isResizing = true;
+        blocker.style.display = "block"; // Cover iframe
+        
+        // Support Touch or Mouse
+        const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+        const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+
+        startX_Resize = clientX;
+        startY_Resize = clientY;
+        startW = parseInt(document.defaultView.getComputedStyle(pip).width, 10);
+        startH = parseInt(document.defaultView.getComputedStyle(pip).height, 10);
+        
+        e.preventDefault(); // Stop text selection
+        e.stopPropagation(); // Stop bubbling to drag handler
+    }
+
+    function doResize(e) {
+        if (!isResizing) return;
+
+        const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+        const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+
+        const width = startW + (clientX - startX_Resize);
+        const height = startH + (clientY - startY_Resize);
+
+        // Apply new size (with minimums)
+        if(width > 150) pip.style.width = width + 'px';
+        if(height > 100) pip.style.height = height + 'px';
+    }
+
+    function stopResize() {
+        if(isResizing) {
+            isResizing = false;
+            blocker.style.display = "none";
+        }
+    }
+
+    resizer.addEventListener('mousedown', initResize);
+    resizer.addEventListener('touchstart', initResize);
+
+    window.addEventListener('mousemove', doResize);
+    window.addEventListener('touchmove', doResize);
+
+    window.addEventListener('mouseup', stopResize);
+    window.addEventListener('touchend', stopResize);
+
 
     // --- 7. PIP CONTROLS ---
     function togglePiP() {
@@ -515,16 +563,36 @@
         editor.refresh();
     }
 
-    // --- SETTINGS MENU LOGIC ---
+    // --- 9. SETTINGS MENU LOGIC ---
     function toggleSettings() {
         const menu = document.getElementById('settings-menu');
         menu.classList.toggle('open');
     }
 
     function selectAll() {
+        // 1. Force Unlock
+        editor.setOption("readOnly", false);
+        document.getElementById('kb-toggle').classList.add('active'); 
+        
+        // 2. Select All
         editor.execCommand('selectAll');
         editor.focus();
-        toggleSettings(); // Auto-close menu
+        
+        // 3. Close menu
+        toggleSettings(); 
+    }
+
+    function clearAll() {
+        // 1. Force Unlock
+        editor.setOption("readOnly", false);
+        document.getElementById('kb-toggle').classList.add('active');
+
+        // 2. Clear value
+        editor.setValue("");
+        editor.focus();
+        
+        // 3. Close menu
+        toggleSettings();
     }
 
     function copyAll() {
@@ -539,6 +607,10 @@
 
     async function pasteCode() {
         try {
+            // 1. Force Unlock
+            editor.setOption("readOnly", false);
+            document.getElementById('kb-toggle').classList.add('active');
+
             const text = await navigator.clipboard.readText();
             editor.replaceSelection(text);
             toggleSettings();
@@ -547,25 +619,21 @@
         }
     }
 
-    // --- 9. KEYBOARD TOGGLE LOGIC ---
+    // --- 10. KEYBOARD TOGGLE LOGIC ---
     function toggleKeyboard() {
         const btn = document.getElementById('kb-toggle');
-        // Check if currently read-only (which means "nocursor" or true)
         const isLocked = editor.getOption("readOnly");
 
         if (isLocked) {
-            // UNLOCK: Enable editing and show cursor
             editor.setOption("readOnly", false);
-            btn.classList.add('active'); // Turn Green
+            btn.classList.add('active'); 
             editor.focus();
         } else {
-            // LOCK: Disable editing and hide cursor
             editor.setOption("readOnly", "nocursor");
-            btn.classList.remove('active'); // Turn Blue
-            document.activeElement.blur(); // Force keyboard down
+            btn.classList.remove('active'); 
+            document.activeElement.blur(); 
         }
     }
-
 </script>
 
 </body>
