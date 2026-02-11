@@ -932,27 +932,38 @@
 
 
 /* Creator Feed Layouts */
+
+/* 1. Grid Layout (Standard) */
 .creator-layout-grid {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
     gap: 5px;
     padding: 10px;
+    overflow-y: auto; /* Standard vertical scroll */
 }
 
+/* 2. Vertical Feed Layout (Like TikTok/Reels) */
 .creator-layout-swipe {
     display: flex;
-    overflow-x: auto;
-    gap: 15px;
-    padding: 20px;
-    scroll-snap-type: x mandatory;
+    flex-direction: column; /* Stack items vertically instead of side-by-side */
+    overflow-y: auto;       /* Enable vertical scrolling */
+    overflow-x: hidden;     /* Disable horizontal scrolling */
+    gap: 20px;
+    padding: 10px;
+    scroll-snap-type: y mandatory; /* Snap to each post as you scroll down */
+    height: 100%;           /* Fill the available height */
 }
 
-/* Ensure cards look good in swipe mode */
+/* Card Styling for Vertical Feed */
 .creator-layout-swipe .feed-card {
-    min-width: 85%; /* Shows most of the card, peeking at the next */
-    scroll-snap-align: center;
-    height: 70vh; /* Taller in swipe mode */
+    width: 100%;            /* Full width of the container */
+    height: 75vh;           /* Takes up 75% of the screen height */
+    min-width: unset;       /* Remove horizontal constraints */
+    scroll-snap-align: center; /* Snap to the center of the screen */
+    flex-shrink: 0;         /* Prevent squishing */
+    margin-bottom: 20px;    /* Spacing between posts */
 }
+
 
 
 
@@ -5985,6 +5996,7 @@ window.toggleCreatorFeedView = function(mode, btn) {
                             
 </body>
 </html>
+
 
 
 
