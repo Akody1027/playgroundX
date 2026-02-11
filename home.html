@@ -827,6 +827,58 @@
     transition: transform 0.1s;
 }
 
+
+
+
+
+.feed-card {
+    position: relative;
+    background: #111;
+    border-radius: 12px;
+    overflow: hidden;
+    aspect-ratio: 9/16; /* Keeps them tall like phone screens */
+    border: 1px solid #333;
+    cursor: pointer;
+}
+
+.feed-media {
+    width: 100%;
+    height: 100%;
+    object-fit: cover; /* Prevents stretching, fills the card */
+    display: block;
+}
+
+.feed-creator-badge {
+    position: absolute; /* This fixes the "Top Left" issue */
+    top: 8px;
+    left: 8px;
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    border: 2px solid var(--accent);
+    z-index: 10;
+    object-fit: cover;
+    background: #000;
+}
+
+.feed-overlay {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    padding: 10px;
+    background: linear-gradient(to top, rgba(0,0,0,0.9), transparent);
+    color: white;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-end;
+}
+        
+
+
+        
+
 .creator-card:active {
     transform: scale(0.95);
 }
@@ -5866,6 +5918,7 @@ window.postToVault = async function() {
                             
 </body>
 </html>
+
 
 
 
