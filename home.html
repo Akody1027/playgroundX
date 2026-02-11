@@ -926,7 +926,38 @@
     border: 2px solid #121212;
 }
 
-      
+
+
+
+
+
+/* Creator Feed Layouts */
+.creator-layout-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 5px;
+    padding: 10px;
+}
+
+.creator-layout-swipe {
+    display: flex;
+    overflow-x: auto;
+    gap: 15px;
+    padding: 20px;
+    scroll-snap-type: x mandatory;
+}
+
+/* Ensure cards look good in swipe mode */
+.creator-layout-swipe .feed-card {
+    min-width: 85%; /* Shows most of the card, peeking at the next */
+    scroll-snap-align: center;
+    height: 70vh; /* Taller in swipe mode */
+}
+
+
+
+
+        
 
 
 
@@ -2303,20 +2334,30 @@
         </div>
 
 
-<div class="filter-toggle-group">
-    <button class="filter-toggle-btn active" onclick="switchCreatorFilter('any', this)">Any</button>
-    <button class="filter-toggle-btn" onclick="switchCreatorFilter('female', this)">Women</button>
-    <button class="filter-toggle-btn" onclick="switchCreatorFilter('male', this)">Men</button>
+
+<div style="display: flex; gap: 10px; padding: 0 20px; margin-bottom: 10px;">
+    <div class="filter-toggle-group" style="flex: 2; margin: 0;">
+        <button class="filter-toggle-btn active" onclick="switchCreatorFilter('any', this)">Any</button>
+        <button class="filter-toggle-btn" onclick="switchCreatorFilter('female', this)">Women</button>
+        <button class="filter-toggle-btn" onclick="switchCreatorFilter('male', this)">Men</button>
+    </div>
+
+    <div class="filter-toggle-group" style="flex: 1; margin: 0; display: flex;">
+        <button class="filter-toggle-btn active" onclick="toggleCreatorFeedView('grid', this)">⊞</button>
+        <button class="filter-toggle-btn" onclick="toggleCreatorFeedView('swipe', this)">↔</button>
+    </div>
+</div>
+
+<div id="creator-grid-container" class="creator-layout-grid">
+    <div style="text-align:center; color:#666; grid-column: 1/-1; padding: 40px;">
+        Loading Creators...
+    </div>
 </div>
 
 
-        
 
-        <div id="creator-grid-container" style="padding: 20px; display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px;">
-            <div style="text-align:center; color:#666; grid-column: 1/-1; padding: 40px;">
-                Loading Creators...
-            </div>
-        </div>
+
+        
 
         <div style="height: 100px;"></div>
     </div>
@@ -5901,6 +5942,32 @@ window.postToVault = async function() {
     }
 
 
+
+
+
+
+
+window.toggleCreatorFeedView = function(mode, btn) {
+    // 1. Update Container Class
+    const container = document.getElementById('creator-grid-container');
+    if (mode === 'grid') {
+        container.className = 'creator-layout-grid';
+    } else {
+        container.className = 'creator-layout-swipe';
+    }
+
+    // 2. Update Active Button State
+    // Find the parent group of the clicked button
+    const group = btn.parentElement;
+    // Remove active class from all buttons in THIS group only
+    group.querySelectorAll('.filter-toggle-btn').forEach(b => b.classList.remove('active'));
+    // Activate the clicked button
+    btn.classList.add('active');
+}
+
+
+
+
     
                             
 
@@ -5918,6 +5985,7 @@ window.postToVault = async function() {
                             
 </body>
 </html>
+
 
 
 
