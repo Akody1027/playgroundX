@@ -844,7 +844,7 @@
 .feed-media {
     width: 100%;
     height: 100%;
-    object-fit: cover; /* Prevents stretching, fills the card */
+    object-fit: fill; /* Prevents stretching, fills the card */
     display: block;
 }
 
@@ -950,8 +950,8 @@
     overflow-x: hidden;     /* Disable horizontal scrolling */
     gap: 20px;
     padding: 10px;
-    scroll-snap-type: y mandatory; /* Snap to each post as you scroll down */
-    height: 100%;           /* Fill the available height */
+     
+    height: 80%;           /* Fill the available height */
 }
 
 /* Card Styling for Vertical Feed */
@@ -959,7 +959,7 @@
     width: 100%;            /* Full width of the container */
     height: 75vh;           /* Takes up 75% of the screen height */
     min-width: unset;       /* Remove horizontal constraints */
-    scroll-snap-align: center; /* Snap to the center of the screen */
+    
     flex-shrink: 0;         /* Prevent squishing */
     margin-bottom: 20px;    /* Spacing between posts */
 }
@@ -993,8 +993,8 @@
 .vault-img {
     width: 100%;
     height: 100%;
-    object-fit: cover;
-    filter: blur(15px); /* The "NSFW" Blur */
+    object-fit: fill;
+    /* The "NSFW" Blur */
     opacity: 0.6;
 }
 
@@ -5996,6 +5996,7 @@ window.toggleCreatorFeedView = function(mode, btn) {
                             
 </body>
 </html>
+
 
 
 
