@@ -351,30 +351,7 @@
 
 
 
-        /* PASTE THIS BLOCK */
-.guest-option {
-    margin-top: 25px;
-    text-align: center;
-    font-size: 13px; /* Slightly small to be subtle */
-    color: #666;
-    cursor: pointer;
-    transition: all 0.2s ease;
-}
-
-.guest-option:hover {
-    color: #999;
-}
-
-.guest-option span {
-    color: #888;
-    text-decoration: underline;
-    font-weight: 500;
-}
-
-.guest-option:hover span {
-    color: var(--primary); /* Glows purple on hover */
-}
-        
+    
 
         
 
@@ -694,26 +671,6 @@
 
 
 
-
-
-
-         // PASTE THIS FUNCTION
-        window.enterGuestMode = () => {
-            // 1. Set the Guest Flag so Home knows to restrict access
-            localStorage.setItem('pgX_guest_mode', 'true');
-            
-            // 2. Clear any old Member flags so they don't get mixed signals
-            localStorage.removeItem('pgX_member_active');
-            localStorage.removeItem('pgX_admin_access');
-
-            // 3. Redirect to the app
-            window.location.href = "home.html";
-        };
-
-
-
-
-
         
         window.revealLogin = () => {
             // New User? Show the Warning First.
@@ -739,7 +696,7 @@
             document.getElementById('login-layer').classList.remove('login-visible');
         };
 
-// 1. Add the toggle password function to the window object
+        // 1. Add the toggle password function to the window object
         window.togglePw = (id) => {
             const el = document.getElementById(id);
             el.type = el.type === 'password' ? 'text' : 'password';
@@ -760,7 +717,7 @@
 
         // 3. Update handleAuthAction to VALIDATE the new fields
 
-// 3. Update handleAuthAction to VALIDATE the new fields
+        // 3. Update handleAuthAction to VALIDATE the new fields
         window.handleAuthAction = async () => {
             
 
@@ -981,6 +938,7 @@
     </script>
 </body>
 </html>
+
 
 
 
