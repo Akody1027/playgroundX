@@ -1,979 +1,1765 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"
+    />
     <title>playgroundX</title>
 
-
     <script>
-        document.addEventListener("DOMContentLoaded", () => {
-            // Check if user previously clicked Member Access
-            if (localStorage.getItem("pgX_member_active") === "true") {
-                const landing = document.getElementById('landing-module');
-                const login = document.getElementById('login-layer');
-                if (landing && login) {
-                    landing.classList.add('slide-up');
-                    login.classList.add('login-visible');
-                }
-            }
-        });
+      document.addEventListener("DOMContentLoaded", () => {
+        // Check if user previously clicked Member Access
+        if (localStorage.getItem("pgX_member_active") === "true") {
+          const landing = document.getElementById("landing-module");
+          const login = document.getElementById("login-layer");
+          if (landing && login) {
+            landing.classList.add("slide-up");
+            login.classList.add("login-visible");
+          }
+        }
+      });
     </script>
-    <meta name="theme-color" content="#030303">
-    <link rel="manifest" href="manifest.json">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;800&display=swap" rel="stylesheet">
-    
+    <meta name="theme-color" content="#030303" />
+    <link rel="manifest" href="manifest.json" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;800&display=swap"
+      rel="stylesheet"
+    />
+
     <style>
-        :root {
-            --primary: #8B5CF6;
-            --primary-glow: rgba(139, 92, 246, 0.5);
-            --bg-main: #030303;
-            --bg-card: #0A0A0A;
-            --text-white: #FFFFFF;
-            --text-gray: #A1A1AA;
-            --border: rgba(255,255,255,0.08);
+      :root {
+        --primary: #8b5cf6;
+        --primary-glow: rgba(139, 92, 246, 0.5);
+        --bg-main: #030303;
+        --bg-card: #0a0a0a;
+        --text-white: #ffffff;
+        --text-gray: #a1a1aa;
+        --border: rgba(255, 255, 255, 0.08);
+      }
+
+      * {
+        box-sizing: border-box;
+        -webkit-tap-highlight-color: transparent;
+      }
+
+      body {
+        margin: 0;
+        padding: 0;
+        background-color: var(--bg-main);
+        font-family: "Inter", sans-serif;
+        color: var(--text-white);
+        height: 100vh;
+        overflow: hidden;
+      }
+
+      /* Update this block */
+      .hero,
+      .features-grid,
+      nav {
+        position: relative;
+        z-index: 5; /* Moves these sections to the front */
+      }
+
+      /* --- SCROLLABLE LANDING WRAPPER --- */
+      #landing-module {
+        position: fixed;
+        inset: 0;
+        z-index: 5; /* Lowered from 20 to 5 */
+        background: radial-gradient(circle at 50% 0%, #1e1035 0%, #030303 70%);
+        overflow-y: auto;
+        scroll-behavior: smooth;
+        transition: transform 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+      }
+      #landing-module.slide-up {
+        transform: translateY(-100%);
+      }
+
+      #landing-module::-webkit-scrollbar {
+        width: 6px;
+      }
+      #landing-module::-webkit-scrollbar-thumb {
+        background: #333;
+        border-radius: 3px;
+      }
+
+      /* NAV */
+      nav {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 20px 40px;
+        position: sticky;
+        top: 0;
+        backdrop-filter: blur(8px);
+        z-index: 50;
+        border-bottom: 1px solid var(--border);
+      }
+      .brand {
+        font-weight: 800;
+        font-size: 22px;
+        letter-spacing: -1px;
+      }
+      .brand span {
+        color: var(--primary);
+      }
+      .nav-btn {
+        background: var(--primary);
+        color: white;
+        padding: 10px 24px;
+        border-radius: 50px;
+        font-size: 13px;
+        font-weight: 700;
+        border: none;
+        cursor: pointer;
+        box-shadow: 0 0 15px rgba(139, 92, 246, 0.3);
+        transition: transform 0.2s;
+      }
+      .nav-btn:hover {
+        transform: scale(1.05);
+      }
+
+      /* HERO */
+      .hero {
+        padding: 100px 20px 60px 20px;
+        text-align: center;
+        background: radial-gradient(circle at 50% 0%, #1e1035 0%, #030303 70%);
+      }
+      .tagline {
+        color: var(--primary);
+        font-size: 13px;
+        font-weight: 700;
+        letter-spacing: 3px;
+        text-transform: uppercase;
+        margin-bottom: 20px;
+        display: inline-block;
+        border: 1px solid var(--primary);
+        padding: 5px 15px;
+        border-radius: 20px;
+      }
+      .hero h1 {
+        font-size: clamp(40px, 6vw, 80px);
+        font-weight: 800;
+        line-height: 1.1;
+        margin-bottom: 30px;
+        letter-spacing: -2px;
+        background: linear-gradient(180deg, #fff 20%, #666 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+      }
+      .hero p {
+        font-size: 18px;
+        color: var(--text-gray);
+        max-width: 600px;
+        margin: 0 auto 40px auto;
+        line-height: 1.6;
+        font-weight: 300;
+      }
+      .btn-glow {
+        background: white;
+        color: black;
+        padding: 20px 50px;
+        border-radius: 50px;
+        font-weight: 800;
+        font-size: 16px;
+        border: none;
+        cursor: pointer;
+        box-shadow: 0 0 30px rgba(255, 255, 255, 0.1);
+        transition: 0.3s;
+      }
+      .btn-glow:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 0 50px rgba(255, 255, 255, 0.3);
+      }
+
+      /* --- NEW FEATURE GRID --- */
+      .features-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 2fr));
+        gap: 20px;
+        padding: 40px;
+        max-width: 1200px;
+        margin: 0 auto 0px auto;
+        padding-bottom: 50px;
+      }
+      .f-card {
+        background: var(--bg-card);
+        border: 0.5px dashed var(--primary);
+
+        padding: 30px;
+        border-radius: 24px;
+        transition: 0.3s;
+      }
+      .f-card:hover {
+        border-color: var(--primary);
+        transform: translateY(-5px);
+      }
+      .f-icon {
+        font-size: 32px;
+        margin-bottom: 20px;
+        display: block;
+      }
+      .f-title {
+        font-size: 20px;
+        font-weight: 700;
+        margin-bottom: 12px;
+        color: white;
+      }
+      .f-desc {
+        font-size: 14px;
+        color: var(--text-gray);
+        line-height: 1.6;
+      }
+
+      /* --- LOGIN OVERLAY --- */
+      #login-layer {
+        position: fixed;
+        inset: 0;
+        z-index: 100; /* Raised to 100 to sit on top */
+        display: none; /* Hidden by default to see the image */
+        align-items: center;
+        justify-content: center;
+        background: url("https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?q=80&w=2564&auto=format&fit=crop")
+          center/cover;
+      }
+      /* This makes it appear when you click the button */
+      #login-layer.login-visible {
+        display: flex;
+      }
+      .login-backdrop {
+        position: absolute;
+        inset: 0;
+        background: rgba(0, 0, 0, 0.92);
+        backdrop-filter: blur(20px);
+      }
+
+      .login-card {
+        position: relative;
+        width: 100%;
+        max-width: 450px;
+        padding: 40px;
+        background: #050505;
+        border: 1px solid #222;
+        border-radius: 20px;
+        box-shadow: 0 50px 100px rgba(0, 0, 0, 0.8);
+
+        /* --- PREVENTS SCREEN OVERFLOW --- */
+        max-height: 90vh; /* Never taller than 85% of screen */
+        overflow-y: auto; /* Scroll inside the card if needed */
+        display: flex;
+        flex-direction: column;
+
+        opacity: 0;
+        transform: scale(0.95);
+        transition: opacity 0.5s ease, transform 0.5s ease;
+      }
+
+      /* Customize the scrollbar so it looks clean */
+      .login-card::-webkit-scrollbar {
+        width: 4px;
+      }
+      .login-card::-webkit-scrollbar-thumb {
+        background: #333;
+        border-radius: 2px;
+      }
+
+      @media (max-width: 480px) {
+        .login-card {
+          padding: 20px; /* Tighter padding on mobile */
+          width: 90%; /* Give it some breathing room on sides */
         }
+      }
 
-        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+      .login-visible .login-card {
+        opacity: 1;
+        transform: scale(1);
+      }
 
-        body {
-            margin: 0; padding: 0;
-            background-color: var(--bg-main);
-            font-family: 'Inter', sans-serif;
-            color: var(--text-white);
-            height: 100vh; overflow: hidden;
+      .input-wrapper {
+        position: relative;
+        margin-bottom: 15px;
+      }
+      .input-icon {
+        position: absolute;
+        left: 15px;
+        top: 50%;
+        transform: translateY(-50%);
+        color: #666;
+        width: 20px;
+        height: 20px;
+      }
+      .inp {
+        width: 100%;
+        padding: 15px 15px 15px 45px;
+        background: #111;
+        border: 1px solid #333;
+        color: white;
+        border-radius: 8px;
+        outline: none;
+        font-size: 15px;
+        transition: 0.2s;
+      }
+      .inp:focus {
+        border-color: var(--primary);
+        background: #161616;
+      }
+
+      .btn-act {
+        width: 100%;
+        padding: 15px;
+        border-radius: 8px;
+        font-weight: 700;
+        cursor: pointer;
+        border: none;
+        font-size: 15px;
+      }
+
+      .google-btn {
+        background: transparent;
+        border: 1px solid #333;
+        color: #ccc;
+        width: 100%;
+        padding: 12px;
+        border-radius: 8px;
+        font-weight: 600;
+        font-size: 13px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 10px;
+        cursor: pointer;
+        margin-top: 20px;
+        transition: 0.2s;
+      }
+      .google-btn:hover {
+        border-color: #666;
+        color: white;
+      }
+
+      .back-nav {
+        position: absolute;
+        top: 30px;
+        left: 30px;
+        color: #888;
+        cursor: pointer;
+        z-index: 20;
+        font-weight: 600;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+      }
+      .back-nav:hover {
+        color: white;
+      }
+
+      /* Hides Google Options in Sign Up Mode */
+      .signup-mode .google-btn,
+      .signup-mode #google-separator {
+        display: none !important;
+      }
+
+      .auth-toggle {
+        margin-top: 20px;
+        text-align: center;
+        font-size: 13px;
+        color: #666;
+        cursor: pointer;
+      }
+      .auth-toggle span {
+        color: var(--primary);
+        font-weight: bold;
+      }
+
+      /* --- RECOVERY MODAL STYLES --- */
+      /* Styles the popup that appears when a user clicks 'Forgot Login Info' */
+      #recovery-modal {
+        position: fixed;
+        inset: 0;
+        z-index: 2000;
+        background: rgba(0, 0, 0, 0.95);
+        display: none;
+        align-items: center;
+        justify-content: center;
+        backdrop-filter: blur(10px);
+      }
+      .recovery-card {
+        background: #0a0a0a;
+        border: 1px solid #333;
+        padding: 40px;
+        max-width: 450px;
+        width: 90%;
+        border-radius: 20px;
+        text-align: center;
+      }
+      .forgot-link {
+        text-align: center;
+        font-size: 13px;
+        color: #888;
+        margin-top: 15px;
+        cursor: pointer;
+        transition: 0.2s;
+      }
+      .forgot-link:hover {
+        color: var(--primary);
+        text-decoration: underline;
+      }
+      .recovery-btn {
+        width: 100%;
+        background: #222;
+        color: white;
+        padding: 15px;
+        border: 1px solid #444;
+        border-radius: 12px;
+        font-weight: 700;
+        cursor: pointer;
+        margin-bottom: 15px;
+        transition: 0.2s;
+      }
+      .recovery-btn:hover {
+        background: #333;
+        border-color: var(--primary);
+      }
+
+      /* --- WIZARD STYLES --- */
+      #wizard-overlay {
+        position: fixed;
+        inset: 0;
+        z-index: 2000;
+        background: #050505;
+        display: none;
+        align-items: center;
+        justify-content: center;
+      }
+      .wizard-container {
+        width: 100%;
+        max-width: 500px;
+        height: 600px;
+        position: relative;
+        overflow: hidden;
+      }
+      .w-step {
+        position: absolute;
+        inset: 0;
+        padding: 30px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        text-align: center;
+        opacity: 0;
+        transform: translateX(100%);
+        pointer-events: none;
+        transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+      }
+      .w-step.active {
+        opacity: 1;
+        transform: translateX(0);
+        pointer-events: all;
+      }
+      .w-step.exit {
+        opacity: 0;
+        transform: translateX(-100%);
+      }
+      .w-icon {
+        font-size: 50px;
+        margin-bottom: 20px;
+      }
+      .w-title {
+        font-size: 24px;
+        font-weight: 800;
+        color: white;
+        margin-bottom: 10px;
+      }
+      .w-desc {
+        color: #888;
+        font-size: 14px;
+        line-height: 1.6;
+        margin-bottom: 30px;
+      }
+      .file-drop {
+        width: 100%;
+        border: 2px dashed #333;
+        border-radius: 12px;
+        padding: 15px;
+        margin-bottom: 10px;
+        color: #666;
+        cursor: pointer;
+      }
+      .btn-wizard {
+        background: var(--primary);
+        color: white;
+        border: none;
+        padding: 15px 40px;
+        border-radius: 50px;
+        font-weight: bold;
+        cursor: pointer;
+        margin-top: 20px;
+      }
+
+      :root {
+        --accent1: #8b5cf6;
+      }
+      /* --- STATS TICKER --- */
+      .ticker-wrap {
+        width: 100%;
+        overflow: hidden;
+        background: #000;
+        border-top: 1px solid #222;
+        border-bottom: 1px solid #222;
+        padding: 15px 0;
+        white-space: nowrap;
+        margin-top: -50px;
+        margin-bottom: 80px;
+        position: relative;
+        z-index: 10;
+      }
+      .ticker {
+        display: inline-block;
+        animation: ticker 20s linear infinite;
+      }
+      .ticker-item {
+        display: inline-block;
+        padding: 0 30px;
+        font-size: 14px;
+        font-weight: 700;
+        color: #666;
+        text-transform: uppercase;
+        letter-spacing: 2px;
+      }
+      .ticker-item span {
+        color: var(--accent1);
+      }
+      @keyframes ticker {
+        0% {
+          transform: translateX(0);
         }
-
-
-/* Update this block */
-.hero, .features-grid, nav {
-    position: relative;
-    z-index: 5; /* Moves these sections to the front */
-}
-
-
-        
-
-        /* --- SCROLLABLE LANDING WRAPPER --- */
-#landing-module {
-    position: fixed; inset: 0; 
-    z-index: 5; /* Lowered from 20 to 5 */
-    background: radial-gradient(circle at 50% 0%, #1e1035 0%, #030303 70%);    
-    overflow-y: auto; 
-    scroll-behavior: smooth;
-    transition: transform 0.6s cubic-bezier(0.16, 1, 0.3, 1);
-}
-        #landing-module.slide-up { transform: translateY(-100%); }
-        
-        #landing-module::-webkit-scrollbar { width: 6px; }
-        #landing-module::-webkit-scrollbar-thumb { background: #333; border-radius: 3px; }
-
-        /* NAV */
-        nav {
-            display: flex; justify-content: space-between; align-items: center;
-            padding: 20px 40px; position: sticky; top: 0;
-             backdrop-filter: blur(8px);
-            z-index: 50; border-bottom: 1px solid var(--border);
+        100% {
+          transform: translateX(-50%);
         }
-        .brand { font-weight: 800; font-size: 22px; letter-spacing: -1px; }
-        .brand span { color: var(--primary); }
-        .nav-btn {
-            background: var(--primary); color: white; padding: 10px 24px;
-            border-radius: 50px; font-size: 13px; font-weight: 700; border: none; cursor: pointer;
-            box-shadow: 0 0 15px rgba(139, 92, 246, 0.3); transition: transform 0.2s;
+      }
+
+      /* --- SECURITY STRIP --- */
+      .security-strip {
+        background: #0a0a0a;
+        padding: 80px 20px;
+        text-align: center;
+        border-top: 1px solid #222;
+      }
+      .badge-container {
+        display: flex;
+        justify-content: center;
+        gap: 20px;
+        flex-wrap: wrap;
+        margin-top: 40px;
+      }
+      .badge {
+        background: #111;
+        padding: 15px 25px;
+        border-radius: 12px;
+        border: 1px solid #333;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        font-weight: 600;
+        color: #ccc;
+      }
+      .badge svg {
+        stroke: var(--accent1);
+      }
+
+      /* --- FOOTER --- */
+      footer {
+        padding: 50px 20px;
+        text-align: center;
+        border-top: 1px solid #222;
+        color: #444;
+        font-size: 12px;
+      }
+
+      /* --- NEW FORM STYLES --- */
+      .signup-only {
+        display: none;
+      } /* Hidden by default */
+      .signup-mode .signup-only {
+        display: block;
+      } /* Visible only in Signup Mode */
+
+      .name-row {
+        display: flex;
+        gap: 10px;
+        margin-bottom: 15px;
+      }
+      .name-row input {
+        flex: 1;
+      } /* First/Last take available space */
+      .name-row .mi-input {
+        width: 50px;
+        text-align: center;
+        padding-left: 10px;
+      }
+
+      .pw-toggle {
+        position: absolute;
+        right: 15px;
+        top: 50%;
+        transform: translateY(-50%);
+        cursor: pointer;
+        color: #666;
+        z-index: 10;
+      }
+      .pw-toggle:hover {
+        color: var(--primary);
+      }
+
+      .info-tooltip {
+        color: var(--primary);
+        cursor: pointer;
+        margin-left: 8px;
+        font-size: 12px;
+        border: 1px solid var(--primary);
+        border-radius: 50%;
+        width: 16px;
+        height: 16px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+      }
+
+      /* --- GOOGLE MISSING INFO STYLES --- */
+      .google-alert-box {
+        background: rgba(234, 67, 53, 0.15); /* Red tint */
+        border: 1px solid #ea4335;
+        color: #ff9b9b;
+        padding: 15px;
+        border-radius: 8px;
+        font-size: 13px;
+        margin-bottom: 20px;
+        display: none; /* Hidden by default */
+        text-align: center;
+        line-height: 1.5;
+      }
+
+      /* The Arrow Container */
+      .attention-arrow {
+        position: absolute;
+        right: -40px; /* Floats to the right of the input */
+        top: 50%;
+        transform: translateY(-50%);
+        color: #ea4335;
+        animation: point-left 1s infinite;
+        display: none; /* Hidden by default */
+        z-index: 20;
+        font-weight: bold;
+        font-size: 20px;
+      }
+      @keyframes point-left {
+        0%,
+        100% {
+          transform: translateY(-50%) translateX(0);
         }
-        .nav-btn:hover { transform: scale(1.05); }
+        50% {
+          transform: translateY(-50%) translateX(-5px);
+        } /* Bounce effect */
+      }
 
-        /* HERO */
-        .hero {
-            padding: 100px 20px 60px 20px;
-            text-align: center;
-            background: radial-gradient(circle at 50% 0%, #1e1035 0%, #030303 70%);
-        }
-        .tagline {
-            color: var(--primary); font-size: 13px; font-weight: 700; letter-spacing: 3px;
-            text-transform: uppercase; margin-bottom: 20px; display: inline-block;
-            border: 1px solid var(--primary); padding: 5px 15px; border-radius: 20px;
-        }
-        .hero h1 {
-            font-size: clamp(40px, 6vw, 80px); font-weight: 800; line-height: 1.1;
-            margin-bottom: 30px; letter-spacing: -2px;
-            background: linear-gradient(180deg, #fff 20%, #666 100%);
-            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
-        }
-        .hero p {
-            font-size: 18px; color: var(--text-gray); max-width: 600px; margin: 0 auto 40px auto;
-            line-height: 1.6; font-weight: 300;
-        }
-        .btn-glow {
-            background: white; color: black;
-            padding: 20px 50px; border-radius: 50px; font-weight: 800; font-size: 16px; border: none; cursor: pointer;
-            box-shadow: 0 0 30px rgba(255, 255, 255, 0.1); transition: 0.3s;
-        }
-        .btn-glow:hover { transform: translateY(-2px); box-shadow: 0 0 50px rgba(255, 255, 255, 0.3); }
-
-        /* --- NEW FEATURE GRID --- */
-        .features-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 2fr));
-            gap: 20px;
-            padding: 40px;
-            max-width: 1200px;
-            margin: 0 auto 0px auto;
-            padding-bottom:50px;
-        }
-        .f-card {
-            background: var(--bg-card);
-            border: .5px dashed var(--primary);
-            
-            padding: 30px;
-            border-radius: 24px;
-            transition: 0.3s;
-        }
-        .f-card:hover { border-color: var(--primary); transform: translateY(-5px); }
-        .f-icon { font-size: 32px; margin-bottom: 20px; display: block; }
-        .f-title { font-size: 20px; font-weight: 700; margin-bottom: 12px; color: white; }
-        .f-desc { font-size: 14px; color: var(--text-gray); line-height: 1.6; }
-
-        /* --- LOGIN OVERLAY --- */
-        #login-layer {
-         position: fixed; inset: 0; 
-         z-index: 100; /* Raised to 100 to sit on top */
-         display: none; /* Hidden by default to see the image */
-          align-items: center; justify-content: center;
-          background: url('https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?q=80&w=2564&auto=format&fit=crop') center/cover;
-         }
-         /* This makes it appear when you click the button */
-         #login-layer.login-visible { display: flex; }
-         .login-backdrop { position: absolute; inset: 0; background: rgba(0,0,0,0.92); backdrop-filter: blur(20px); }
-        
-
-.login-card {
-            position: relative; 
-            width: 100%; 
-            max-width: 450px; 
-            padding: 40px;
-            background: #050505; 
-            border: 1px solid #222; 
-            border-radius: 20px;
-            box-shadow: 0 50px 100px rgba(0,0,0,0.8);
-            
-            /* --- PREVENTS SCREEN OVERFLOW --- */
-            max-height: 90vh; /* Never taller than 85% of screen */
-            overflow-y: auto; /* Scroll inside the card if needed */
-            display: flex;
-            flex-direction: column;
-            
-            opacity: 0; 
-            transform: scale(0.95); 
-            transition: opacity 0.5s ease, transform 0.5s ease;
-        }
-
-        /* Customize the scrollbar so it looks clean */
-        .login-card::-webkit-scrollbar { width: 4px; }
-        .login-card::-webkit-scrollbar-thumb { background: #333; border-radius: 2px; }
-        
-        @media (max-width: 480px) {
-            .login-card {
-                padding: 20px; /* Tighter padding on mobile */
-                width: 90%; /* Give it some breathing room on sides */
-            }
-        }
-
-        
-        .login-visible .login-card { opacity: 1; transform: scale(1); }
-
-        .input-wrapper { position: relative; margin-bottom: 15px; }
-        .input-icon {
-            position: absolute; left: 15px; top: 50%; transform: translateY(-50%);
-            color: #666; width: 20px; height: 20px;
-        }
-        .inp {
-            width: 100%; padding: 15px 15px 15px 45px;
-            background: #111; border: 1px solid #333;
-            color: white; border-radius: 8px; outline: none; font-size: 15px; transition: 0.2s;
-        }
-        .inp:focus { border-color: var(--primary); background: #161616; }
-        
-        .btn-act {
-            width: 100%; padding: 15px; border-radius: 8px; font-weight: 700; cursor: pointer; border: none; font-size: 15px;
-        }
-
-        .google-btn {
-            background: transparent; border: 1px solid #333; color: #ccc;
-            width: 100%; padding: 12px; border-radius: 8px; font-weight: 600; font-size: 13px;
-            display: flex; align-items: center; justify-content: center; gap: 10px; cursor: pointer;
-            margin-top: 20px; transition: 0.2s;
-        }
-        .google-btn:hover { border-color: #666; color: white; }
-
-        .back-nav {
-            position: absolute; top: 30px; left: 30px; color: #888; cursor: pointer;
-            z-index: 20; font-weight: 600; display: flex; align-items: center; gap: 10px;
-        }
-        .back-nav:hover { color: white; }
-
-
-         
-               /* Hides Google Options in Sign Up Mode */
-        .signup-mode .google-btn,
-        .signup-mode #google-separator {
-          display: none !important;
-        }
-
-
-
-        
-        .auth-toggle { margin-top: 20px; text-align: center; font-size: 13px; color: #666; cursor: pointer; }
-        .auth-toggle span { color: var(--primary); font-weight: bold; }
-
-        /* --- WIZARD STYLES --- */
-        #wizard-overlay {
-            position: fixed; inset: 0; z-index: 2000;
-            background: #050505; display: none;
-            align-items: center; justify-content: center;
-        }
-        .wizard-container { width: 100%; max-width: 500px; height: 600px; position: relative; overflow: hidden; }
-        .w-step {
-            position: absolute; inset: 0; padding: 30px;
-            display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center;
-            opacity: 0; transform: translateX(100%); pointer-events: none;
-            transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
-        }
-        .w-step.active { opacity: 1; transform: translateX(0); pointer-events: all; }
-        .w-step.exit { opacity: 0; transform: translateX(-100%); }
-        .w-icon { font-size: 50px; margin-bottom: 20px; }
-        .w-title { font-size: 24px; font-weight: 800; color: white; margin-bottom: 10px; }
-        .w-desc { color: #888; font-size: 14px; line-height: 1.6; margin-bottom: 30px; }
-        .file-drop { width: 100%; border: 2px dashed #333; border-radius: 12px; padding: 15px; margin-bottom: 10px; color: #666; cursor: pointer; }
-        .btn-wizard { background: var(--primary); color: white; border: none; padding: 15px 40px; border-radius: 50px; font-weight: bold; cursor: pointer; margin-top: 20px; }
- 
-    
-:root {
-            --accent1: #8B5CF6;
-
-        }
-/* --- STATS TICKER --- */
-        .ticker-wrap {
-            width: 100%; overflow: hidden; background: #000;
-            border-top: 1px solid #222; border-bottom: 1px solid #222;
-            padding: 15px 0; white-space: nowrap; margin-top: -50px; margin-bottom: 80px;
-            position: relative; z-index: 10;
-        }
-        .ticker { display: inline-block; animation: ticker 20s linear infinite; }
-        .ticker-item {
-            display: inline-block; padding: 0 30px; font-size: 14px;
-            font-weight: 700; color: #666; text-transform: uppercase; letter-spacing: 2px;
-        }
-        .ticker-item span { color: var(--accent1); }
-        @keyframes ticker { 0% { transform: translateX(0); } 100% { transform: translateX(-50%); } }
-
-      
-
-        /* --- SECURITY STRIP --- */
-        .security-strip {
-            background: #0A0A0A; padding: 80px 20px; text-align: center;
-            border-top: 1px solid #222;
-        }
-        .badge-container {
-            display: flex; justify-content: center; gap: 20px; flex-wrap: wrap; margin-top: 40px;
-        }
-        .badge {
-            background: #111; padding: 15px 25px; border-radius: 12px;
-            border: 1px solid #333; display: flex; align-items: center; gap: 10px;
-            font-weight: 600; color: #ccc;
-        }
-        .badge svg { stroke: var(--accent1); }
-
-        /* --- FOOTER --- */
-        footer {
-            padding: 50px 20px; text-align: center; border-top: 1px solid #222;
-            color: #444; font-size: 12px;
-        }
-
-
-/* --- NEW FORM STYLES --- */
-.signup-only { display: none; } /* Hidden by default */
-.signup-mode .signup-only { display: block; } /* Visible only in Signup Mode */
-
-.name-row { display: flex; gap: 10px; margin-bottom: 15px; }
-.name-row input { flex: 1; } /* First/Last take available space */
-.name-row .mi-input { width: 50px; text-align: center; padding-left: 10px; } 
-
-.pw-toggle {
-    position: absolute; right: 15px; top: 50%; transform: translateY(-50%);
-    cursor: pointer; color: #666; z-index: 10;
-}
-.pw-toggle:hover { color: var(--primary); }
-
-.info-tooltip {
-    color: var(--primary); cursor: pointer; margin-left: 8px; font-size: 12px; 
-    border: 1px solid var(--primary); border-radius: 50%; width: 16px; height: 16px; 
-    display: inline-flex; align-items: center; justify-content: center;
-}
-
-
-/* --- GOOGLE MISSING INFO STYLES --- */
-.google-alert-box {
-    background: rgba(234, 67, 53, 0.15); /* Red tint */
-    border: 1px solid #EA4335;
-    color: #ff9b9b;
-    padding: 15px;
-    border-radius: 8px;
-    font-size: 13px;
-    margin-bottom: 20px;
-    display: none; /* Hidden by default */
-    text-align: center;
-    line-height: 1.5;
-}
-
-/* The Arrow Container */
-.attention-arrow {
-    position: absolute;
-    right: -40px; /* Floats to the right of the input */
-    top: 50%;
-    transform: translateY(-50%);
-    color: #EA4335;
-    animation: point-left 1s infinite;
-    display: none; /* Hidden by default */
-    z-index: 20;
-    font-weight: bold;
-    font-size: 20px;
-}
-@keyframes point-left {
-    0%, 100% { transform: translateY(-50%) translateX(0); }
-    50% { transform: translateY(-50%) translateX(-5px); } /* Bounce effect */
-}
-
-/* Make sure inputs have room for the arrow relative to them */
-.input-wrapper { position: relative; }
-
-
-
-
-    
-
-        
-
+      /* Make sure inputs have room for the arrow relative to them */
+      .input-wrapper {
+        position: relative;
+      }
     </style>
-</head>
-<body>
-
-
-
-
-
-    
+  </head>
+  <body>
     <div id="wizard-overlay">
-        <div class="wizard-container">
-            <div id="step-safety" class="w-step active">
-                <div class="w-icon"></div>
-                <div class="w-title">The Safety Oath</div>
-                <div class="w-desc">Zero-tolerance for solicitation or harassment. Proceed to build our fortress.</div>
-                <button class="btn-wizard" onclick="wizardNext('step-safety', 'step-id')">I AGREE</button>
-            </div>
-            <div id="step-id" class="w-step">
-                <div class="w-icon"></div>
-                <div class="w-title">Identity Check</div>
-                <div class="w-desc">Upload front and back of your ID. Deleted after verification.</div>
-                <input type="file" id="id-front" class="file-drop" accept="image/*">
-                <input type="file" id="id-back" class="file-drop" accept="image/*">
-                <button class="btn-wizard" onclick="wizardNext('step-id', 'step-selfie')">CONTINUE</button>
-            </div>
-            <div id="step-selfie" class="w-step">
-                <div class="w-icon"></div>
-                <div class="w-title">Liveness Check</div>
-                <div class="w-desc">Take a selfie holding a Peace Sign.</div>
-                <input type="file" id="selfie-upload" class="file-drop" accept="image/*" capture="user">
-                <button class="btn-wizard" onclick="finishOnboarding()">SUBMIT</button>
-            </div>
-
-            
-            <div id="step-success" class="w-step">
-                <div class="w-icon"></div>
-                <div class="w-title">Request Pending</div>
-                <div class="w-desc">Your application is under review. You will be notified once verified so 
-                    you can return and log in. (Redirecting...)
-                </div>
-            </div>
-
-
-
-            
+      <div class="wizard-container">
+        <div id="step-safety" class="w-step active">
+          <div class="w-icon"></div>
+          <div class="w-title">The Safety Oath</div>
+          <div class="w-desc">
+            Zero-tolerance for solicitation or harassment. Proceed to build our
+            fortress.
+          </div>
+          <button
+            class="btn-wizard"
+            onclick="wizardNext('step-safety', 'step-id')"
+          >
+            I AGREE
+          </button>
         </div>
+        <div id="step-id" class="w-step">
+          <div class="w-icon"></div>
+          <div class="w-title">Identity Check</div>
+          <div class="w-desc">
+            Upload front and back of your ID. Deleted after verification.
+          </div>
+          <input type="file" id="id-front" class="file-drop" accept="image/*" />
+          <input type="file" id="id-back" class="file-drop" accept="image/*" />
+          <button
+            class="btn-wizard"
+            onclick="wizardNext('step-id', 'step-selfie')"
+          >
+            CONTINUE
+          </button>
+        </div>
+        <div id="step-selfie" class="w-step">
+          <div class="w-icon"></div>
+          <div class="w-title">Liveness Check</div>
+          <div class="w-desc">Take a selfie holding a Peace Sign.</div>
+          <input
+            type="file"
+            id="selfie-upload"
+            class="file-drop"
+            accept="image/*"
+            capture="user"
+          />
+          <button class="btn-wizard" onclick="finishOnboarding()">
+            SUBMIT
+          </button>
+        </div>
+
+        <div id="step-success" class="w-step">
+          <div class="w-icon"></div>
+          <div class="w-title">Request Pending</div>
+          <div class="w-desc">
+            Your application is under review. You will be notified once verified
+            so you can return and log in. (Redirecting...)
+          </div>
+        </div>
+      </div>
     </div>
 
-
-
-
-    <div id="warning-modal" style="position:fixed; inset:0; z-index: 3000; background:rgba(0,0,0,0.95); display:none; align-items:center; justify-content:center; backdrop-filter:blur(10px);">
-        <div style="background:#0A0A0A; border:1px solid #333; padding:40px; max-width:450px; width:90%; border-radius:20px; text-align:center; box-shadow:0 20px 50px rgba(0,0,0,0.8);">
-            <div style="font-size:50px; margin-bottom:20px;">🛡️</div>
-            <h2 style="font-size:24px; font-weight:800; margin-bottom:15px; color:white;">Fair Warning</h2>
-            <p style="color:#A1A1AA; font-size:15px; line-height:1.6; margin-bottom:30px;">
-                We know it is a <b>pain in the butt</b>, but in order to keep our strict standards, security, and a bot-free PlaygroundX, we require <b>identification verification</b> before you can log in.
-            </p>
-            <button onclick="acceptWarning()" style="width:100%; background:var(--primary); color:white; padding:15px; border:none; border-radius:12px; font-weight:700; cursor:pointer; font-size:16px; margin-bottom:15px;">PROCEED TO LOGIN</button>
-            
-        </div>
+    <div
+      id="warning-modal"
+      style="
+        position: fixed;
+        inset: 0;
+        z-index: 3000;
+        background: rgba(0, 0, 0, 0.95);
+        display: none;
+        align-items: center;
+        justify-content: center;
+        backdrop-filter: blur(10px);
+      "
+    >
+      <div
+        style="
+          background: #0a0a0a;
+          border: 1px solid #333;
+          padding: 40px;
+          max-width: 450px;
+          width: 90%;
+          border-radius: 20px;
+          text-align: center;
+          box-shadow: 0 20px 50px rgba(0, 0, 0, 0.8);
+        "
+      >
+        <div style="font-size: 50px; margin-bottom: 20px">🛡️</div>
+        <h2
+          style="
+            font-size: 24px;
+            font-weight: 800;
+            margin-bottom: 15px;
+            color: white;
+          "
+        >
+          Fair Warning
+        </h2>
+        <p
+          style="
+            color: #a1a1aa;
+            font-size: 15px;
+            line-height: 1.6;
+            margin-bottom: 30px;
+          "
+        >
+          We know it is a <b>pain in the butt</b>, but in order to keep our
+          strict standards, security, and a bot-free PlaygroundX, we require
+          <b>identification verification</b> before you can log in.
+        </p>
+        <button
+          onclick="acceptWarning()"
+          style="
+            width: 100%;
+            background: var(--primary);
+            color: white;
+            padding: 15px;
+            border: none;
+            border-radius: 12px;
+            font-weight: 700;
+            cursor: pointer;
+            font-size: 16px;
+            margin-bottom: 15px;
+          "
+        >
+          PROCEED TO LOGIN
+        </button>
+      </div>
     </div>
-
-
-
-
-    
 
     <div id="landing-module">
-        <nav>
-            <div class="brand">playground<span>X</span></div>
-            <button class="nav-btn" onclick="revealLogin()">MEMBER ACCESS</button>
-        </nav>
+      <nav>
+        <div class="brand">playground<span>X</span></div>
+        <button class="nav-btn" onclick="revealLogin()">MEMBER ACCESS</button>
+      </nav>
 
-        <header class="hero">
-            <div class="tagline">Come Play</div>
-            <h1>A Playground for<br>Real Connections.</h1>
-            <p>High-fidelity, verified video dating. Browse by vibe, join live events, and meet people who are active right now.</p>
-            <button class="btn-glow" onclick="revealLogin()">Apply for Access</button>
-        </header>
+      <header class="hero">
+        <div class="tagline">Come Play</div>
+        <h1>A Playground for<br />Real Connections.</h1>
+        <p>
+          High-fidelity, verified video dating. Browse by vibe, join live
+          events, and meet people who are active right now.
+        </p>
+        <button class="btn-glow" onclick="revealLogin()">
+          Apply for Access
+        </button>
+      </header>
 
+      <img
+        src="heroimg.png"
+        style="
+          height: 100vh;
+          z-index: 10;
+          opacity: 30%;
+          pointer-events: none;
+          position: fixed;
+          top: 0;
+          margin-left: -15%;
+        "
+      />
 
-
-
-
-<img src="heroimg.png" style="height:100vh; z-index: 10; opacity:30%; pointer-events: none; position: fixed; top:0; margin-left:-15%; ">
-
-
-
-        
-        
-<div class="ticker-wrap">
+      <div class="ticker-wrap">
         <div class="ticker">
-            <div class="ticker-item">LIVE <span>NOW</span></div>
-            <div class="ticker-item">SPEED <span>DATING</span></div>
-            <div class="ticker-item">CREATOR <span>ECONOMY</span></div>
-            <div class="ticker-item">VERIFIED <span>USERS</span></div>
-            <div class="ticker-item">LOCATION <span>PRIVACY</span></div>
-            <div class="ticker-item">LIVE <span>NOW</span></div>
-            <div class="ticker-item">SPEED <span>DATING</span></div>
-            <div class="ticker-item">CREATOR <span>ECONOMY</span></div>
-            <div class="ticker-item">VERIFIED <span>USERS</span></div>
-            <div class="ticker-item">LOCATION <span>PRIVACY</span></div>
+          <div class="ticker-item">LIVE <span>NOW</span></div>
+          <div class="ticker-item">SPEED <span>DATING</span></div>
+          <div class="ticker-item">CREATOR <span>ECONOMY</span></div>
+          <div class="ticker-item">VERIFIED <span>USERS</span></div>
+          <div class="ticker-item">LOCATION <span>PRIVACY</span></div>
+          <div class="ticker-item">LIVE <span>NOW</span></div>
+          <div class="ticker-item">SPEED <span>DATING</span></div>
+          <div class="ticker-item">CREATOR <span>ECONOMY</span></div>
+          <div class="ticker-item">VERIFIED <span>USERS</span></div>
+          <div class="ticker-item">LOCATION <span>PRIVACY</span></div>
         </div>
-    </div>
+      </div>
 
+      <section class="features-grid">
+        <div class="f-card">
+          <span class="f-icon"></span>
+          <div class="f-title">Triple Discovery</div>
+          <div class="f-desc">
+            Don't get locked into one view. Choose between a Swipe Deck, a Photo
+            Grid, or an Interactive Map to find your match.
+          </div>
+        </div>
+        <div class="f-card">
+          <span class="f-icon"></span>
+          <div class="f-title">The Speed Lounge</div>
+          <div class="f-desc">
+            Join global 10-minute matching rounds. No ghost towns—everyone is
+            online and ready to chat at the same time.
+          </div>
+        </div>
+        <div class="f-card">
+          <span class="f-icon"></span>
+          <div class="f-title">Video-First Feed</div>
+          <div class="f-desc">
+            See movement, hear voices, and catch the vibe. Static photos are a
+            thing of the past; real people move.
+          </div>
+        </div>
+        <div class="f-card">
+          <span class="f-icon"></span>
+          <div class="f-title">Live Studio</div>
+          <div class="f-desc">
+            Watch live broadcasts, send virtual gifts, and showcase your
+            personality beyond just a profile picture.
+          </div>
+        </div>
+        <div class="f-card">
+          <span class="f-icon"></span>
+          <div class="f-title">Instant Connect</div>
+          <div class="f-desc">
+            Break the ice with a "Wink." A low-pressure way to show interest
+            without the stress of the perfect opening line.
+          </div>
+        </div>
+        <div class="f-card">
+          <span class="f-icon"></span>
+          <div class="f-title">AI-Powered Safety</div>
+          <div class="f-desc">
+            Verified IDs and real-time moderation ensure a safe playground for
+            adults to be themselves.
+          </div>
+        </div>
+      </section>
 
+      <div class="security-strip">
+        <h2 style="font-size: 28px; margin-bottom: 10px">
+          Safety First. Always.
+        </h2>
+        <p style="color: #666; max-width: 600px; margin: 0 auto">
+          We prioritize your safety with industry-leading privacy tools built
+          directly into the core experience.
+        </p>
 
-
-
-        
-        <section class="features-grid">
-            <div class="f-card">
-                <span class="f-icon"></span>
-                <div class="f-title">Triple Discovery</div>
-                <div class="f-desc">Don't get locked into one view. Choose between a Swipe Deck, a Photo Grid, or an Interactive Map to find your match.</div>
-            </div>
-            <div class="f-card">
-                <span class="f-icon"></span>
-                <div class="f-title">The Speed Lounge</div>
-                <div class="f-desc">Join global 10-minute matching rounds. No ghost towns—everyone is online and ready to chat at the same time.</div>
-            </div>
-            <div class="f-card">
-                <span class="f-icon"></span>
-                <div class="f-title">Video-First Feed</div>
-                <div class="f-desc">See movement, hear voices, and catch the vibe. Static photos are a thing of the past; real people move.</div>
-            </div>
-            <div class="f-card">
-                <span class="f-icon"></span>
-                <div class="f-title">Live Studio</div>
-                <div class="f-desc">Watch live broadcasts, send virtual gifts, and showcase your personality beyond just a profile picture.</div>
-            </div>            
-            <div class="f-card">
-                <span class="f-icon"></span>
-                <div class="f-title">Instant Connect</div>
-                <div class="f-desc">Break the ice with a "Wink." A low-pressure way to show interest without the stress of the perfect opening line.</div>
-            </div>
-            <div class="f-card">
-                <span class="f-icon"></span>
-                <div class="f-title">AI-Powered Safety</div>
-                <div class="f-desc">Verified IDs and real-time moderation ensure a safe playground for adults to be themselves.</div>
-            </div>
-        </section>
-
-
-
-
-<div class="security-strip">
-        <h2 style="font-size: 28px; margin-bottom: 10px;">Safety First. Always.</h2>
-        <p style="color: #666; max-width: 600px; margin: 0 auto;">We prioritize your safety with industry-leading privacy tools built directly into the core experience.</p>
-        
         <div class="badge-container">
-            <div class="badge">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
-                18+ Age Verification
-            </div>
-            <div class="badge">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg>
-                Location Privacy Gate
-            </div>
-            <div class="badge">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"></line></svg>
-                Instant Block & Report
-            </div>
-            <div class="badge">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
-                Explicit Content Controls
-            </div>
+          <div class="badge">
+            <svg
+              width="20"
+              height="20"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+            >
+              <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+              <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+            </svg>
+            18+ Age Verification
+          </div>
+          <div class="badge">
+            <svg
+              width="20"
+              height="20"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+            >
+              <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
+            </svg>
+            Location Privacy Gate
+          </div>
+          <div class="badge">
+            <svg
+              width="20"
+              height="20"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+            >
+              <circle cx="12" cy="12" r="10"></circle>
+              <line x1="4.93" y1="4.93" x2="19.07" y2="19.07"></line>
+            </svg>
+            Instant Block & Report
+          </div>
+          <div class="badge">
+            <svg
+              width="20"
+              height="20"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+            >
+              <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+              <circle cx="12" cy="12" r="3"></circle>
+            </svg>
+            Explicit Content Controls
+          </div>
         </div>
+      </div>
+
+      <div style="width: 100%; text-align: right">
+        <img
+          src="heartimg.png"
+          style="width: 45%; opacity: 30%; margin-top: 10%; margin-right: 2%"
+        />
+      </div>
     </div>
 
-
-<div style="width:100%; text-align: right;">
-     <Img src="heartimg.png" style="width: 45%; opacity:30%; margin-top: 10%; margin-right: 2%;">
-</div>
-        
-    </div>
-
-
-
-<script>
-        const observer = new IntersectionObserver((entries) => {
-            entries.forEach(entry => {
-                if (entry.isIntersecting) {
-                    entry.target.style.opacity = 1;
-                    entry.target.style.transform = 'translateY(0)';
-                }
-            });
+    <script>
+      const observer = new IntersectionObserver((entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            entry.target.style.opacity = 1;
+            entry.target.style.transform = "translateY(0)";
+          }
         });
+      });
 
-        document.querySelectorAll('.card, .section-title, .badge').forEach((el) => {
-            el.style.opacity = 0;
-            el.style.transform = 'translateY(20px)';
-            el.style.transition = 'all 0.6s ease-out';
-            observer.observe(el);
+      document
+        .querySelectorAll(".card, .section-title, .badge")
+        .forEach((el) => {
+          el.style.opacity = 0;
+          el.style.transform = "translateY(20px)";
+          el.style.transition = "all 0.6s ease-out";
+          observer.observe(el);
         });
     </script>
 
-
-
-
-
-    
     <div id="login-layer">
-        <div class="login-backdrop"></div>
-        <div class="back-nav" onclick="showLanding()">← Return</div>
- <div class="login-card" id="auth-card">
+      <div class="login-backdrop"></div>
+      <div class="back-nav" onclick="showLanding()">← Return</div>
+      <div class="login-card" id="auth-card">
+        <h2 id="auth-title" style="text-align: center">Member Login</h2>
+        <p
+          id="auth-desc"
+          style="
+            text-align: center;
+            color: #666;
+            font-size: 14px;
+            margin-bottom: 30px;
+          "
+        >
+          Authenticate to enter the Lounge.
+        </p>
 
-
-    <h2 id="auth-title" style="text-align:center;">Member Login</h2>
-    <p id="auth-desc" style="text-align:center; color:#666; font-size:14px; margin-bottom:30px;">Authenticate to enter the Lounge.</p>
-  
-     <div id="google-miss-msg" class="google-alert-box">
-        <strong>Action Required:</strong><br>
-        Google does not provide your <u>Address</u> or <u>Date of Birth</u>.<br>
-        Please fill the highlighted fields to continue.
-      </div>
-    
-    <div class="signup-only">
-        <label style="font-size:12px; color:#888; display:block; margin-bottom:5px;">
-            Legal Name <span class="info-tooltip" onclick="alert('Verification Requirement:\n\nWe require your legal name and address to cross-reference with your Government ID in the next step. This ensures no bots or fake profiles.\n\nYour data is encrypted and deleted after verification.')">?</span>
-        </label>
-        <div class="name-row">
-            <input type="text" id="fname" class="inp" placeholder="First Name" style="padding-left:15px;">
-            <input type="text" id="mname" class="inp mi-input" placeholder="MI" maxlength="1">
-            <input type="text" id="lname" class="inp" placeholder="Last Name" style="padding-left:15px;">
+        <div id="google-miss-msg" class="google-alert-box">
+          <strong>Action Required:</strong><br />
+          Google does not provide your <u>Address</u> or
+          <u>Date of Birth</u>.<br />
+          Please fill the highlighted fields to continue.
         </div>
-        
-        <div class="input-wrapper">
-            <input type="text" id="address" class="inp" placeholder="Street Address" style="padding-left:15px;">
+
+        <div class="signup-only">
+          <label
+            style="
+              font-size: 12px;
+              color: #888;
+              display: block;
+              margin-bottom: 5px;
+            "
+          >
+            Legal Name
+            <span
+              class="info-tooltip"
+              onclick="alert('Verification Requirement:\n\nWe require your legal name and address to cross-reference with your Government ID in the next step. This ensures no bots or fake profiles.\n\nYour data is encrypted and deleted after verification.')"
+              >?</span
+            >
+          </label>
+          <div class="name-row">
+            <input
+              type="text"
+              id="fname"
+              class="inp"
+              placeholder="First Name"
+              style="padding-left: 15px"
+            />
+            <input
+              type="text"
+              id="mname"
+              class="inp mi-input"
+              placeholder="MI"
+              maxlength="1"
+            />
+            <input
+              type="text"
+              id="lname"
+              class="inp"
+              placeholder="Last Name"
+              style="padding-left: 15px"
+            />
+          </div>
+
+          <div class="input-wrapper">
+            <input
+              type="text"
+              id="address"
+              class="inp"
+              placeholder="Street Address"
+              style="padding-left: 15px"
+            />
             <span id="arrow-address" class="attention-arrow">← HERE</span>
+          </div>
         </div>
-    </div>
 
-    <div class="input-wrapper">
-        <svg class="input-icon" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path></svg>
-        <input type="email" id="email" class="inp" placeholder="Email Address">
-    </div>
-
-    <div class="input-wrapper">
-        <svg class="input-icon" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0110 0v4"></path></svg>
-        <input type="password" id="password" class="inp" placeholder="Password">
-        <div class="pw-toggle" onclick="togglePw('password')">
-            <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
-        </div>
-    </div>
-
-    <div class="signup-only">
         <div class="input-wrapper">
-            <svg class="input-icon" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0110 0v4"></path></svg>
-            <input type="password" id="confirm-password" class="inp" placeholder="Confirm Password">
-             <div class="pw-toggle" onclick="togglePw('confirm-password')">
-                <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
-            </div>
+          <svg
+            class="input-icon"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            viewBox="0 0 24 24"
+          >
+            <path
+              d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
+            ></path>
+          </svg>
+          <input
+            type="email"
+            id="email"
+            class="inp"
+            placeholder="Email Address"
+          />
         </div>
-        <input type="date" id="dob" class="inp" style="color-scheme:dark;" placeholder="DOB">
-        <span id="arrow-dob" class="attention-arrow">← HERE</span>
+
+        <div class="input-wrapper">
+          <svg
+            class="input-icon"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            viewBox="0 0 24 24"
+          >
+            <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+            <path d="M7 11V7a5 5 0 0110 0v4"></path>
+          </svg>
+          <input
+            type="password"
+            id="password"
+            class="inp"
+            placeholder="Password"
+          />
+          <div class="pw-toggle" onclick="togglePw('password')">
+            <svg
+              width="20"
+              height="20"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              viewBox="0 0 24 24"
+            >
+              <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+              <circle cx="12" cy="12" r="3"></circle>
+            </svg>
+          </div>
+        </div>
+
+        <div class="signup-only">
+          <div class="input-wrapper">
+            <svg
+              class="input-icon"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              viewBox="0 0 24 24"
+            >
+              <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+              <path d="M7 11V7a5 5 0 0110 0v4"></path>
+            </svg>
+            <input
+              type="password"
+              id="confirm-password"
+              class="inp"
+              placeholder="Confirm Password"
+            />
+            <div class="pw-toggle" onclick="togglePw('confirm-password')">
+              <svg
+                width="20"
+                height="20"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                viewBox="0 0 24 24"
+              >
+                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                <circle cx="12" cy="12" r="3"></circle>
+              </svg>
+            </div>
+          </div>
+          <input
+            type="date"
+            id="dob"
+            class="inp"
+            style="color-scheme: dark"
+            placeholder="DOB"
+          />
+          <span id="arrow-dob" class="attention-arrow">← HERE</span>
+        </div>
+
+        <div class="signup-only">
+          <div class="input-wrapper" style="margin-top: 15px">
+            <svg
+              class="input-icon"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              viewBox="0 0 24 24"
+            >
+              <path
+                d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07 19.5 19.5 0 01-6-6 19.79 19.79 0 01-3.07-8.67A2 2 0 014.11 2h3a2 2 0 012 1.72 12.84 12.84 0 00.7 2.81 2 2 0 01-.45 2.11L8.09 9.91a16 16 0 006 6l1.27-1.27a2 2 0 012.11-.45 12.84 12.84 0 002.81.7A2 2 0 0122 16.92z"
+              ></path>
+            </svg>
+            <input
+              type="tel"
+              id="phone-backup"
+              class="inp"
+              placeholder="Recovery Phone Number"
+            />
+          </div>
+        </div>
+
+        <button
+          id="submit-btn"
+          class="btn-act"
+          onclick="handleAuthAction()"
+          style="background: var(--primary); color: white; margin-top: 15px"
+        >
+          SECURE ENTRY
+        </button>
+
+        <div class="forgot-link" onclick="openRecoveryModal()">
+          Forgot Login Info?
+        </div>
+
+        <div
+          id="google-separator"
+          style="
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin: 25px 0 10px 0;
+          "
+        >
+          <div style="flex: 1; height: 1px; background: #222"></div>
+          <div style="font-size: 11px; color: #444">OR</div>
+          <div style="flex: 1; height: 1px; background: #222"></div>
+        </div>
+
+        <button
+          id="auth-divider"
+          class="google-btn"
+          onclick="handleGoogleLogin()"
+        >
+          <svg width="18" height="18" viewBox="0 0 24 24">
+            <path
+              d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
+              fill="#4285F4"
+            />
+            <path
+              d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"
+              fill="#34A853"
+            />
+            <path
+              d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"
+              fill="#FBBC05"
+            />
+            <path
+              d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"
+              fill="#EA4335"
+            />
+          </svg>
+          <span id="google-text">Sign in with Google</span>
+        </button>
+
+        <div class="auth-toggle" onclick="toggleAuthMode()">
+          New here? <span id="toggle-text">Create an Account</span>
+        </div>
+
+        <div
+          id="error-txt"
+          style="
+            color: #ef4444;
+            font-size: 12px;
+            margin-top: 15px;
+            text-align: center;
+          "
+        ></div>
+      </div>
+
+      <div id="recovery-modal">
+        <div class="recovery-card">
+          <div
+            class="back-nav"
+            style="position: relative; top: 0; left: 0; margin-bottom: 20px"
+            onclick="closeRecoveryModal()"
+          >
+            ← Back to Login
+          </div>
+          <h2 style="color: white; margin-bottom: 10px">Recover Account</h2>
+          <p
+            style="color: #888; font-size: 14px; margin-bottom: 20px"
+            id="recovery-desc"
+          >
+            Choose how you want to recover your login information.
+          </p>
+
+          <div id="recovery-options">
+            <button class="recovery-btn" onclick="showRecoveryInput('email')">
+              Send Email Reset Link
+            </button>
+            <button class="recovery-btn" onclick="showRecoveryInput('phone')">
+              Use Phone Number Backup
+            </button>
+          </div>
+
+          <div id="recovery-input-area" style="display: none">
+            <input
+              type="text"
+              id="recovery-input"
+              class="inp"
+              placeholder="Enter Email or Phone"
+              style="margin-bottom: 15px"
+            />
+            <button
+              id="send-recovery-btn"
+              class="btn-act"
+              style="background: var(--primary); color: white"
+              onclick="processRecovery()"
+            >
+              SEND VERIFICATION
+            </button>
+          </div>
+
+          <div id="recovery-otp-area" style="display: none">
+            <input
+              type="text"
+              id="recovery-otp"
+              class="inp"
+              placeholder="Enter 6-Digit Code"
+              style="margin-bottom: 15px"
+            />
+            <button
+              class="btn-act"
+              style="background: var(--primary); color: white"
+              onclick="verifyRecoveryOTP()"
+            >
+              CONFIRM CODE
+            </button>
+          </div>
+
+          <div id="recaptcha-container"></div>
+          <div
+            id="recovery-msg"
+            style="color: var(--primary); font-size: 13px; margin-top: 15px"
+          ></div>
+        </div>
+      </div>
     </div>
-
-    <button id="submit-btn" class="btn-act" onclick="handleAuthAction()" style="background:var(--primary); color:white; margin-top:15px;">SECURE ENTRY</button>
-
-
-
-
-    <div id="google-separator" style="display:flex; align-items:center; gap:10px; margin:25px 0 10px 0;">
-        <div style="flex:1; height:1px; background:#222;"></div>
-        <div style="font-size:11px; color:#444;">OR</div>
-        <div style="flex:1; height:1px; background:#222;"></div>
-    </div>
-
-
-
-
-
-
-     
-    <button id="auth-divider" class="google-btn" onclick="handleGoogleLogin()">
-        <svg width="18" height="18" viewBox="0 0 24 24"><path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/><path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/><path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/><path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/></svg>
-        <span id="google-text">Sign in with Google</span>
-    </button>
-
-    <div class="auth-toggle" onclick="toggleAuthMode()">
-        New here? <span id="toggle-text">Create an Account</span>
-    </div>
-    
-    <div id="error-txt" style="color:#EF4444; font-size:12px; margin-top:15px; text-align:center;"></div>
-  </div>
-</div>
 
     <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-        import { getAuth, signInWithPopup, GoogleAuthProvider, signInWithEmailAndPassword, createUserWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-        import { getFirestore, doc, getDoc, setDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
-        import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-storage.js";
+      import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+      import {
+        getAuth,
+        signInWithPopup,
+        GoogleAuthProvider,
+        signInWithEmailAndPassword,
+        createUserWithEmailAndPassword,
+      } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 
-        const firebaseConfig = {
-            apiKey: "AIzaSyDFmhk3ybnsVsFenCE3xvdmy5y_4u9ss7o",
-            authDomain: "playgroundx-ca021.firebaseapp.com",
-            projectId: "playgroundx-ca021",
-            storageBucket: "playgroundx-ca021.firebasestorage.app",
-            messagingSenderId: "427340828971",
-            appId: "1:427340828971:web:1d9e2dc22ecd69593eb56e"
-        };
+      // Import tools needed for Account Recovery (SMS and Email reset)
+      import {
+        RecaptchaVerifier,
+        signInWithPhoneNumber,
+        sendPasswordResetEmail,
+      } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 
-        const app = initializeApp(firebaseConfig);
-        const auth = getAuth(app);
-        const db = getFirestore(app);
-        const storage = getStorage(app);
-        const provider = new GoogleAuthProvider();
+      import {
+        getFirestore,
+        doc,
+        getDoc,
+        setDoc,
+        serverTimestamp,
+      } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+      import {
+        getStorage,
+        ref,
+        uploadBytes,
+        getDownloadURL,
+      } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-storage.js";
 
-        window.isSignupMode = false;
-        let currentUser = null;
+      const firebaseConfig = {
+        apiKey: "AIzaSyDFmhk3ybnsVsFenCE3xvdmy5y_4u9ss7o",
+        authDomain: "playgroundx-ca021.firebaseapp.com",
+        projectId: "playgroundx-ca021",
+        storageBucket: "playgroundx-ca021.firebasestorage.app",
+        messagingSenderId: "427340828971",
+        appId: "1:427340828971:web:1d9e2dc22ecd69593eb56e",
+      };
 
+      const app = initializeApp(firebaseConfig);
+      const auth = getAuth(app);
+      const db = getFirestore(app);
+      const storage = getStorage(app);
+      const provider = new GoogleAuthProvider();
 
+      window.isSignupMode = false;
+      let currentUser = null;
 
+      window.revealLogin = () => {
+        // New User? Show the Warning First.
+        document.getElementById("warning-modal").style.display = "flex";
+      };
 
-        
-        window.revealLogin = () => {
-            // New User? Show the Warning First.
-            document.getElementById('warning-modal').style.display = 'flex';
-        };
+      window.acceptWarning = () => {
+        document.getElementById("warning-modal").style.display = "none"; // Hide Warning
 
+        // Show Login
+        localStorage.setItem("pgX_member_active", "true");
+        document.getElementById("landing-module").classList.add("slide-up");
+        document.getElementById("login-layer").classList.add("login-visible");
+      };
 
-        window.acceptWarning = () => {
-            document.getElementById('warning-modal').style.display = 'none'; // Hide Warning
-            
-            // Show Login
-            localStorage.setItem("pgX_member_active", "true"); 
-            document.getElementById('landing-module').classList.add('slide-up');
-            document.getElementById('login-layer').classList.add('login-visible');
-        };
+      window.showLanding = () => {
+        localStorage.removeItem("pgX_member_active"); // Clears the flag so they aren't stuck
+        document.getElementById("landing-module").classList.remove("slide-up");
+        document
+          .getElementById("login-layer")
+          .classList.remove("login-visible");
+      };
 
+      // --- ACCOUNT RECOVERY SYSTEM LOGIC ---
+      let currentRecoveryMode = "";
 
-        
+      // Opens the modal and resets the view to step 1
+      window.openRecoveryModal = () => {
+        document.getElementById("recovery-modal").style.display = "flex";
+        document.getElementById("recovery-options").style.display = "block";
+        document.getElementById("recovery-input-area").style.display = "none";
+        document.getElementById("recovery-otp-area").style.display = "none";
+        document.getElementById("recovery-msg").innerText = "";
+      };
 
-        window.showLanding = () => {
-            localStorage.removeItem("pgX_member_active"); // Clears the flag so they aren't stuck
-            document.getElementById('landing-module').classList.remove('slide-up');
-            document.getElementById('login-layer').classList.remove('login-visible');
-        };
+      window.closeRecoveryModal = () => {
+        document.getElementById("recovery-modal").style.display = "none";
+      };
 
-        // 1. Add the toggle password function to the window object
-        window.togglePw = (id) => {
-            const el = document.getElementById(id);
-            el.type = el.type === 'password' ? 'text' : 'password';
-        };
+      // Transitions from Step 1 (Choice) to Step 2 (Input Data)
+      window.showRecoveryInput = (mode) => {
+        currentRecoveryMode = mode;
+        document.getElementById("recovery-options").style.display = "none";
+        document.getElementById("recovery-input-area").style.display = "block";
+        const inputField = document.getElementById("recovery-input");
 
-        // 2. Update toggleAuthMode to handle the VISUAL shift
-        window.toggleAuthMode = () => {
-            window.isSignupMode = !window.isSignupMode;
-            
-            // This single line handles the Showing/Hiding of all new fields
-            document.getElementById('auth-card').classList.toggle('signup-mode');
+        if (mode === "email") {
+          inputField.placeholder = "Enter your Registration Email";
+          inputField.type = "email";
+        } else {
+          inputField.placeholder = "Enter Phone (e.g., +15551234567)";
+          inputField.type = "tel";
 
-            document.getElementById('auth-title').innerText = window.isSignupMode ? "Create Account" : "Member Login";
-            document.getElementById('submit-btn').innerText = window.isSignupMode ? "APPLY FOR ACCESS" : "SECURE ENTRY";
-            document.getElementById('google-text').innerText = window.isSignupMode ? "Sign up with Google" : "Sign in with Google";
-            document.getElementById('toggle-text').innerText = window.isSignupMode ? "Login to existing account" : "Create an Account";
-        };
+          // Mount invisible recaptcha (Required by Firebase to send texts)
+          if (!window.recaptchaVerifier) {
+            window.recaptchaVerifier = new RecaptchaVerifier(
+              auth,
+              "send-recovery-btn",
+              {
+                size: "invisible",
+              }
+            );
+          }
+        }
+      };
 
-        // 3. Update handleAuthAction to VALIDATE the new fields
+      // Sends either the Reset Email or the SMS Verification Code
+      window.processRecovery = async () => {
+        const inputVal = document.getElementById("recovery-input").value;
+        const msgBox = document.getElementById("recovery-msg");
+        if (!inputVal) return;
 
-        // 3. Update handleAuthAction to VALIDATE the new fields
-        window.handleAuthAction = async () => {
-            
+        msgBox.innerText = "Processing...";
 
-            // ------------------------------------------------
+        try {
+          if (currentRecoveryMode === "email") {
+            await sendPasswordResetEmail(auth, inputVal);
+            msgBox.innerText = "Success! Check your email for the reset link.";
+          } else if (currentRecoveryMode === "phone") {
+            const appVerifier = window.recaptchaVerifier;
+            window.confirmationResult = await signInWithPhoneNumber(
+              auth,
+              inputVal,
+              appVerifier
+            );
 
-            const email = document.getElementById('email').value;
-            const password = document.getElementById('password').value;
-            
-            if(!email || !password) return;
+            document.getElementById("recovery-input-area").style.display =
+              "none";
+            document.getElementById("recovery-otp-area").style.display =
+              "block";
+            document.getElementById("recovery-desc").innerText =
+              "Enter the 6-digit code sent to your phone.";
+            msgBox.innerText = "SMS sent.";
+          }
+        } catch (e) {
+          msgBox.innerText = "Error: " + e.message;
+        }
+      };
 
-            try {
-                if(window.isSignupMode) {
-                    // --- NEW VALIDATION START ---
-                    const confirm = document.getElementById('confirm-password').value;
-                    const fname = document.getElementById('fname').value;
-                    const lname = document.getElementById('lname').value;
-                    const address = document.getElementById('address').value;
-                    const dob = document.getElementById('dob').value;
+      // Verifies the SMS Code to let the user in
+      window.verifyRecoveryOTP = async () => {
+        const code = document.getElementById("recovery-otp").value;
+        const msgBox = document.getElementById("recovery-msg");
+        if (!code) return;
 
-                    if(password !== confirm) {
-                        throw new Error("Passwords do not match.");
-                    }
-                    if(!fname || !lname || !address || !dob) {
-                        throw new Error("All fields (Name, Address, DOB) are required.");
-                    }
-                    // --- NEW VALIDATION END ---
+        try {
+          const result = await window.confirmationResult.confirm(code);
+          msgBox.innerText = "Verified! Entering the Lounge...";
+          setTimeout(() => {
+            window.location.href = "home.html";
+          }, 1500);
+        } catch (e) {
+          msgBox.innerText = "Invalid code. Try again.";
+        }
+      };
+      // --- END RECOVERY SYSTEM LOGIC ---
 
-                    const res = await createUserWithEmailAndPassword(auth, email, password);
-                    currentUser = res.user;
-                    
-                    // Save the extra data to Firestore
-                    await setDoc(doc(db, 'artifacts', 'playgroundX_Prod_v1', 'public', 'data', 'users', currentUser.uid), {
-                        email, dob, 
-                        firstName: fname, 
-                        middleInitial: document.getElementById('mname').value || '',
-                        lastName: lname,
-                        address: address,
-                        idVerified: 'pending_upload', 
-                        isAdmin: false, 
-                        joined: serverTimestamp()
-                    });
-                    
-                    document.getElementById('login-layer').style.display = 'none';
-                    document.getElementById('wizard-overlay').style.display = 'flex';
-                } else {
-                    // Login Logic remains exactly the same
-                    const res = await signInWithEmailAndPassword(auth, email, password);
-                    checkRedirect(res.user);
-                }
-            } catch(e) { document.getElementById('error-txt').innerText = e.message; }
-        };
+      // 1. Add the toggle password function to the window object
+      window.togglePw = (id) => {
+        const el = document.getElementById(id);
+        el.type = el.type === "password" ? "text" : "password";
+      };
 
-      
+      // 2. Update toggleAuthMode to handle the VISUAL shift
+      window.toggleAuthMode = () => {
+        window.isSignupMode = !window.isSignupMode;
 
+        // This single line handles the Showing/Hiding of all new fields
+        document.getElementById("auth-card").classList.toggle("signup-mode");
 
-        
-// --- GOOGLE LOGIN LOGIC START ---
+        document.getElementById("auth-title").innerText = window.isSignupMode
+          ? "Create Account"
+          : "Member Login";
+        document.getElementById("submit-btn").innerText = window.isSignupMode
+          ? "APPLY FOR ACCESS"
+          : "SECURE ENTRY";
+        document.getElementById("google-text").innerText = window.isSignupMode
+          ? "Sign up with Google"
+          : "Sign in with Google";
+        document.getElementById("toggle-text").innerText = window.isSignupMode
+          ? "Login to existing account"
+          : "Create an Account";
+      };
 
+      // 3. Update handleAuthAction to VALIDATE the new fields
 
+      // 3. Update handleAuthAction to VALIDATE the new fields
+      window.handleAuthAction = async () => {
+        // ------------------------------------------------
 
-        
-                window.handleGoogleLogin = async () => {
-            try {
-                const res = await signInWithPopup(auth, provider);
-                const user = res.user;
-                
-                // 1. Check if this user already has a profile
-                const docRef = doc(db, 'artifacts', 'playgroundX_Prod_v1', 'public', 'data', 'users', user.uid);
-                const snap = await getDoc(docRef);
+        const email = document.getElementById("email").value;
+        const password = document.getElementById("password").value;
 
-                if (snap.exists()) {
-                    // OLD USER: Good to go, log them in
-                    checkRedirect(user);
-                } else {
-                    // NEW USER: BLOCK THEM
-                    // We delete the user from Auth so they aren't "half" signed in
-                    await user.delete(); 
-                    throw new Error("Account not found. Please create an account using the manual form.");
-                }
-            } catch(e) { 
-                console.error(e);
-                document.getElementById('error-txt').innerText = e.message; 
+        if (!email || !password) return;
+
+        try {
+          if (window.isSignupMode) {
+            // --- NEW VALIDATION START ---
+            const confirm = document.getElementById("confirm-password").value;
+            const fname = document.getElementById("fname").value;
+            const lname = document.getElementById("lname").value;
+            const address = document.getElementById("address").value;
+            const dob = document.getElementById("dob").value;
+            const phoneBackup = document.getElementById("phone-backup").value;
+
+            if (password !== confirm) {
+              throw new Error("Passwords do not match.");
             }
-        };
-                
+            if (!fname || !lname || !address || !dob) {
+              throw new Error("All fields (Name, Address, DOB) are required.");
+            }
+            // --- NEW VALIDATION END ---
 
-        
-        // --- GOOGLE LOGIN LOGIC END ---
+            const res = await createUserWithEmailAndPassword(
+              auth,
+              email,
+              password
+            );
+            currentUser = res.user;
 
-        window.wizardNext = (curr, next) => {
-            document.getElementById(curr).classList.add('exit');
-            setTimeout(() => document.getElementById(next).classList.add('active'), 100);
-        };
+            // Save the extra data to Firestore
+            await setDoc(
+              doc(
+                db,
+                "artifacts",
+                "playgroundX_Prod_v1",
+                "public",
+                "data",
+                "users",
+                currentUser.uid
+              ),
+              {
+                email,
+                dob,
+                firstName: fname,
+                middleInitial: document.getElementById("mname").value || "",
+                lastName: lname,
+                address: address,
+                phone: phoneBackup || "",
+                idVerified: "pending_upload",
+                isAdmin: false,
+                joined: serverTimestamp(),
+              }
+            );
 
+            document.getElementById("login-layer").style.display = "none";
+            document.getElementById("wizard-overlay").style.display = "flex";
+          } else {
+            // Login Logic remains exactly the same
+            const res = await signInWithEmailAndPassword(auth, email, password);
+            checkRedirect(res.user);
+          }
+        } catch (e) {
+          document.getElementById("error-txt").innerText = e.message;
+        }
+      };
 
+      // --- GOOGLE LOGIN LOGIC START ---
 
+      window.handleGoogleLogin = async () => {
+        try {
+          const res = await signInWithPopup(auth, provider);
+          const user = res.user;
 
-         window.finishOnboarding = async () => {
-            const front = document.getElementById('id-front').files[0];
-            const back = document.getElementById('id-back').files[0]; // NEW
-            const selfie = document.getElementById('selfie-upload').files[0];
-            const btn = document.querySelector('#step-selfie button');
+          // 1. Check if this user already has a profile
+          const docRef = doc(
+            db,
+            "artifacts",
+            "playgroundX_Prod_v1",
+            "public",
+            "data",
+            "users",
+            user.uid
+          );
+          const snap = await getDoc(docRef);
 
-            if(!front || !back || !selfie) {
-                alert("Please ensure ID Front, ID Back, and Selfie are uploaded.");
-                return;
+          if (snap.exists()) {
+            // OLD USER: Good to go, log them in
+            checkRedirect(user);
+          } else {
+            // NEW USER: BLOCK THEM
+            // We delete the user from Auth so they aren't "half" signed in
+            await user.delete();
+            throw new Error(
+              "Account not found. Please create an account using the manual form."
+            );
+          }
+        } catch (e) {
+          console.error(e);
+          document.getElementById("error-txt").innerText = e.message;
+        }
+      };
+
+      // --- GOOGLE LOGIN LOGIC END ---
+
+      window.wizardNext = (curr, next) => {
+        document.getElementById(curr).classList.add("exit");
+        setTimeout(
+          () => document.getElementById(next).classList.add("active"),
+          100
+        );
+      };
+
+      window.finishOnboarding = async () => {
+        const front = document.getElementById("id-front").files[0];
+        const back = document.getElementById("id-back").files[0]; // NEW
+        const selfie = document.getElementById("selfie-upload").files[0];
+        const btn = document.querySelector("#step-selfie button");
+
+        if (!front || !back || !selfie) {
+          alert("Please ensure ID Front, ID Back, and Selfie are uploaded.");
+          return;
         }
 
-        
+        btn.innerText = "VERIFYING...";
+        btn.style.opacity = "0.7";
+        btn.disabled = true;
 
+        try {
+          // 1. Upload Files
+          const frontUrl = await upload(
+            front,
+            `verification/${currentUser.uid}/id_front.jpg`
+          );
+          const backUrl = await upload(
+            back,
+            `verification/${currentUser.uid}/id_back.jpg`
+          ); // NEW
+          const selfieUrl = await upload(
+            selfie,
+            `verification/${currentUser.uid}/selfie.jpg`
+          );
 
-            
+          // 2. Set Status to 'pending_verification'
+          await setDoc(
+            doc(
+              db,
+              "artifacts",
+              "playgroundX_Prod_v1",
+              "public",
+              "data",
+              "users",
+              currentUser.uid
+            ),
+            {
+              idVerified: "pending_verification",
+              idPhotoUrl: frontUrl,
+              idBackUrl: backUrl, // NEW
+              selfieUrl: selfieUrl,
+            },
+            { merge: true }
+          );
 
-            btn.innerText = "VERIFYING..."; 
-            btn.style.opacity = "0.7";
-            btn.disabled = true;
+          // 3. Show Success Screen
+          wizardNext("step-selfie", "step-success");
 
+          // 4. THE KICKBACK: Wait 4 seconds, then Sign Out and Reload
+          setTimeout(async () => {
+            await auth.signOut();
+            window.location.reload(); // Returns to fresh Login screen
+          }, 4000);
+        } catch (e) {
+          alert("Upload failed: " + e.message);
+          btn.innerText = "SUBMIT";
+          btn.style.opacity = "1";
+          btn.disabled = false;
+        }
+      };
 
+      async function upload(file, path) {
+        const sRef = ref(storage, path);
+        await uploadBytes(sRef, file);
+        return getDownloadURL(sRef);
+      }
 
+      async function checkRedirect(user) {
+        const snap = await getDoc(
+          doc(
+            db,
+            "artifacts",
+            "playgroundX_Prod_v1",
+            "public",
+            "data",
+            "users",
+            user.uid
+          )
+        );
 
-                 try {
-                // 1. Upload Files
-                const frontUrl = await upload(front, `verification/${currentUser.uid}/id_front.jpg`);
-                const backUrl = await upload(back, `verification/${currentUser.uid}/id_back.jpg`); // NEW
-                const selfieUrl = await upload(selfie, `verification/${currentUser.uid}/selfie.jpg`);
-                
-                // 2. Set Status to 'pending_verification'
-                await setDoc(doc(db, 'artifacts', 'playgroundX_Prod_v1', 'public', 'data', 'users', currentUser.uid), {
-                    idVerified: 'pending_verification', 
-                    idPhotoUrl: frontUrl,
-                    idBackUrl: backUrl, // NEW
-                    selfieUrl: selfieUrl
-                }, {merge: true});
-        
-
-
-
-
-
-
-                
-
-                // 3. Show Success Screen
-                wizardNext('step-selfie', 'step-success');
-
-                // 4. THE KICKBACK: Wait 4 seconds, then Sign Out and Reload
-                setTimeout(async () => {
-                    await auth.signOut();
-                    window.location.reload(); // Returns to fresh Login screen
-                }, 4000);
-
-            } catch(e) { 
-                alert("Upload failed: " + e.message);
-                btn.innerText = "SUBMIT";
-                btn.style.opacity = "1";
-                btn.disabled = false;
-            }
-        };
-
-
-        async function upload(file, path) {
-            const sRef = ref(storage, path);
-            await uploadBytes(sRef, file);
-            return getDownloadURL(sRef);
+        if (!snap.exists()) {
+          console.error("No profile found");
+          return;
         }
 
+        const data = snap.data();
 
-        async function checkRedirect(user) {
-            const snap = await getDoc(doc(db, 'artifacts', 'playgroundX_Prod_v1', 'public', 'data', 'users', user.uid));
-            
-            if (!snap.exists()) {
-                 console.error("No profile found");
-                 return;
-            }
-
-            const data = snap.data();
-
-            // 1. Admin Always Gets In
-            if(data.isAdmin) {
-                localStorage.setItem('pgX_admin_access', 'true');
-                window.location.href = "home.html";
-                return;
-            }
-
-            // 2. Check Verification Status
-            const status = data.idVerified;
-
-            if (status === 'pending_upload') {
-                // SCENARIO: They quit halfway. Force them back to the Wizard.
-                console.log("Incomplete onboarding detected.");
-                document.getElementById('login-layer').style.display = 'none';
-                document.getElementById('wizard-overlay').style.display = 'flex';
-                
-                // Reset wizard to Step 1 (Safety Oath) just to be sure
-                document.querySelectorAll('.w-step').forEach(el => el.classList.remove('active', 'exit'));
-                document.getElementById('step-safety').classList.add('active');
-            } 
-            else if (status === 'pending_verification') {
-                // SCENARIO: They are waiting for YOU to approve them.
-                document.getElementById('error-txt').innerText = "Application under review. Access denied until approved.";
-                await auth.signOut(); // Kick them out so they can't sneak in
-            }
-            else if (status === 'verified') {
-                // SCENARIO: You manually approved them in the Database.
-                window.location.href = "home.html";
-            }
-            else {
-                // SCENARIO: Unknown state? Block them.
-                document.getElementById('error-txt').innerText = "Account status unknown. Please contact support.";
-                await auth.signOut();
-            }
+        // 1. Admin Always Gets In
+        if (data.isAdmin) {
+          localStorage.setItem("pgX_admin_access", "true");
+          window.location.href = "home.html";
+          return;
         }
 
+        // 2. Check Verification Status
+        const status = data.idVerified;
 
-        
+        if (status === "pending_upload") {
+          // SCENARIO: They quit halfway. Force them back to the Wizard.
+          console.log("Incomplete onboarding detected.");
+          document.getElementById("login-layer").style.display = "none";
+          document.getElementById("wizard-overlay").style.display = "flex";
 
-        window.enterApp = () => window.location.href = "home.html";
+          // Reset wizard to Step 1 (Safety Oath) just to be sure
+          document
+            .querySelectorAll(".w-step")
+            .forEach((el) => el.classList.remove("active", "exit"));
+          document.getElementById("step-safety").classList.add("active");
+        } else if (status === "pending_verification") {
+          // SCENARIO: They are waiting for YOU to approve them.
+          document.getElementById("error-txt").innerText =
+            "Application under review. Access denied until approved.";
+          await auth.signOut(); // Kick them out so they can't sneak in
+        } else if (status === "verified") {
+          // SCENARIO: You manually approved them in the Database.
+          window.location.href = "home.html";
+        } else {
+          // SCENARIO: Unknown state? Block them.
+          document.getElementById("error-txt").innerText =
+            "Account status unknown. Please contact support.";
+          await auth.signOut();
+        }
+      }
+
+      window.enterApp = () => (window.location.href = "home.html");
     </script>
-</body>
+  </body>
 </html>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
