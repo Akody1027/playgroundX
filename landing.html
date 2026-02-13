@@ -1680,7 +1680,7 @@
           );
 
           // 3. Show Success Screen
-          wizardNext("step-selfie", "step-success");
+          window.wizardNext("step-selfie", "step-success");
 
           // 4. THE KICKBACK: Wait 4 seconds, then Sign Out and Reload
           setTimeout(async () => {
@@ -1715,7 +1715,12 @@
         );
 
         if (!snap.exists()) {
-          console.error("No profile found");
+          await user.delete();
+          if (!window.isSignupMode) {
+            window.toggleAuthMode();
+          }
+          document.getElementById("error-txt").innerText =
+            "Registration interrupted due to a network timeout. Please ensure you have a stable connection and complete your profile below.";
           return;
         }
 
@@ -1762,4 +1767,3 @@
     </script>
   </body>
 </html>
-
