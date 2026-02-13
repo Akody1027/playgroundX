@@ -686,21 +686,114 @@
             I AGREE
           </button>
         </div>
+
         <div id="step-id" class="w-step">
-          <div class="w-icon"></div>
           <div class="w-title">Identity Check</div>
-          <div class="w-desc">
-            Upload front and back of your ID. Deleted after verification.
+          <div class="w-desc" style="margin-bottom: 15px">
+            Tap the images below to open your camera and capture your ID.
           </div>
-          <input type="file" id="id-front" class="file-drop" accept="image/*" />
-          <input type="file" id="id-back" class="file-drop" accept="image/*" />
+
+          <div
+            style="display: flex; gap: 15px; width: 100%; margin-bottom: 20px"
+          >
+            <div style="flex: 1; text-align: center">
+              <img
+                src="IDfront.jpg"
+                id="img-front-trigger"
+                style="
+                  width: 100%;
+                  max-width: 150px;
+                  border: 2px dashed #333;
+                  border-radius: 12px;
+                  cursor: pointer;
+                  transition: 0.3s;
+                  padding: 5px;
+                "
+                onclick="document.getElementById('id-front').click()"
+                alt="Front of ID"
+              />
+              <div
+                style="
+                  font-size: 13px;
+                  color: white;
+                  margin-top: 8px;
+                  font-weight: bold;
+                "
+              >
+                Front of ID
+              </div>
+            </div>
+            <div style="flex: 1; text-align: center">
+              <img
+                src="IDback.jpg"
+                id="img-back-trigger"
+                style="
+                  width: 100%;
+                  max-width: 150px;
+                  border: 2px dashed #333;
+                  border-radius: 12px;
+                  cursor: pointer;
+                  transition: 0.3s;
+                  padding: 5px;
+                "
+                onclick="document.getElementById('id-back').click()"
+                alt="Back of ID"
+              />
+              <div
+                style="
+                  font-size: 13px;
+                  color: white;
+                  margin-top: 8px;
+                  font-weight: bold;
+                "
+              >
+                Back of ID
+              </div>
+            </div>
+          </div>
+
+          <input
+            type="file"
+            id="id-front"
+            accept="image/*"
+            capture="environment"
+            style="display: none"
+            onchange="document.getElementById('img-front-trigger').style.borderColor = 'var(--primary)';"
+          />
+          <input
+            type="file"
+            id="id-back"
+            accept="image/*"
+            capture="environment"
+            style="display: none"
+            onchange="document.getElementById('img-back-trigger').style.borderColor = 'var(--primary)';"
+          />
+
+          <p
+            style="
+              font-size: 11px;
+              color: var(--primary);
+              line-height: 1.5;
+              margin-bottom: 20px;
+              text-align: center;
+              padding: 0 10px;
+            "
+          >
+            Due to our strict security policies, uploaded documents are used
+            solely to verify your age and identity. They are permanently deleted
+            immediately after verification. You will receive status updates via
+            your registered email.
+          </p>
+
           <button
             class="btn-wizard"
             onclick="wizardNext('step-id', 'step-selfie')"
+            style="margin-top: 0"
           >
             CONTINUE
           </button>
         </div>
+
         <div id="step-selfie" class="w-step">
           <div class="w-icon"></div>
           <div class="w-title">Liveness Check</div>
@@ -1005,13 +1098,6 @@
         >
           Authenticate to enter the Lounge.
         </p>
-
-        <div id="google-miss-msg" class="google-alert-box">
-          <strong>Action Required:</strong><br />
-          Google does not provide your <u>Address</u> or
-          <u>Date of Birth</u>.<br />
-          Please fill the highlighted fields to continue.
-        </div>
 
         <div class="signup-only">
           <label
