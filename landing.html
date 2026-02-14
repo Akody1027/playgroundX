@@ -1814,7 +1814,7 @@ window.finishOnboarding = async () => {
           setTimeout(async () => {
             await auth.signOut();
             window.location.reload(); 
-          }, 4000);
+          }, 6000);
         } catch (e) {
           alert("Upload failed: " + e.message);
           btn.innerText = "SUBMIT";
@@ -1938,6 +1938,7 @@ window.finishOnboarding = async () => {
     </script>
   </body>
 </html>
+
 
 
 
