@@ -795,21 +795,58 @@
           </button>
         </div>
 
-        <div id="step-selfie" class="w-step">
-          <div class="w-icon"></div>
-          <div class="w-title">Liveness Check</div>
-          <div class="w-desc">Take a selfie holding a Peace Sign.</div>
-          <input
-            type="file"
-            id="selfie-upload"
-            class="file-drop"
-            accept="image/*"
-            capture="user"
-          />
-          <button class="btn-wizard" onclick="finishOnboarding()">
-            SUBMIT
-          </button>
-        </div>
+
+
+
+<div id="step-selfie" class="w-step">
+  <div class="w-title">Liveness Check</div>
+  <div class="w-desc" style="margin-bottom: 15px">Take a selfie holding a Peace Sign.</div>
+
+  <div style="text-align: center; width: 100%; margin-bottom: 20px">
+    <img
+      src="user_selfie.png"
+      id="img-selfie-trigger"
+      style="
+        width: 100%;
+        max-width: 150px;
+        border: 2px dashed #333;
+        border-radius: 12px;
+        cursor: pointer;
+        transition: 0.3s;
+        padding: 5px;
+      "
+      onclick="document.getElementById('selfie-upload').click()"
+      alt="Selfie Upload"
+    />
+    <div
+      style="
+        font-size: 13px;
+        color: white;
+        margin-top: 8px;
+        font-weight: bold;
+      "
+    >
+      Tap to Capture
+    </div>
+  </div>
+
+  <input
+    type="file"
+    id="selfie-upload"
+    accept="image/*"
+    capture="user"
+    style="display: none"
+    onchange="document.getElementById('img-selfie-trigger').style.borderColor = 'var(--primary)';"
+  />
+
+  <button class="btn-wizard" onclick="finishOnboarding()" style="margin-top: 0">
+    SUBMIT
+  </button>
+</div>
+
+
+
+        
 
         <div id="step-success" class="w-step">
           <div class="w-icon"></div>
@@ -1858,6 +1895,7 @@ await setDoc(
     </script>
   </body>
 </html>
+
 
 
 
