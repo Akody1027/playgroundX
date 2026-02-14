@@ -1759,61 +1759,45 @@
         );
       };
 
-      window.finishOnboarding = async () => {
-        const front = document.getElementById("id-front").files[0];
-        const back = document.getElementById("id-back").files[0]; // NEW
-        const selfie = document.getElementById("selfie-upload").files[0];
-        const btn = document.querySelector("#step-selfie button");
 
-        if (!front || !back || !selfie) {
-          alert("Please ensure ID Front, ID Back, and Selfie are uploaded.");
-          return;
-        }
 
-        btn.innerText = "VERIFYING...";
-        btn.style.opacity = "0.7";
-        btn.disabled = true;
+
+
+
+      
+
 
         try {
-         const frontUrl = await upload(
-  front,
-  `verification/${auth.currentUser.uid}/id_front.jpg`
-);
-const backUrl = await upload(
-  back,
-  `verification/${auth.currentUser.uid}/id_back.jpg`
-);
-const selfieUrl = await upload(
-  selfie,
-  `verification/${auth.currentUser.uid}/selfie.jpg`
-);
+          const [frontUrl, backUrl, selfieUrl] = await Promise.all([
+            upload(front, `verification/${auth.currentUser.uid}/id_front.jpg`),
+            upload(back, `verification/${auth.currentUser.uid}/id_back.jpg`),
+            upload(selfie, `verification/${auth.currentUser.uid}/selfie.jpg`)
+          ]);
 
-await setDoc(
-  doc(
-    db,
-    "artifacts",
-    "playgroundX_Prod_v1",
-    "public",
-    "data",
-    "users",
-    auth.currentUser.uid
-  ),
+          await setDoc(
+            doc(
+              db,
+              "artifacts",
+              "playgroundX_Prod_v1",
+              "public",
+              "data",
+              "users",
+              auth.currentUser.uid
+            ),
             {
               idVerified: "pending_verification",
               idPhotoUrl: frontUrl,
-              idBackUrl: backUrl, // NEW
+              idBackUrl: backUrl,
               selfieUrl: selfieUrl,
             },
             { merge: true }
           );
 
-          // 3. Show Success Screen
           window.wizardNext("step-selfie", "step-success");
 
-          // 4. THE KICKBACK: Wait 4 seconds, then Sign Out and Reload
           setTimeout(async () => {
             await auth.signOut();
-            window.location.reload(); // Returns to fresh Login screen
+            window.location.reload(); 
           }, 4000);
         } catch (e) {
           alert("Upload failed: " + e.message);
@@ -1824,11 +1808,54 @@ await setDoc(
       };
 
       async function upload(file, path) {
+        const compressedFile = await compressImage(file, 1200, 0.8);
         const sRef = ref(storage, path);
-        await uploadBytes(sRef, file);
+        await uploadBytes(sRef, compressedFile);
         return getDownloadURL(sRef);
       }
 
+      async function compressImage(file, maxWidth, quality) {
+        return new Promise((resolve, reject) => {
+          const reader = new FileReader();
+          reader.readAsDataURL(file);
+          reader.onload = (event) => {
+            const img = new Image();
+            img.src = event.target.result;
+            img.onload = () => {
+              const canvas = document.createElement("canvas");
+              let width = img.width;
+              let height = img.height;
+
+              if (width > maxWidth) {
+                height = Math.round((height * maxWidth) / width);
+                width = maxWidth;
+              }
+
+              canvas.width = width;
+              canvas.height = height;
+              const ctx = canvas.getContext("2d");
+              ctx.drawImage(img, 0, 0, width, height);
+
+              canvas.toBlob((blob) => {
+                resolve(blob);
+              }, "image/jpeg", quality);
+            };
+            img.onerror = (e) => reject(e);
+          };
+          reader.onerror = (e) => reject(e);
+        });
+      }
+
+
+
+
+
+
+
+
+
+
+      
       async function checkRedirect(user) {
         const snap = await getDoc(
           doc(
@@ -1895,6 +1922,7 @@ await setDoc(
     </script>
   </body>
 </html>
+
 
 
 
