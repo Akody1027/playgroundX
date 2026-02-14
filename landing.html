@@ -1764,8 +1764,26 @@
 
 
 
-      window.finishOnboarding = async () => {
-        try {
+window.finishOnboarding = async () => {
+  const btn = document.querySelector("#step-selfie .btn-wizard");
+  btn.innerText = "UPLOADING...";
+  btn.style.opacity = "0.5";
+  btn.disabled = true;
+
+  const front = document.getElementById('id-front').files[0];
+  const back = document.getElementById('id-back').files[0];
+  const selfie = document.getElementById('selfie-upload').files[0];
+
+  if (!front || !back || !selfie) {
+    alert("Please make sure you have captured your ID front, ID back, and selfie before submitting.");
+    btn.innerText = "SUBMIT";
+    btn.style.opacity = "1";
+    btn.disabled = false;
+    return;
+  }
+
+  try {
+      
           const [frontUrl, backUrl, selfieUrl] = await Promise.all([
             upload(front, `verification/${auth.currentUser.uid}/id_front.jpg`),
             upload(back, `verification/${auth.currentUser.uid}/id_back.jpg`),
@@ -1920,6 +1938,7 @@
     </script>
   </body>
 </html>
+
 
 
 
