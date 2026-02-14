@@ -1659,14 +1659,18 @@
 
             document.getElementById("login-layer").style.display = "none";
             document.getElementById("wizard-overlay").style.display = "flex";
-          } else {
-            // Login Logic remains exactly the same
+       
+          
+          
+                    } else {
             const res = await signInWithEmailAndPassword(auth, email, password);
+            currentUser = res.user;
             checkRedirect(res.user);
           }
-        } catch (e) {
-          document.getElementById("error-txt").innerText = e.message;
-        }
+
+
+
+        
       };
 
       // --- GOOGLE LOGIN LOGIC START ---
@@ -1853,4 +1857,5 @@
     </script>
   </body>
 </html>
+
 
