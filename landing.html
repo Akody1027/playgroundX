@@ -472,8 +472,8 @@
         margin-bottom: 10px;
       }
       .w-desc {
-        color: #888;
-        font-size: 14px;
+        color: #8b5cf6;
+        font-size: 16px;
         line-height: 1.6;
         margin-bottom: 30px;
       }
@@ -852,8 +852,10 @@
           <div class="w-icon"></div>
           <div class="w-title">Request Pending</div>
           <div class="w-desc">
-            Your application is under review. You will be notified once verified
-            so you can return and log in. (Redirecting...)
+            Your application is currently under review. 
+            We will notify you via your registered email once you are approved.
+            (Redirecting to login...)
+            
           </div>
         </div>
       </div>
@@ -1814,7 +1816,7 @@ window.finishOnboarding = async () => {
           setTimeout(async () => {
             await auth.signOut();
             window.location.reload(); 
-          }, 6000);
+          }, 8000);
         } catch (e) {
           alert("Upload failed: " + e.message);
           btn.innerText = "SUBMIT";
@@ -1938,6 +1940,7 @@ window.finishOnboarding = async () => {
     </script>
   </body>
 </html>
+
 
 
 
