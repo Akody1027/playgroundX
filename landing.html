@@ -1737,31 +1737,29 @@
         btn.disabled = true;
 
         try {
-          // 1. Upload Files
-          const frontUrl = await upload(
-            front,
-            `verification/${currentUser.uid}/id_front.jpg`
-          );
-          const backUrl = await upload(
-            back,
-            `verification/${currentUser.uid}/id_back.jpg`
-          ); // NEW
-          const selfieUrl = await upload(
-            selfie,
-            `verification/${currentUser.uid}/selfie.jpg`
-          );
+         const frontUrl = await upload(
+  front,
+  `verification/${auth.currentUser.uid}/id_front.jpg`
+);
+const backUrl = await upload(
+  back,
+  `verification/${auth.currentUser.uid}/id_back.jpg`
+);
+const selfieUrl = await upload(
+  selfie,
+  `verification/${auth.currentUser.uid}/selfie.jpg`
+);
 
-          // 2. Set Status to 'pending_verification'
-          await setDoc(
-            doc(
-              db,
-              "artifacts",
-              "playgroundX_Prod_v1",
-              "public",
-              "data",
-              "users",
-              currentUser.uid
-            ),
+await setDoc(
+  doc(
+    db,
+    "artifacts",
+    "playgroundX_Prod_v1",
+    "public",
+    "data",
+    "users",
+    auth.currentUser.uid
+  ),
             {
               idVerified: "pending_verification",
               idPhotoUrl: frontUrl,
@@ -1859,4 +1857,5 @@
     </script>
   </body>
 </html>
+
 
