@@ -1764,9 +1764,7 @@
 
 
 
-      
-
-
+      window.finishOnboarding = async () => {
         try {
           const [frontUrl, backUrl, selfieUrl] = await Promise.all([
             upload(front, `verification/${auth.currentUser.uid}/id_front.jpg`),
@@ -1922,6 +1920,7 @@
     </script>
   </body>
 </html>
+
 
 
 
