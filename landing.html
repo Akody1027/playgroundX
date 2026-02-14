@@ -1666,12 +1666,14 @@
             const res = await signInWithEmailAndPassword(auth, email, password);
             currentUser = res.user;
             checkRedirect(res.user);
-          }
+          
+         }
 
-
-
-        
+        } catch (e) {
+          document.getElementById("error-txt").innerText = e.message;
+        }
       };
+
 
       // --- GOOGLE LOGIN LOGIC START ---
 
@@ -1857,5 +1859,4 @@
     </script>
   </body>
 </html>
-
 
