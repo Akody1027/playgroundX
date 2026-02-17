@@ -5267,6 +5267,7 @@
       let currentChatId = null;
       let currentVideoUnsubscribe = null;
       let currentUserUid = null;
+      window.myProfileData = null;
       // --- NEW: Global State for Swipes ---
       window.hideLeftSwipesMode = false; // Default: Recycle Mode (OFF)
       window.hiddenUsersSet = new Set(); // Stores IDs of users we never want to see again
@@ -5445,8 +5446,15 @@
           }
         });
       }
+      
+      
+      
+      
+      
+      
+      
 
-      async function ensureUserProfile() {
+        async function ensureUserProfile() {
         // 1. Reference the user document
         const userRef = window.fbase.doc(
           window.db,
@@ -5459,52 +5467,61 @@
         );
 
         try {
-          // 2. Fetch latest data from Database
-          const snap = await window.fbase.getDoc(userRef);
+          // 2. Attach a REAL-TIME Listener instead of a one-time fetch
+          window.fbase.onSnapshot(userRef, async (snap) => {
+            if (snap.exists()) {
+              const data = snap.data();
+              console.log("Profile synced from DB:", data.alias);
 
-          if (snap.exists()) {
-            const data = snap.data();
-            console.log("Profile loaded from DB:", data.alias);
+              // 3. Update Global State (The Bulletproof Source of Truth)
+              window.myProfileData = data;
 
-            // 3. Sync to LocalStorage (so other parts of the app are fast)
-            if (data.alias) localStorage.setItem("pgX_alias", data.alias);
-            if (data.img) localStorage.setItem("my_profile_pic", data.img);
+              // 4. Update Local Cache (For immediate UI loading next refresh)
+              if (data.alias) localStorage.setItem("pgX_alias", data.alias);
+              if (data.img) localStorage.setItem("my_profile_pic", data.img);
+              if (data.creatorAlias) localStorage.setItem("pgX_creator_alias", data.creatorAlias);
 
-            // 4. *** CRITICAL FIX: UPDATE HEADER UI IMMEDIATELY ***
-            if (data.img) {
-              const headerIcon = document.getElementById("user-icon-trigger");
-              if (headerIcon) {
-                headerIcon.innerHTML = `
-                                  <img src="${
-                                    data.img
-                                  }" style="width:100%; height:100%; border-radius:50%; object-fit:cover;">
-                                  <div id="connection-dot" class="connection-dot ${
-                                    navigator.onLine ? "online" : "offline"
-                                  }"></div>
-                              `;
+              // 5. Instantly Update Header UI
+              if (data.img) {
+                const headerIcon = document.getElementById("user-icon-trigger");
+                if (headerIcon) {
+                  headerIcon.innerHTML = `
+                                    <img src="${data.img}" style="width:100%; height:100%; border-radius:50%; object-fit:cover;">
+                                    <div id="connection-dot" class="connection-dot ${
+                                      navigator.onLine ? "online" : "offline"
+                                    }"></div>
+                                `;
+                }
               }
+            } else {
+              // 6. Create Default User (First Time Only)
+              console.log("Creating new user profile...");
+              const defaultAlias = "User_" + Math.floor(Math.random() * 1000);
+              const defaultImg = "https://via.placeholder.com/120";
+
+              await window.fbase.setDoc(userRef, {
+                alias: defaultAlias,
+                age: 21,
+                bio: "New member",
+                img: defaultImg,
+                joinedAt: window.fbase.serverTimestamp(),
+              });
+              // The listener will instantly fire again and populate the UI automatically
             }
-          } else {
-            // 5. Create Default User (First Time Only)
-            console.log("Creating new user profile...");
-            const defaultAlias = "User_" + Math.floor(Math.random() * 1000);
-            const defaultImg = "https://via.placeholder.com/120";
-
-            await window.fbase.setDoc(userRef, {
-              alias: defaultAlias,
-              age: 21,
-              bio: "New member",
-              img: defaultImg,
-              joinedAt: window.fbase.serverTimestamp(),
-            });
-
-            localStorage.setItem("pgX_alias", defaultAlias);
-            localStorage.setItem("my_profile_pic", defaultImg);
-          }
+          }, (error) => {
+            console.error("Profile sync failed:", error);
+          });
         } catch (e) {
-          console.error("Profile check failed:", e);
+          console.error("Profile setup failed:", e);
         }
       }
+
+      
+      
+      
+      
+      
+      
 
       window.renderDeck = async function () {
         const zone = document.getElementById("swipe-zone");
@@ -5731,16 +5748,15 @@
                 "winks",
                 winkId
               );
-
+              
               await window.fbase.setDoc(winkDoc, {
                 fromUid: currentUserUid,
-                fromAlias: localStorage.getItem("pgX_alias") || "Someone",
-                fromImg:
-                  localStorage.getItem("my_profile_pic") ||
-                  "https://via.placeholder.com/120",
+                fromAlias: window.myProfileData?.alias || "Someone",
+                fromImg: window.myProfileData?.img || "https://via.placeholder.com/120",
                 timestamp: window.fbase.serverTimestamp(),
                 read: false,
               });
+              
             } catch (e) {
               console.error("Wink failed", e);
             }
@@ -6230,11 +6246,9 @@
           // 5. Save to Database with the TAG
           const videoCollection = getPublicCollection("videos");
           await window.fbase.addDoc(videoCollection, {
-            user: localStorage.getItem("pgX_alias") || "Anon",
+            user: window.myProfileData?.alias || "Anon",
             userId: currentUserUid,
-            userImg:
-              localStorage.getItem("my_profile_pic") ||
-              "https://via.placeholder.com/120",
+            userImg: window.myProfileData?.img || "https://via.placeholder.com/120",
             url: downloadURL,
             timestamp: window.fbase.serverTimestamp(),
             size: file.size,
@@ -7099,14 +7113,13 @@
         btn.disabled = true;
 
         try {
-          // 1. Prepare User Data for the Queue
+          // 1. Prepare User Data for the Queue          
           const queueData = {
             uid: currentUserUid,
-            alias: localStorage.getItem("pgX_alias") || "User",
-            img:
-              localStorage.getItem("my_profile_pic") ||
-              "https://via.placeholder.com/40",
+            alias: window.myProfileData?.alias || "User",
+            img: window.myProfileData?.img || "https://via.placeholder.com/40",
             timestamp: window.fbase.serverTimestamp(),
+            
             // Save coordinates so we can calculate distance filters later
             lat: window.myLocation ? window.myLocation.lat : 0,
             lng: window.myLocation ? window.myLocation.lng : 0,
@@ -7778,9 +7791,10 @@
             mediaUrl = await window.fbase.getDownloadURL(snap.ref);
             mediaType = file.type.startsWith("video") ? "video" : "image";
           }
-
-          await window.fbase.addDoc(
-            window.fbase.collection(
+       
+         
+            await window.fbase.addDoc(
+              window.fbase.collection(
               window.db,
               "artifacts",
               window.APP_ID,
@@ -7790,11 +7804,9 @@
             ),
             {
               uid: currentUserUid,
-              alias: localStorage.getItem("pgX_alias") || "User",
-              avatar:
-                localStorage.getItem("my_profile_pic") ||
-                "https://via.placeholder.com/50",
-              text: txt,
+              alias: window.myProfileData?.alias || "User",
+              avatar: window.myProfileData?.img || "https://via.placeholder.com/50",
+              text: txt,              
               media: mediaUrl,
               mediaType: mediaType,
               timestamp: window.fbase.serverTimestamp(),
@@ -8765,5 +8777,4 @@
     </script>
   </body>
 </html>
-
 
