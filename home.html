@@ -2364,11 +2364,10 @@
     </div>
 
     <div id="user-dropdown">
-      <a href="#" id="open-my-profile" onclick="window.loadMyProfile()"
-        >Edit Profile</a
-      >
-      <a href="#" onclick="window.logout()">Log Out</a>
+      <a href="javascript:void(0);" id="open-my-profile" onclick="window.loadMyProfile(); return false;">Edit Profile</a>
+      <a href="javascript:void(0);" onclick="window.logout(); return false;">Log Out</a>
     </div>
+
 
     <div class="toolbar">
       <button class="view-btn" onclick="window.switchView('swipe', this)">
@@ -8777,5 +8776,6 @@
     </script>
   </body>
 </html>
+
 
 
