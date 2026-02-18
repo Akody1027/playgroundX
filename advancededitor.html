@@ -247,16 +247,7 @@
     let editor;
     const STORAGE_KEY = 'devpip_content';
     
-    const defaultCode = `<!DOCTYPE html>
-<html>
-<head>
-  <style>
-    body { 
-      font-family: sans-serif; 
-      background: #f0f2f5; 
-      }
-</body>
-</html>`;
+    const defaultCode = ``;
 
     window.onload = function() {
         editor = CodeMirror.fromTextArea(document.getElementById("code-editor"), {
@@ -689,6 +680,7 @@ let searchCursor = null;
 
 </body>
 </html>
+
 
 
 
