@@ -289,6 +289,12 @@
 
     // --- 2. HOT UPDATE LOGIC ---
     function updatePreview() {
+
+
+       // Clear previous logs on hot reload
+        document.getElementById('console-logs').innerHTML = ''; 
+
+        
         const frame = document.getElementById('preview-frame');
         const code = editor.getValue();
         
@@ -322,12 +328,22 @@
             finalCode = `${baseTag}${consoleScript}${finalCode}`;
         }
 
-        const doc = frame.contentDocument || frame.contentWindow.document;
-        doc.open();
-        doc.write(finalCode);
-        doc.close();
-    }
 
+
+        
+        // Force a complete memory and context reset on every update
+        frame.srcdoc = finalCode;
+
+        // Ensure the editor retains typing focus after the iframe reloads
+        if (!editor.getOption("readOnly")) {
+            editor.focus();
+        }
+
+
+
+
+
+    
     // --- 3. CONSOLE LOGIC & DRAGGING ---
     let savedConsoleHeight = '150px';
 
@@ -689,6 +705,7 @@ let searchCursor = null;
 
 </body>
 </html>
+
 
 
 
