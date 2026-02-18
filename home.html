@@ -2670,31 +2670,19 @@
             margin-bottom: 20px;
           "
         >
-          <button
-            onclick="window.openTab('profile-tab-edit', this)"
-            class="tab-btn active"
-            style="
-              padding: 10px 0;
-              color: var(--accent);
-              border-bottom: 2px solid var(--accent);
-            "
-          >
-            Profile
-          </button>
-          <button
-            onclick="window.openTab('profile-tab-wallet', this)"
-            class="tab-btn"
-            style="padding: 10px 0; color: #888"
-          >
-            Wallet
-          </button>
-          <button
-            onclick="window.openTab('tab-creator', this)"
-            class="tab-btn"
-            style="padding: 10px 0; color: #888"
-          >
-            Creator
-          </button>
+          
+                    
+
+          
+  <button id="tab-btn-edit" onclick="window.openTab('profile-tab-edit', this)" class="tab-btn active">Profile</button>
+<button id="tab-btn-wallet" onclick="window.openTab('profile-tab-wallet', this)" class="tab-btn">Wallet</button>
+<button id="tab-btn-creator" onclick="window.openTab('tab-creator', this)" class="tab-btn">Creator</button>        
+          
+          
+          
+          
+          
+                  
         </div>
 
         <div
@@ -3284,7 +3272,7 @@
                 >420 Friendly</label
               >
             </div>
-          </div>
+          
 
           <div
             style="
@@ -3388,7 +3376,7 @@
             </div>
           </div>
         </div>
-      </div>
+     
 
       <div
         id="profile-tab-wallet"
@@ -6463,17 +6451,29 @@
         document.getElementById("chat-view").style.display = "none";
       };
 
-      window.openTab = function (tabId, btn) {
-        document
-          .querySelectorAll(".tab-pane")
-          .forEach((t) => (t.style.display = "none"));
-        document
-          .querySelectorAll(".tab-btn")
-          .forEach((b) => b.classList.remove("active"));
-        document.getElementById(tabId).style.display = "block";
-        btn.classList.add("active");
-      };
+      
+      
+      
+      
 
+window.openTab = function (tabId, btn) {
+    // Scope to the closest modal so we only affect tabs within this modal
+    const btnGroup = btn.parentElement;
+    const modal = btn.closest('.modal');
+    
+    modal.querySelectorAll(".tab-pane")
+      .forEach((t) => (t.style.display = "none"));
+    btnGroup.querySelectorAll(".tab-btn")
+      .forEach((b) => b.classList.remove("active"));
+    
+    document.getElementById(tabId).style.display = "block";
+    btn.classList.add("active");
+      {;
+      
+      
+      
+      
+      
       window.toggleAccordion = function (id, isChecked) {
         const el = document.getElementById(id);
         if (el) el.style.display = isChecked ? "block" : "none";
@@ -8133,39 +8133,55 @@
          NEW FEATURE: CREATOR STUDIO & COIN ECONOMY
          ========================================= */
 
-      // 1. Tab Switching (Updated to handle 3 tabs)
-      window.switchProfileTab = function (tabName) {
-        // Hide all tabs first
-        const tabs = ["profile", "wallet", "creator"];
-        tabs.forEach((t) => {
-          const el = document.getElementById("tab-" + t);
-          if (el) el.style.display = "none";
-        });
+      
+      
+      
+      
+      
+      
 
-        // Remove 'active' class from all buttons
-        document
-          .querySelectorAll(".tab-btn")
-          .forEach((btn) => btn.classList.remove("active"));
+  window.switchProfileTab = function (tabName) {
+    // Map friendly names to actual HTML element IDs
+    const tabIdMap = {
+      "profile": "profile-tab-edit",
+      "wallet": "profile-tab-wallet",
+      "creator": "tab-creator"
+    };
 
-        // Show the selected tab
-        const target = document.getElementById("tab-" + tabName);
-        if (target) target.style.display = "block";
+    const btnIdMap = {
+      "profile": "tab-btn-edit",
+      "wallet": "tab-btn-wallet",
+      "creator": "tab-btn-creator"
+    };
 
-        // Highlight the clicked button
-        // (This matches the ID we added in Step 2, or falls back to existing buttons)
-        if (tabName === "creator") {
-          const btn = document.getElementById("tab-btn-creator");
-          if (btn) btn.classList.add("active");
-        } else if (tabName === "wallet") {
-          // Assuming the 2nd button is wallet if no ID
-          const btns = document.querySelectorAll(".tab-btn");
-          if (btns[1]) btns[1].classList.add("active");
-        } else {
-          // Default to profile
-          const btns = document.querySelectorAll(".tab-btn");
-          if (btns[0]) btns[0].classList.add("active");
-        }
-      };
+    // Hide all profile tabs
+    Object.values(tabIdMap).forEach((id) => {
+      const el = document.getElementById(id);
+      if (el) el.style.display = "none";
+    });
+
+    // Remove 'active' class from profile tab buttons only
+    Object.values(btnIdMap).forEach((id) => {
+      const btn = document.getElementById(id);
+      if (btn) btn.classList.remove("active");
+    });
+
+    // Show the selected tab
+    const targetId = tabIdMap[tabName];
+    const target = document.getElementById(targetId);
+    if (target) target.style.display = "block";
+
+    // Highlight the correct button
+    const btnId = btnIdMap[tabName];
+    const btn = document.getElementById(btnId);
+    if (btn) btn.classList.add("active");
+  };    
+      
+      
+      
+      
+      
+      
 
       // 2. Creator Avatar Preview
       window.previewCreatorAvatar = function (input) {
@@ -8873,5 +8889,10 @@
       </body>
       
   </html> 
+
+
+
+
+
 
 
