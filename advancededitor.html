@@ -443,21 +443,41 @@
         }
     }
 
-    let searchCursor = null;
+
+let searchCursor = null;
+    let lastSearchVal = '';
+
     function handleSearch(val) {
-        if(!val) return;
-        searchCursor = editor.getSearchCursor(val);
-        findNext();
+        // Only reset the cursor when the search TERM actually changes
+        // Do NOT call findNext here — let the user press ⬇ to navigate
+        if (val !== lastSearchVal) {
+            lastSearchVal = val;
+            if (!val) {
+                searchCursor = null;
+                return;
+            }
+            // Start from the current editor cursor position, not from line 0
+            searchCursor = editor.getSearchCursor(val, editor.getCursor());
+        }
     }
 
     function findNext() {
-        if (!searchCursor) return;
+        const val = document.getElementById('search-input').value;
+        if (!val) return;
+
+        // If term changed externally or cursor is null, create fresh cursor from current position
+        if (!searchCursor || val !== lastSearchVal) {
+            lastSearchVal = val;
+            searchCursor = editor.getSearchCursor(val, editor.getCursor());
+        }
+
         if (searchCursor.findNext()) {
             editor.setSelection(searchCursor.from(), searchCursor.to());
             editor.scrollIntoView(searchCursor.from(), 200);
         } else {
-            searchCursor = editor.getSearchCursor(document.getElementById('search-input').value);
-            if(searchCursor.findNext()) {
+            // Wrap-around: restart from the very beginning of the document
+            searchCursor = editor.getSearchCursor(val, {line: 0, ch: 0});
+            if (searchCursor.findNext()) {
                 editor.setSelection(searchCursor.from(), searchCursor.to());
                 editor.scrollIntoView(searchCursor.from(), 200);
             }
@@ -465,12 +485,29 @@
     }
     
     function findPrev() {
-        if (!searchCursor) return;
+        const val = document.getElementById('search-input').value;
+        if (!val) return;
+
+        if (!searchCursor || val !== lastSearchVal) {
+            lastSearchVal = val;
+            searchCursor = editor.getSearchCursor(val, editor.getCursor());
+        }
+
         if (searchCursor.findPrevious()) {
             editor.setSelection(searchCursor.from(), searchCursor.to());
             editor.scrollIntoView(searchCursor.from(), 200);
+        } else {
+            // Wrap-around: restart from the END of the document and go backwards
+            const lastLine = editor.lastLine();
+            const lastCh = editor.getLine(lastLine).length;
+            searchCursor = editor.getSearchCursor(val, {line: lastLine, ch: lastCh});
+            if (searchCursor.findPrevious()) {
+                editor.setSelection(searchCursor.from(), searchCursor.to());
+                editor.scrollIntoView(searchCursor.from(), 200);
+            }
         }
     }
+
 
     // --- 6. DRAG & DROP PIP LOGIC ---
     const pip = document.getElementById("pip-window");
@@ -652,6 +689,7 @@
 
 </body>
 </html>
+
 
 
 
