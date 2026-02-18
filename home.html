@@ -10,11 +10,11 @@
     <link
       href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap"
       rel="stylesheet"
-    />
+    /> 
     <link
       rel="stylesheet"
       href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
-    />
+    /> 
     <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@latest/dist/tf.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/nsfwjs@latest/dist/nsfwjs.min.js"></script>
 
@@ -87,27 +87,44 @@
         justify-content: center;
         border: 2px solid #000;
       }
-
-      #user-dropdown {
+      
+      
+             #user-dropdown {
         display: none;
-        position: fixed;
+        position: absolute;
         top: 60px;
-        right: 20px;
-        background: #1a1a1a;
-        border: 1px solid #333;
-        border-radius: 12px;
-        width: 180px;
-        z-index: 8000;
-        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
+        right: 15px;
+        background: #222;
+        border: 1px solid #444;
+        border-radius: 8px;
+        z-index: 9999;
+        width: 160px;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.8);
       }
-      #user-dropdown a {
+
+
+     
+           #user-dropdown .dropdown-action-btn {
         display: block;
-        padding: 14px;
+        width: 100%;
+        text-align: left;
+        padding: 14px; 
         color: white;
-        text-decoration: none;
+        background: none;
+        border: none;
         border-bottom: 1px solid #333;
         font-size: 14px;
+        cursor: pointer;
       }
+      
+      #user-dropdown .dropdown-action-btn:last-child {
+        border-bottom: none;
+      }
+      
+      #user-dropdown .dropdown-action-btn:hover {
+        background: #222;
+      }
+
 
       /* --- TOOLBAR --- */
 
@@ -2363,9 +2380,10 @@
       </div>
     </div>
 
+ 
     <div id="user-dropdown">
-      <a href="javascript:void(0);" id="open-my-profile" onclick="window.loadMyProfile(); return false;">Edit Profile</a>
-      <a href="javascript:void(0);" onclick="window.logout(); return false;">Log Out</a>
+      <button id="open-my-profile" class="dropdown-action-btn" onclick="window.loadMyProfile();">Edit Profile</button>
+      <button class="dropdown-action-btn" onclick="window.logout();">Log Out</button>
     </div>
 
 
@@ -4549,6 +4567,7 @@
           </div>
         </div>
       </div>
+     
 
       <div id="camera-modal" class="modal">
         <div class="modal-header">
@@ -4573,11 +4592,11 @@
                 id="live-toggle"
                 class="toggle-checkbox"
                 onchange="toggleLiveStream()"
-              />
+           />
               <span class="toggle-switch"></span>
             </label>
           </div>
-        </div>
+       
 
         <div style="padding: 20px">
           <div
@@ -5237,16 +5256,33 @@
             }
           );
         }
+        
+        
+        
+        
+        
 
-        // 4. Wait 3.5 seconds, then reveal App
+       // 4. Reveal App only after BOTH: 3.5s timer AND auth
         setTimeout(() => {
-          loader.style.transition = "opacity 0.5s";
-          loader.style.opacity = "0";
-          setTimeout(() => {
-            loader.style.display = "none";
-          }, 500);
+          if (currentUserUid) {
+            // Auth already fired - hide immediately
+            loader.style.transition = "opacity 0.5s";
+            loader.style.opacity = "0";
+            setTimeout(() => {
+              loader.style.display = "none";
+            }, 500);
+          } else {
+            // Auth hasn't fired yet - wait for it
+            window._pendingOverlayHide = true;
+          }
         }, 3500);
+
+      
       };
+      
+      
+      
+      
 
       // --- CONFIGURATION & GLOBAL STATE ---
       // MOCKS REMOVED HERE
@@ -5338,6 +5374,26 @@
             currentUserUid = user.uid;
             console.log("Authenticated as permanent user:", currentUserUid);
             localStorage.setItem("pgX_myUid", currentUserUid);
+            
+            
+            // NEW: If overlay is waiting on auth, hide it now
+            if (window._pendingOverlayHide) {
+                const loader = document.getElementById("loading-overlay");
+                if (loader) {
+                    loader.style.transition = "opacity 0.5s";
+                    loader.style.opacity = "0";
+                    setTimeout(() => { loader.style.display = "none"; }, 500);
+                }
+                window._pendingOverlayHide = false;
+            }
+
+            
+            
+            
+            
+            
+            
+            
 
             // 1. Start all messaging listeners
             window.startWinkListener();
@@ -6682,10 +6738,32 @@
           btn.disabled = false;
         }
       };
+      
+      
+      
+      
+      
 
-      // 6. LOAD PROFILE (Fetches & Populates Slots)
+
+       
+             // 6. LOAD PROFILE (Fetches & Populates Slots)
       window.loadMyProfile = async function () {
-        if (!currentUserUid) return;
+        // FIX 1: Instantly close the dropdown menu so it never gets stuck
+        const dropdown = document.getElementById("user-dropdown");
+        if (dropdown) dropdown.style.display = "none";
+
+        // FIX 2: Prevent Silent Failures by providing actual user feedback
+        if (!currentUserUid) {
+          console.warn("Profile Load Aborted: User session missing or Firebase Auth delayed.");
+          alert("We are still loading your session. Please try again in a moment!");
+          return;
+        }
+
+        // FIX 3: Reset Tab State to ensure the modal opens on the actual Profile Editor
+        const editTabBtn = document.querySelector("button[onclick*='profile-tab-edit']");
+        if (editTabBtn) {
+          window.openTab('profile-tab-edit', editTabBtn);
+        }
 
         // --- NEW: POPULATE EMAIL & UID ---
         const user = window.auth.currentUser;
@@ -6711,8 +6789,7 @@
 
         // Show Modal
         document.getElementById("profile-modal").style.display = "block";
-        document.getElementById("user-dropdown").style.display = "none";
-
+               
         // Fetch Data
         try {
           const userRef = window.fbase.doc(
@@ -6868,7 +6945,7 @@
           console.error("Error loading user details", e);
         }
 
-        loadUserVault(uid);
+        loadUserVault(id);
       };
 
       // FIXED: Connection Status Logic
@@ -8019,10 +8096,7 @@
         );
       };
 
-      // START
-      initBackend();
 
-      console.log("Firebase Global Tools (Auth, DB, Storage) Loaded ✅");
 
       // Load feed immediately on page load (don't wait for auth)
       if (document.readyState === "loading") {
@@ -8774,8 +8848,9 @@
         btn.classList.add("active");
       };
     </script>
-  </body>
-</html>
-
+      
+      
+      </body>
+  </html> 
 
 
