@@ -2129,6 +2129,21 @@
       };
 
       console.log("Firebase Global Tools (Auth, DB, Storage) Loaded ✅");
+      
+      
+      
+      
+     
+      // We check if the function exists (it's defined in the other script) and run it
+      if (typeof window.initBackend === 'function') {
+          window.initBackend();
+      } else {
+          // Safety net: in case the main script hasn't parsed yet (rare), wait for it
+          window.addEventListener('DOMContentLoaded', () => {
+             if (typeof window.initBackend === 'function') window.initBackend();
+          });
+      }
+      
     </script>
 
     <link
@@ -8820,7 +8835,7 @@
       };
 
       // START
-      initBackend();
+     
 
       console.log("Firebase Global Tools (Auth, DB, Storage) Loaded ✅");
 
