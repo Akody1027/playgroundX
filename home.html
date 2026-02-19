@@ -49,22 +49,28 @@
       }
 
       /* --- HEADER --- */
-      #header {
-        background: #000;
-        padding: 12px 0px;
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        border-bottom: 1px solid #262626;
-        position: sticky;
-        top: 0;
-        z-index: 1000;
-      }
-      .header-icons {
-        display: flex;
-        gap: 20px;
-        align-items: center;
-      }
+ #header {
+  background: #000;
+  padding: 12px 0px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px solid #262626;
+  position: sticky;
+  top: 0;
+  z-index: 1100;
+}
+      
+      
+      
+    .header-icons {
+  display: flex;
+  gap: 20px;
+  align-items: center;
+  position: relative;
+}
+      
+
 
       .msg-icon-wrapper {
         position: relative;
@@ -89,18 +95,19 @@
       }
       
       
-             #user-dropdown {
+        #user-dropdown {
         display: none;
         position: absolute;
-        top: 60px;
-        right: 15px;
+        top: 100%;
+        right: 0;
+        margin-top: 8px;
         background: #222;
         border: 1px solid #444;
         border-radius: 8px;
         z-index: 9999;
         width: 160px;
         box-shadow: 0 10px 30px rgba(0,0,0,0.8);
-      }
+      }     
 
 
      
@@ -117,6 +124,10 @@
         cursor: pointer;
       }
       
+      
+      
+      
+      
       #user-dropdown .dropdown-action-btn:last-child {
         border-bottom: none;
       }
@@ -128,17 +139,24 @@
 
       /* --- TOOLBAR --- */
 
-      .toolbar {
-        display: flex;
-        align-items: center;
-        padding: 0px 0px; /* Reduced padding to fit buttons */
-        background: var(--bg-dark);
-        display: flex;
-        position: fixed;
-        margin-top: 0px;
-        width: 100%;
-        z-index: 1000;
-      }
+ 
+      
+      
+.toolbar {
+  display: flex;
+  align-items: center;
+  padding: 0px 0px;
+  background: var(--bg-dark);
+  position: fixed;
+  top: 49px;
+  margin-top: 0px;
+  width: 100%;
+  z-index: 1000;
+}      
+      
+      
+      
+      
       /* Ensure the group doesn't shrink awkwardly */
       .view-group {
         flex-shrink: 0;
@@ -922,18 +940,25 @@
         background: #ef4444;
       }
 
-      .user-icon-wrapper {
-        position: relative;
-        cursor: pointer;
-        display: flex;
-        align-items: center;
-        justify-content: center; /* Centers the image */
-        width: 30px; /* FIXED WIDTH */
-        height: 30px; /* FIXED HEIGHT */
-        border-radius: 50%; /* Ensures circle shape */
-        overflow: hidden; /* Crops any excess image */
-      }
+  
 
+    .user-icon-wrapper {
+  position: relative;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  overflow: visible;
+  z-index: 2000; /* Added High Z-Index */
+  pointer-events: auto; /* Force Clickability */
+}
+  
+      
+      
+      
       .upload-status {
         display: none;
         align-items: center;
@@ -2040,6 +2065,12 @@
         width: 100%;
         height: 120px; /* Shorter for grid */
       }
+      
+      
+      
+      
+      
+      
     </style>
     <script type="module">
       import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
@@ -2369,36 +2400,46 @@
               ></path>
             </svg>
             <div id="msg-badge" class="badge" style="display: none">0</div>
+          
           </div>
+          
+          
+          
+    <div
+   class="user-icon-wrapper"
+   id="user-icon-trigger"
+   onclick="window.toggleUserDropdown()" 
+   >
+   <svg
+     width="28"
+     height="28"
+     viewBox="0 0 24 24"
+     fill="none"
+     stroke="white"
+     stroke-width="2"
+     stroke-linecap="round"
+     stroke-linejoin="round"
+   >
+     <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+     <circle cx="12" cy="7" r="4"></circle>
+   </svg>
+   <div id="connection-dot" class="connection-dot online"></div>
+ </div>
+     
+          
 
-          <div
-            class="user-icon-wrapper"
-            onclick="toggleUserDropdown()"
-            id="user-icon-trigger"
-          >
-            <svg
-              width="28"
-              height="28"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="white"
-              stroke-width="2"
-              stroke-linecap="round"
-              stroke-linejoin="round"
-            >
-              <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
-              <circle cx="12" cy="7" r="4"></circle>
-            </svg>
-            <div id="connection-dot" class="connection-dot online"></div>
-          </div>
-        </div>
-      </div>
-    </div>
+        
 
  
     <div id="user-dropdown">
       <button id="open-my-profile" class="dropdown-action-btn" onclick="window.loadMyProfile();">Edit Profile</button>
       <button class="dropdown-action-btn" onclick="window.logout();">Log Out</button>
+    </div>
+          
+          </div>
+
+      </div>
+
     </div>
 
 
@@ -3389,6 +3430,8 @@
           </div>
         </div>
       </div>
+      
+      
 
       <div
         id="profile-tab-wallet"
@@ -3896,7 +3939,8 @@
           </div>
         </div>
       </div>
-    </div>
+     </div>
+    
 
     <div id="filter-modal" class="modal" style="background: rgba(0, 0, 0, 0.9)">
       <div
@@ -4582,6 +4626,7 @@
           </div>
         </div>
       </div>
+    </div>
      
 
       <div id="camera-modal" class="modal">
@@ -4610,6 +4655,7 @@
            />
               <span class="toggle-switch"></span>
             </label>
+          </div>
           </div>
        
 
@@ -6406,18 +6452,37 @@
         );
       };
 
+  
+      
       window.toggleUserDropdown = function () {
-        const menu = document.getElementById("user-dropdown");
-        menu.style.display = menu.style.display === "block" ? "none" : "block";
-      };
+  const menu = document.getElementById("user-dropdown");
+  menu.style.display = menu.style.display === "block" ? "none" : "block";
+};
 
-      const userTrigger = document.getElementById("user-icon-trigger");
-      if (userTrigger) {
-        userTrigger.onclick = (e) => {
-          e.stopPropagation();
-          window.toggleUserDropdown(); // FIXED NAME
-        };
-      }
+document.addEventListener("click", function (e) {
+  const dropdown = document.getElementById("user-dropdown");
+  const trigger = document.getElementById("user-icon-trigger");
+  if (!dropdown || !trigger) return;
+  if (!trigger.contains(e.target) && !dropdown.contains(e.target)) {
+    dropdown.style.display = "none";
+  }
+});
+      
+      
+      
+      
+
+const userTrigger = document.getElementById("user-icon-trigger");
+if (userTrigger) {
+  userTrigger.addEventListener("click", (e) => {
+    e.stopPropagation();
+    window.toggleUserDropdown();
+  });
+}
+      
+      
+      
+      
 
       window.switchView = function (viewId, btn) {
         document
@@ -6519,28 +6584,30 @@
 
       // --- GALLERY & PROFILE LOGIC ---
 
-      // 1. Preview Main Profile Image (Circle & Slot 1)
       window.previewMainAndGallery = function (event) {
-        const file = event.target.files[0];
-        if (file) {
-          const reader = new FileReader();
-          reader.onload = function (e) {
-            const imgUrl = e.target.result;
-            // Update Main Circle
-            document.getElementById("my-main-preview").src = imgUrl;
-            // Update Slot 1
-            document.getElementById("g1-preview").src = imgUrl;
-            document.getElementById("g1-preview").style.display = "block";
-            const g1Lbl = document.getElementById("g1-lbl");
-            if (g1Lbl) g1Lbl.style.display = "none";
-            // Update Header Icon
-            const headerIcon = document.getElementById("user-icon-trigger");
-            if (headerIcon)
-              headerIcon.innerHTML = `<img src="${imgUrl}" style="width:100%; height:100%; border-radius:50%; object-fit:cover;">`;
-          };
-          reader.readAsDataURL(file);
-        }
-      };
+  const file = event.target.files[0];
+  if (file) {
+    const reader = new FileReader();
+    reader.onload = function (e) {
+      const imgUrl = e.target.result;
+      // Update Main Circle
+      document.getElementById("my-main-preview").src = imgUrl;
+      // Update Slot 1
+      document.getElementById("g1-preview").src = imgUrl;
+      document.getElementById("g1-preview").style.display = "block";
+      const g1Lbl = document.getElementById("g1-lbl");
+      if (g1Lbl) g1Lbl.style.display = "none";
+      // Update Header Icon (with connection dot preserved)
+      const headerIcon = document.getElementById("user-icon-trigger");
+      if (headerIcon)
+        headerIcon.innerHTML = `
+          <img src="${imgUrl}" style="width:100%; height:100%; border-radius:50%; object-fit:cover;">
+          <div id="connection-dot" class="connection-dot ${navigator.onLine ? 'online' : 'offline'}"></div>
+        `;
+    };
+    reader.readAsDataURL(file);
+  }
+};
 
       // 2. Preview Gallery Slots (2, 3, 4)
       window.previewGallery = function (event, slotId) {
@@ -8873,6 +8940,5 @@
       </body>
       
   </html> 
-
 
 
