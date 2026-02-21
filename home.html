@@ -6096,7 +6096,7 @@
             const isRead = w.read === true;
             
             if (!isRead) item.classList.add("unread");
-            if (isRead) item.style.opacity = "0.6"; // Dim previous winks
+            if (isRead) item.style.opacity = "0.8"; // Dim previous winks
 
             // If it's new, give them a "View" button to mark it read. If it's old, give them a "Chat" button.
             const actionBtn = isRead
@@ -6107,7 +6107,7 @@
                 <img src="${w.fromImg || "https://via.placeholder.com/50"}" class="msg-avatar">
                 <div style="flex:1;">
                     <div style="font-weight:bold; color:white; font-size:14px;">${w.fromAlias || "User"}</div>
-                    <div style="color:${isRead ? '#666' : 'var(--accent)'}; font-size:12px;">Sent you a wink! 😉</div>
+                    <div style="color:${isRead ? '#666' : 'var(--accent)'}; font-size:12px;">Sent you a wink! </div>
                     <div style="color:#666; font-size:10px;">
                         ${w.timestamp ? new Date(w.timestamp.seconds * 1000).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) : "Just now"}
                     </div>
@@ -9234,3 +9234,4 @@
     </script>
   </body>
 </html>
+
