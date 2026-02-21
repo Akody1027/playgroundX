@@ -10,11 +10,11 @@
     <link
       href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap"
       rel="stylesheet"
-    /> 
+    />
     <link
       rel="stylesheet"
       href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
-    /> 
+    />
     <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@latest/dist/tf.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/nsfwjs@latest/dist/nsfwjs.min.js"></script>
 
@@ -49,28 +49,24 @@
       }
 
       /* --- HEADER --- */
- #header {
-  background: #000;
-  padding: 12px 0px;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  border-bottom: 1px solid #262626;
-  position: sticky;
-  top: 0;
-  z-index: 1100;
-}
-      
-      
-      
-    .header-icons {
-  display: flex;
-  gap: 20px;
-  align-items: center;
-  position: relative;
-}
-      
+      #header {
+        background: #000;
+        padding: 12px 0px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        border-bottom: 1px solid #262626;
+        position: sticky;
+        top: 0;
+        z-index: 1100;
+      }
 
+      .header-icons {
+        display: flex;
+        gap: 20px;
+        align-items: center;
+        position: relative;
+      }
 
       .msg-icon-wrapper {
         position: relative;
@@ -93,9 +89,8 @@
         justify-content: center;
         border: 2px solid #000;
       }
-      
-      
-        #user-dropdown {
+
+      #user-dropdown {
         display: none;
         position: absolute;
         top: 100%;
@@ -106,16 +101,14 @@
         border-radius: 8px;
         z-index: 9999;
         width: 160px;
-        box-shadow: 0 10px 30px rgba(0,0,0,0.8);
-      }     
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.8);
+      }
 
-
-     
-           #user-dropdown .dropdown-action-btn {
+      #user-dropdown .dropdown-action-btn {
         display: block;
         width: 100%;
         text-align: left;
-        padding: 14px; 
+        padding: 14px;
         color: white;
         background: none;
         border: none;
@@ -123,40 +116,29 @@
         font-size: 14px;
         cursor: pointer;
       }
-      
-      
-      
-      
-      
+
       #user-dropdown .dropdown-action-btn:last-child {
         border-bottom: none;
       }
-      
+
       #user-dropdown .dropdown-action-btn:hover {
         background: #222;
       }
 
-
       /* --- TOOLBAR --- */
 
- 
-      
-      
-.toolbar {
-  display: flex;
-  align-items: center;
-  padding: 0px 0px;
-  background: var(--bg-dark);
-  position: fixed;
-  top: 49px;
-  margin-top: 0px;
-  width: 100%;
-  z-index: 1000;
-}      
-      
-      
-      
-      
+      .toolbar {
+        display: flex;
+        align-items: center;
+        padding: 0px 0px;
+        background: var(--bg-dark);
+        position: fixed;
+        top: 49px;
+        margin-top: 0px;
+        width: 100%;
+        z-index: 1000;
+      }
+
       /* Ensure the group doesn't shrink awkwardly */
       .view-group {
         flex-shrink: 0;
@@ -940,25 +922,20 @@
         background: #ef4444;
       }
 
-  
+      .user-icon-wrapper {
+        position: relative;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 30px;
+        height: 30px;
+        border-radius: 50%;
+        overflow: visible;
+        z-index: 2000; /* Added High Z-Index */
+        pointer-events: auto; /* Force Clickability */
+      }
 
-    .user-icon-wrapper {
-  position: relative;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 30px;
-  height: 30px;
-  border-radius: 50%;
-  overflow: visible;
-  z-index: 2000; /* Added High Z-Index */
-  pointer-events: auto; /* Force Clickability */
-}
-  
-      
-      
-      
       .upload-status {
         display: none;
         align-items: center;
@@ -2065,12 +2042,6 @@
         width: 100%;
         height: 120px; /* Shorter for grid */
       }
-      
-      
-      
-      
-      
-      
     </style>
     <script type="module">
       import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
@@ -2160,21 +2131,16 @@
       };
 
       console.log("Firebase Global Tools (Auth, DB, Storage) Loaded ✅");
-      
-      
-      
-      
-     
+
       // We check if the function exists (it's defined in the other script) and run it
-      if (typeof window.initBackend === 'function') {
-          window.initBackend();
+      if (typeof window.initBackend === "function") {
+        window.initBackend();
       } else {
-          // Safety net: in case the main script hasn't parsed yet (rare), wait for it
-          window.addEventListener('DOMContentLoaded', () => {
-             if (typeof window.initBackend === 'function') window.initBackend();
-          });
+        // Safety net: in case the main script hasn't parsed yet (rare), wait for it
+        window.addEventListener("DOMContentLoaded", () => {
+          if (typeof window.initBackend === "function") window.initBackend();
+        });
       }
-      
     </script>
 
     <link
@@ -2331,20 +2297,13 @@
             id="creator-feed-btn"
             onclick="openCreatorFeed()"
           >
-            <svg
-              width="24"
-              height="24"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="2"
-              stroke-linecap="round"
-              stroke-linejoin="round"
-            >
-              <path
-                d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-2.072-4-3-6a9.97 9.97 0 0 1 5.051 2.37A9.953 9.953 0 0 1 19 13a7 7 0 1 1-7-7c0 1.948.846 3.864 2.534 5.37C14.743 12.396 15 13.064 15 14a2 2 0 0 1-2 2h-4.5z"
-              ></path>
-            </svg>
+            <img
+              src="premiumicon.png"
+              alt="Open Creator Feed"
+              width="21"
+              height="21"
+              style="display: block; object-fit: contain"
+            />
           </div>
 
           <div onclick="window.openSpeedIntro()" style="cursor: pointer">
@@ -2400,48 +2359,44 @@
               ></path>
             </svg>
             <div id="msg-badge" class="badge" style="display: none">0</div>
-          
-          </div>
-          
-          
-          
-    <div
-   class="user-icon-wrapper"
-   id="user-icon-trigger"
-   onclick="window.toggleUserDropdown()" 
-   >
-   <svg
-     width="28"
-     height="28"
-     viewBox="0 0 24 24"
-     fill="none"
-     stroke="white"
-     stroke-width="2"
-     stroke-linecap="round"
-     stroke-linejoin="round"
-   >
-     <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
-     <circle cx="12" cy="7" r="4"></circle>
-   </svg>
-   <div id="connection-dot" class="connection-dot online"></div>
- </div>
-     
-          
-
-        
-
- 
-    <div id="user-dropdown">
-      <button id="open-my-profile" class="dropdown-action-btn" onclick="window.loadMyProfile();">Edit Profile</button>
-      <button class="dropdown-action-btn" onclick="window.logout();">Log Out</button>
-    </div>
-          
           </div>
 
+          <div
+            class="user-icon-wrapper"
+            id="user-icon-trigger"
+            onclick="window.toggleUserDropdown()"
+          >
+            <svg
+              width="28"
+              height="28"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="white"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
+              <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+              <circle cx="12" cy="7" r="4"></circle>
+            </svg>
+            <div id="connection-dot" class="connection-dot online"></div>
+          </div>
+
+          <div id="user-dropdown">
+            <button
+              id="open-my-profile"
+              class="dropdown-action-btn"
+              onclick="window.loadMyProfile();"
+            >
+              Edit Profile
+            </button>
+            <button class="dropdown-action-btn" onclick="window.logout();">
+              Log Out
+            </button>
+          </div>
+        </div>
       </div>
-
     </div>
-
 
     <div class="toolbar">
       <button class="view-btn" onclick="window.switchView('swipe', this)">
@@ -3106,226 +3061,218 @@
               />
               <label for="loc-approx" class="toggle-switch"></label>
             </div>
-          </div>  <div
-              style="
-                font-size: 10px;
-                color: #666;
-                margin-bottom: 10px;
-                padding: 0 10px;
-              "
+          </div>
+          <div
+            style="
+              font-size: 10px;
+              color: #666;
+              margin-bottom: 10px;
+              padding: 0 10px;
+            "
+          >
+            Standard privacy mode (Random 2-mile offset).
+          </div>
+
+          <div class="toggle-row">
+            <span>Precise Location</span>
+            <input
+              type="checkbox"
+              id="loc-precise"
+              class="toggle-checkbox"
+              onchange="window.handleLocToggle('precise')"
+            />
+            <label for="loc-precise" class="toggle-switch"></label>
+          </div>
+
+          <div class="toggle-row">
+            <span>Drop a Pin</span>
+            <input
+              type="checkbox"
+              id="loc-pin"
+              class="toggle-checkbox"
+              onchange="window.handleLocToggle('pin')"
+            />
+            <label for="loc-pin" class="toggle-switch"></label>
+          </div>
+
+          <div
+            id="pin-input-container"
+            class="accordion-content"
+            style="display: none"
+          >
+            <label class="filter-label" style="margin-top: 0"
+              >ENTER ADDRESS OR CITY</label
             >
-              Standard privacy mode (Random 2-mile offset).
-            </div>
+            <input
+              type="text"
+              id="google-location-input"
+              class="style-input"
+              placeholder="Start typing a location..."
+            />
+          </div>
 
-            <div class="toggle-row">
-              <span>Precise Location</span>
-              <input
-                type="checkbox"
-                id="loc-precise"
-                class="toggle-checkbox"
-                onchange="window.handleLocToggle('precise')"
-              />
-              <label for="loc-precise" class="toggle-switch"></label>
-            </div>
-
-            <div class="toggle-row">
-              <span>Drop a Pin</span>
-              <input
-                type="checkbox"
-                id="loc-pin"
-                class="toggle-checkbox"
-                onchange="window.handleLocToggle('pin')"
-              />
-              <label for="loc-pin" class="toggle-switch"></label>
-            </div>
-
-            <div
-              id="pin-input-container"
-              class="accordion-content"
-              style="display: none"
+          <label class="filter-label">GENDER</label>
+          <div
+            class="toggle-row"
+            onclick="window.toggleProfileAcc('acc-gender')"
+          >
+            <span id="disp-gender">Select Gender...</span>
+            <span style="color: #666">▼</span>
+          </div>
+          <div id="acc-gender" class="accordion-content">
+            <label
+              class="radio-option"
+              onclick="window.selectProfileOption('disp-gender', 'Man', 'acc-gender')"
+              >Man</label
             >
-              <label class="filter-label" style="margin-top: 0"
-                >ENTER ADDRESS OR CITY</label
-              >
+            <label
+              class="radio-option"
+              onclick="window.selectProfileOption('disp-gender', 'Woman', 'acc-gender')"
+              >Woman</label
+            >
+            <label
+              class="radio-option"
+              onclick="window.selectProfileOption('disp-gender', 'Non-Binary', 'acc-gender')"
+              >Non-Binary</label
+            >
+          </div>
+
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px">
+            <div>
+              <label class="filter-label">AGE</label>
               <input
-                type="text"
-                id="google-location-input"
+                type="number"
+                id="p-age"
                 class="style-input"
-                placeholder="Start typing a location..."
+                value="21"
+                style="text-align: center"
               />
             </div>
-
-            <label class="filter-label">GENDER</label>
-            <div
-              class="toggle-row"
-              onclick="window.toggleProfileAcc('acc-gender')"
-            >
-              <span id="disp-gender">Select Gender...</span>
-              <span style="color: #666">▼</span>
-            </div>
-            <div id="acc-gender" class="accordion-content">
-              <label
-                class="radio-option"
-                onclick="window.selectProfileOption('disp-gender', 'Man', 'acc-gender')"
-                >Man</label
+            <div>
+              <label class="filter-label">BODY TYPE</label>
+              <div
+                class="toggle-row"
+                onclick="window.toggleProfileAcc('acc-body')"
+                style="justify-content: center"
               >
-              <label
-                class="radio-option"
-                onclick="window.selectProfileOption('disp-gender', 'Woman', 'acc-gender')"
-                >Woman</label
-              >
-              <label
-                class="radio-option"
-                onclick="window.selectProfileOption('disp-gender', 'Non-Binary', 'acc-gender')"
-                >Non-Binary</label
-              >
-            </div>
-
-            <div
-              style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px"
-            >
-              <div>
-                <label class="filter-label">AGE</label>
-                <input
-                  type="number"
-                  id="p-age"
-                  class="style-input"
-                  value="21"
-                  style="text-align: center"
-                />
-              </div>
-              <div>
-                <label class="filter-label">BODY TYPE</label>
-                <div
-                  class="toggle-row"
-                  onclick="window.toggleProfileAcc('acc-body')"
-                  style="justify-content: center"
-                >
-                  <span id="disp-body">Average</span>
-                </div>
+                <span id="disp-body">Average</span>
               </div>
             </div>
-            <div id="acc-body" class="accordion-content">
-              <label
-                class="radio-option"
-                onclick="window.selectProfileOption('disp-body', 'Average', 'acc-body')"
-                >Average</label
-              >
-              <label
-                class="radio-option"
-                onclick="window.selectProfileOption('disp-body', 'Athletic', 'acc-body')"
-                >Athletic</label
-              >
-              <label
-                class="radio-option"
-                onclick="window.selectProfileOption('disp-body', 'Curvy', 'acc-body')"
-                >Curvy</label
-              >
-              <label
-                class="radio-option"
-                onclick="window.selectProfileOption('disp-body', 'Muscular', 'acc-body')"
-                >Muscular</label
-              >
-            </div>
-
-            <label class="filter-label">RELATIONSHIP TYPE</label>
-            <div
-              class="toggle-row"
-              onclick="window.toggleProfileAcc('acc-rel')"
+          </div>
+          <div id="acc-body" class="accordion-content">
+            <label
+              class="radio-option"
+              onclick="window.selectProfileOption('disp-body', 'Average', 'acc-body')"
+              >Average</label
             >
-              <span id="disp-rel">Select Type...</span>
-              <span style="color: #666">▼</span>
-            </div>
-            <div id="acc-rel" class="accordion-content">
-              <label
-                class="radio-option"
-                onclick="window.selectProfileOption('disp-rel', 'Marriage', 'acc-rel')"
-                >Marriage</label
-              >
-              <label
-                class="radio-option"
-                onclick="window.selectProfileOption('disp-rel', 'Long-Term', 'acc-rel')"
-                >Long-Term</label
-              >
-              <label
-                class="radio-option"
-                onclick="window.selectProfileOption('disp-rel', 'Short-Term', 'acc-rel')"
-                >Short-Term</label
-              >
-              <label
-                class="radio-option"
-                onclick="window.selectProfileOption('disp-rel', 'Fun', 'acc-rel')"
-                >Fun</label
-              >
-            </div>
-
-            <label class="filter-label">LOVE LANGUAGE</label>
-            <div
-              class="toggle-row"
-              onclick="window.toggleProfileAcc('acc-love')"
+            <label
+              class="radio-option"
+              onclick="window.selectProfileOption('disp-body', 'Athletic', 'acc-body')"
+              >Athletic</label
             >
-              <span id="disp-love">Select Love Language...</span>
-              <span style="color: #666">▼</span>
-            </div>
-            <div id="acc-love" class="accordion-content">
-              <label
-                class="radio-option"
-                onclick="window.selectProfileOption('disp-love', 'Words of Affirmation', 'acc-love')"
-                >Words of Affirmation</label
-              >
-              <label
-                class="radio-option"
-                onclick="window.selectProfileOption('disp-love', 'Acts of Service', 'acc-love')"
-                >Acts of Service</label
-              >
-              <label
-                class="radio-option"
-                onclick="window.selectProfileOption('disp-love', 'Receiving Gifts', 'acc-love')"
-                >Receiving Gifts</label
-              >
-              <label
-                class="radio-option"
-                onclick="window.selectProfileOption('disp-love', 'Quality Time', 'acc-love')"
-                >Quality Time</label
-              >
-              <label
-                class="radio-option"
-                onclick="window.selectProfileOption('disp-love', 'Physical Touch', 'acc-love')"
-                >Physical Touch</label
-              >
-            </div>
-
-            <label class="filter-label">VICES</label>
-            <div
-              class="toggle-row"
-              onclick="window.toggleProfileAcc('acc-vices')"
+            <label
+              class="radio-option"
+              onclick="window.selectProfileOption('disp-body', 'Curvy', 'acc-body')"
+              >Curvy</label
             >
-              <span id="disp-vices">None</span>
-              <span style="color: #666">▼</span>
-            </div>
-            <div id="acc-vices" class="accordion-content">
-              <label
-                class="radio-option"
-                onclick="window.selectProfileOption('disp-vices', 'None', 'acc-vices')"
-                >None</label
-              >
-              <label
-                class="radio-option"
-                onclick="window.selectProfileOption('disp-vices', 'Smoker', 'acc-vices')"
-                >Smoker</label
-              >
-              <label
-                class="radio-option"
-                onclick="window.selectProfileOption('disp-vices', 'Social Drinker', 'acc-vices')"
-                >Social Drinker</label
-              >
-              <label
-                class="radio-option"
-                onclick="window.selectProfileOption('disp-vices', '420 Friendly', 'acc-vices')"
-                >420 Friendly</label
-              >
-            </div>
-          
+            <label
+              class="radio-option"
+              onclick="window.selectProfileOption('disp-body', 'Muscular', 'acc-body')"
+              >Muscular</label
+            >
+          </div>
+
+          <label class="filter-label">RELATIONSHIP TYPE</label>
+          <div class="toggle-row" onclick="window.toggleProfileAcc('acc-rel')">
+            <span id="disp-rel">Select Type...</span>
+            <span style="color: #666">▼</span>
+          </div>
+          <div id="acc-rel" class="accordion-content">
+            <label
+              class="radio-option"
+              onclick="window.selectProfileOption('disp-rel', 'Marriage', 'acc-rel')"
+              >Marriage</label
+            >
+            <label
+              class="radio-option"
+              onclick="window.selectProfileOption('disp-rel', 'Long-Term', 'acc-rel')"
+              >Long-Term</label
+            >
+            <label
+              class="radio-option"
+              onclick="window.selectProfileOption('disp-rel', 'Short-Term', 'acc-rel')"
+              >Short-Term</label
+            >
+            <label
+              class="radio-option"
+              onclick="window.selectProfileOption('disp-rel', 'Fun', 'acc-rel')"
+              >Fun</label
+            >
+          </div>
+
+          <label class="filter-label">LOVE LANGUAGE</label>
+          <div class="toggle-row" onclick="window.toggleProfileAcc('acc-love')">
+            <span id="disp-love">Select Love Language...</span>
+            <span style="color: #666">▼</span>
+          </div>
+          <div id="acc-love" class="accordion-content">
+            <label
+              class="radio-option"
+              onclick="window.selectProfileOption('disp-love', 'Words of Affirmation', 'acc-love')"
+              >Words of Affirmation</label
+            >
+            <label
+              class="radio-option"
+              onclick="window.selectProfileOption('disp-love', 'Acts of Service', 'acc-love')"
+              >Acts of Service</label
+            >
+            <label
+              class="radio-option"
+              onclick="window.selectProfileOption('disp-love', 'Receiving Gifts', 'acc-love')"
+              >Receiving Gifts</label
+            >
+            <label
+              class="radio-option"
+              onclick="window.selectProfileOption('disp-love', 'Quality Time', 'acc-love')"
+              >Quality Time</label
+            >
+            <label
+              class="radio-option"
+              onclick="window.selectProfileOption('disp-love', 'Physical Touch', 'acc-love')"
+              >Physical Touch</label
+            >
+          </div>
+
+          <label class="filter-label">VICES</label>
+          <div
+            class="toggle-row"
+            onclick="window.toggleProfileAcc('acc-vices')"
+          >
+            <span id="disp-vices">None</span>
+            <span style="color: #666">▼</span>
+          </div>
+          <div id="acc-vices" class="accordion-content">
+            <label
+              class="radio-option"
+              onclick="window.selectProfileOption('disp-vices', 'None', 'acc-vices')"
+              >None</label
+            >
+            <label
+              class="radio-option"
+              onclick="window.selectProfileOption('disp-vices', 'Smoker', 'acc-vices')"
+              >Smoker</label
+            >
+            <label
+              class="radio-option"
+              onclick="window.selectProfileOption('disp-vices', 'Social Drinker', 'acc-vices')"
+              >Social Drinker</label
+            >
+            <label
+              class="radio-option"
+              onclick="window.selectProfileOption('disp-vices', '420 Friendly', 'acc-vices')"
+              >420 Friendly</label
+            >
+          </div>
 
           <div
             style="
@@ -3430,8 +3377,6 @@
           </div>
         </div>
       </div>
-      
-      
 
       <div
         id="profile-tab-wallet"
@@ -3939,8 +3884,7 @@
           </div>
         </div>
       </div>
-     </div>
-    
+    </div>
 
     <div id="filter-modal" class="modal" style="background: rgba(0, 0, 0, 0.9)">
       <div
@@ -4488,7 +4432,7 @@
           </button>
 
           <button
-            onclick="window.closeModal('view-user-modal'); window.openChat(document.getElementById('view-user-name').innerText.split(',')[0], currentTargetId)"
+            onclick="window.closeModal('view-user-modal'); window.openModal('msg-modal'); window.openChat(document.getElementById('view-user-name').innerText.split(',')[0], currentTargetId)"
             style="
               width: 60px;
               height: 60px;
@@ -4538,7 +4482,12 @@
     <div id="msg-modal" class="modal">
       <div class="modal-header">
         <button class="back-arrow-btn" onclick="window.closeChat()">
-          <svg viewBox="0 0 24 24" fill="none" stroke-width="2">
+          <svg
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+          >
             <line x1="19" y1="12" x2="5" y2="12"></line>
             <polyline points="12 19 5 12 12 5"></polyline>
           </svg>
@@ -4562,53 +4511,139 @@
             Messages
           </button>
         </div>
-
         <div id="tab-reqs" class="tab-pane active"></div>
         <div id="tab-winks" class="tab-pane"></div>
         <div id="tab-chats" class="tab-pane"></div>
+      </div>
 
-        <div id="chat-view" style="display: none">
+      <div
+        id="chat-view"
+        style="
+          display: none;
+          flex-direction: column;
+          height: 90vh;
+          min-height: 400px;
+          width: 100%;
+          background: #121212;
+          position: relative;
+          z-index: 10;
+        "
+      >
+        <div
+          style="
+            padding: 10px;
+            background: #111;
+            border-bottom: 1px solid #333;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex-shrink: 0;
+          "
+        >
           <div
             style="
-              padding: 10px;
-              background: #111;
-              border-bottom: 1px solid #333;
+              width: 30px;
+              height: 30px;
+              background: #444;
+              border-radius: 50%;
+            "
+          ></div>
+          <span style="font-weight: bold; color: white" id="chat-target-name"
+            >User</span
+          >
+        </div>
+
+        <div
+          id="chat-body"
+          style="
+            flex: 1;
+            overflow-y: auto;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+          "
+        ></div>
+
+        <div
+          id="chat-media-sandbox"
+          style="
+            display: none;
+            padding: 10px 15px;
+            background: #1a1a1a;
+            border-top: 1px solid #333;
+            gap: 10px;
+            overflow-x: auto;
+            flex-shrink: 0;
+          "
+        ></div>
+
+        <div
+          class="chat-input-area"
+          style="
+            padding: 15px;
+            border-top: 1px solid #333;
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            background: #000;
+            flex-shrink: 0;
+          "
+        >
+          <button
+            onclick="document.getElementById('chat-media-upload').click()"
+            style="
+              background: none;
+              border: none;
+              color: var(--accent);
+              font-size: 28px;
+              cursor: pointer;
+              padding: 0 5px;
+              line-height: 1;
               display: flex;
               align-items: center;
-              gap: 10px;
             "
           >
-            <div
-              style="
-                width: 30px;
-                height: 30px;
-                background: #444;
-                border-radius: 50%;
-              "
-            ></div>
-            <span style="font-weight: bold; color: white" id="chat-target-name"
-              >User</span
-            >
-          </div>
-          <div id="chat-body"></div>
-          <div class="chat-input-area">
-            <input
-              type="text"
-              class="chat-input"
-              placeholder="Type a message..."
-            />
-            <button
-              style="
-                background: var(--accent);
-                color: white;
-                border: none;
-                padding: 8px 15px;
-                border-radius: 15px;
-              "
-            >
-              Send
-            </button>
-          </div>
+            +
+          </button>
+          <input
+            type="file"
+            id="chat-media-upload"
+            hidden
+            accept="image/*,video/*"
+            multiple
+            onchange="window.queueChatMedia(event)"
+          />
+
+          <input
+            type="text"
+            id="chat-text-input"
+            class="chat-input"
+            placeholder="Type a message..."
+            onkeypress="if(event.key === 'Enter') window.sendMessage()"
+            style="
+              flex: 1;
+              background: #111;
+              border: 1px solid #333;
+              color: white;
+              padding: 10px;
+              border-radius: 20px;
+            "
+          />
+          <button
+            onclick="window.sendMessage()"
+            style="
+              background: var(--accent);
+              color: white;
+              border: none;
+              padding: 8px 15px;
+              border-radius: 15px;
+              font-weight: bold;
+              cursor: pointer;
+            "
+          >
+            Send
+          </button>
         </div>
       </div>
 
@@ -4627,145 +4662,140 @@
         </div>
       </div>
     </div>
-     
 
-      <div id="camera-modal" class="modal">
-        <div class="modal-header">
-          <button class="back-arrow-btn" onclick="closeModal('camera-modal')">
-            <svg
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="2"
-            >
-              <path d="M19 12H5M12 19l-7-7 7-7" />
-            </svg>
-          </button>
-          <h2 style="color: white; margin: 0; font-size: 18px">
-            Studio & Live
-          </h2>
-          <div style="display: flex; align-items: center; gap: 10px">
-            <span style="font-size: 12px; color: #888">GO LIVE</span>
-            <label class="toggle-switch">
-              <input
-                type="checkbox"
-                id="live-toggle"
-                class="toggle-checkbox"
-                onchange="toggleLiveStream()"
-           />
-              <span class="toggle-switch"></span>
-            </label>
-          </div>
-          </div>
-       
-
-        <div style="padding: 20px">
-          <div
-            id="live-preview-container"
-            style="
-              display: none;
-              margin-bottom: 20px;
-              position: relative;
-              overflow: hidden;
-              border-radius: 15px;
-            "
+    <div id="camera-modal" class="modal">
+      <div class="modal-header">
+        <button class="back-arrow-btn" onclick="closeModal('camera-modal')">
+          <svg
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
           >
-            <video
-              id="local-video"
-              autoplay
-              muted
-              playsinline
-              style="
-                width: 100%;
-                background: #111;
-                aspect-ratio: 9/16;
-                object-fit: cover;
-              "
-            ></video>
+            <path d="M19 12H5M12 19l-7-7 7-7" />
+          </svg>
+        </button>
+        <h2 style="color: white; margin: 0; font-size: 18px">Studio & Live</h2>
+        <div style="display: flex; align-items: center; gap: 10px">
+          <span style="font-size: 12px; color: #888">GO LIVE</span>
+          <label class="toggle-switch">
+            <input
+              type="checkbox"
+              id="live-toggle"
+              class="toggle-checkbox"
+              onchange="toggleLiveStream()"
+            />
+            <span class="toggle-switch"></span>
+          </label>
+        </div>
+      </div>
 
-            <div class="live-gradient-overlay"></div>
+      <div style="padding: 20px">
+        <div
+          id="live-preview-container"
+          style="
+            display: none;
+            margin-bottom: 20px;
+            position: relative;
+            overflow: hidden;
+            border-radius: 15px;
+          "
+        >
+          <video
+            id="local-video"
+            autoplay
+            muted
+            playsinline
+            style="
+              width: 100%;
+              background: #111;
+              aspect-ratio: 9/16;
+              object-fit: cover;
+            "
+          ></video>
 
-            <div class="live-hud-layer">
-              <div class="live-top-bar">
-                <div class="live-viewer-badge">
-                  <span style="color: #ef4444">●</span> LIVE
-                </div>
-                <div class="live-viewer-badge">
-                  👁 <span id="live-viewer-count">0</span>
-                </div>
+          <div class="live-gradient-overlay"></div>
+
+          <div class="live-hud-layer">
+            <div class="live-top-bar">
+              <div class="live-viewer-badge">
+                <span style="color: #ef4444">●</span> LIVE
               </div>
-
-              <div id="live-chat-feed" class="live-chat-area"></div>
-
-              <div class="live-controls-bar">
-                <input
-                  type="text"
-                  id="live-msg-input"
-                  class="live-input"
-                  placeholder="Say something..."
-                  onkeypress="window.handleLiveEnter(event)"
-                />
-
-                <button
-                  onclick="window.sendLiveMessage()"
-                  style="
-                    background: var(--accent);
-                    border: none;
-                    width: 40px;
-                    height: 40px;
-                    border-radius: 50%;
-                    color: white;
-                  "
-                >
-                  ➤
-                </button>
-
-                <button class="live-btn-icon" onclick="window.sendLiveGift()">
-                  🎁
-                </button>
+              <div class="live-viewer-badge">
+                👁 <span id="live-viewer-count">0</span>
               </div>
             </div>
 
-            <div
-              id="live-anim-zone"
-              style="
-                position: absolute;
-                inset: 0;
-                pointer-events: none;
-                overflow: hidden;
-                z-index: 99;
-              "
-            ></div>
+            <div id="live-chat-feed" class="live-chat-area"></div>
+
+            <div class="live-controls-bar">
+              <input
+                type="text"
+                id="live-msg-input"
+                class="live-input"
+                placeholder="Say something..."
+                onkeypress="window.handleLiveEnter(event)"
+              />
+
+              <button
+                onclick="window.sendLiveMessage()"
+                style="
+                  background: var(--accent);
+                  border: none;
+                  width: 40px;
+                  height: 40px;
+                  border-radius: 50%;
+                  color: white;
+                "
+              >
+                ➤
+              </button>
+
+              <button class="live-btn-icon" onclick="window.sendLiveGift()">
+                🎁
+              </button>
+            </div>
           </div>
 
-          <div class="filter-label">LIVE NOW</div>
-          <div id="live-grid" class="grid-container"></div>
+          <div
+            id="live-anim-zone"
+            style="
+              position: absolute;
+              inset: 0;
+              pointer-events: none;
+              overflow: hidden;
+              z-index: 99;
+            "
+          ></div>
         </div>
 
-        <div
-          style="
-            padding: 20px;
-            text-align: center;
-            color: #666;
-            margin-top: 50px;
-            display: none;
-          "
+        <div class="filter-label">LIVE NOW</div>
+        <div id="live-grid" class="grid-container"></div>
+      </div>
+
+      <div
+        style="
+          padding: 20px;
+          text-align: center;
+          color: #666;
+          margin-top: 50px;
+          display: none;
+        "
+      >
+        <svg
+          width="60"
+          height="60"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="#444"
+          stroke-width="1.5"
+          style="margin-bottom: 20px"
         >
-          <svg
-            width="60"
-            height="60"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="#444"
-            stroke-width="1.5"
-            style="margin-bottom: 20px"
-          >
-            <path d="M23 7l-7 5 7 5V7z"></path>
-            <rect x="1" y="5" width="15" height="14" rx="2" ry="2"></rect>
-          </svg>
-          <h3 style="color: white">Content Studio</h3>
-          <p>Go Live to connect with others nearby.</p>
-        </div>
+          <path d="M23 7l-7 5 7 5V7z"></path>
+          <rect x="1" y="5" width="15" height="14" rx="2" ry="2"></rect>
+        </svg>
+        <h3 style="color: white">Content Studio</h3>
+        <p>Go Live to connect with others nearby.</p>
       </div>
     </div>
 
@@ -5198,12 +5228,6 @@
         <div style="height: 100px"></div>
       </div>
     </div>
-      
-      
-      
-      
-      
-      
 
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
@@ -5323,13 +5347,8 @@
             }
           );
         }
-        
-        
-        
-        
-        
 
-       // 4. Reveal App only after BOTH: 3.5s timer AND auth
+        // 4. Reveal App only after BOTH: 3.5s timer AND auth
         setTimeout(() => {
           if (currentUserUid) {
             // Auth already fired - hide immediately
@@ -5343,13 +5362,7 @@
             window._pendingOverlayHide = true;
           }
         }, 3500);
-
-      
       };
-      
-      
-      
-      
 
       // --- CONFIGURATION & GLOBAL STATE ---
       // MOCKS REMOVED HERE
@@ -5441,26 +5454,19 @@
             currentUserUid = user.uid;
             console.log("Authenticated as permanent user:", currentUserUid);
             localStorage.setItem("pgX_myUid", currentUserUid);
-            
-            
+
             // NEW: If overlay is waiting on auth, hide it now
             if (window._pendingOverlayHide) {
-                const loader = document.getElementById("loading-overlay");
-                if (loader) {
-                    loader.style.transition = "opacity 0.5s";
-                    loader.style.opacity = "0";
-                    setTimeout(() => { loader.style.display = "none"; }, 500);
-                }
-                window._pendingOverlayHide = false;
+              const loader = document.getElementById("loading-overlay");
+              if (loader) {
+                loader.style.transition = "opacity 0.5s";
+                loader.style.opacity = "0";
+                setTimeout(() => {
+                  loader.style.display = "none";
+                }, 500);
+              }
+              window._pendingOverlayHide = false;
             }
-
-            
-            
-            
-            
-            
-            
-            
 
             // 1. Start all messaging listeners
             window.startWinkListener();
@@ -5568,15 +5574,8 @@
           }
         });
       }
-      
-      
-      
-      
-      
-      
-      
 
-        async function ensureUserProfile() {
+      async function ensureUserProfile() {
         // 1. Reference the user document
         const userRef = window.fbase.doc(
           window.db,
@@ -5590,60 +5589,61 @@
 
         try {
           // 2. Attach a REAL-TIME Listener instead of a one-time fetch
-          window.fbase.onSnapshot(userRef, async (snap) => {
-            if (snap.exists()) {
-              const data = snap.data();
-              console.log("Profile synced from DB:", data.alias);
+          window.fbase.onSnapshot(
+            userRef,
+            async (snap) => {
+              if (snap.exists()) {
+                const data = snap.data();
+                console.log("Profile synced from DB:", data.alias);
 
-              // 3. Update Global State (The Bulletproof Source of Truth)
-              window.myProfileData = data;
+                // 3. Update Global State (The Bulletproof Source of Truth)
+                window.myProfileData = data;
 
-              // 4. Update Local Cache (For immediate UI loading next refresh)
-              if (data.alias) localStorage.setItem("pgX_alias", data.alias);
-              if (data.img) localStorage.setItem("my_profile_pic", data.img);
-              if (data.creatorAlias) localStorage.setItem("pgX_creator_alias", data.creatorAlias);
+                // 4. Update Local Cache (For immediate UI loading next refresh)
+                if (data.alias) localStorage.setItem("pgX_alias", data.alias);
+                if (data.img) localStorage.setItem("my_profile_pic", data.img);
+                if (data.creatorAlias)
+                  localStorage.setItem("pgX_creator_alias", data.creatorAlias);
 
-              // 5. Instantly Update Header UI
-              if (data.img) {
-                const headerIcon = document.getElementById("user-icon-trigger");
-                if (headerIcon) {
-                  headerIcon.innerHTML = `
-                                    <img src="${data.img}" style="width:100%; height:100%; border-radius:50%; object-fit:cover;">
+                // 5. Instantly Update Header UI
+                if (data.img) {
+                  const headerIcon =
+                    document.getElementById("user-icon-trigger");
+                  if (headerIcon) {
+                    headerIcon.innerHTML = `
+                                    <img src="${
+                                      data.img
+                                    }" style="width:100%; height:100%; border-radius:50%; object-fit:cover;">
                                     <div id="connection-dot" class="connection-dot ${
                                       navigator.onLine ? "online" : "offline"
                                     }"></div>
                                 `;
+                  }
                 }
-              }
-            } else {
-              // 6. Create Default User (First Time Only)
-              console.log("Creating new user profile...");
-              const defaultAlias = "User_" + Math.floor(Math.random() * 1000);
-              const defaultImg = "https://via.placeholder.com/120";
+              } else {
+                // 6. Create Default User (First Time Only)
+                console.log("Creating new user profile...");
+                const defaultAlias = "User_" + Math.floor(Math.random() * 1000);
+                const defaultImg = "https://via.placeholder.com/120";
 
-              await window.fbase.setDoc(userRef, {
-                alias: defaultAlias,
-                age: 21,
-                bio: "New member",
-                img: defaultImg,
-                joinedAt: window.fbase.serverTimestamp(),
-              });
-              // The listener will instantly fire again and populate the UI automatically
+                await window.fbase.setDoc(userRef, {
+                  alias: defaultAlias,
+                  age: 21,
+                  bio: "New member",
+                  img: defaultImg,
+                  joinedAt: window.fbase.serverTimestamp(),
+                });
+                // The listener will instantly fire again and populate the UI automatically
+              }
+            },
+            (error) => {
+              console.error("Profile sync failed:", error);
             }
-          }, (error) => {
-            console.error("Profile sync failed:", error);
-          });
+          );
         } catch (e) {
           console.error("Profile setup failed:", e);
         }
       }
-
-      
-      
-      
-      
-      
-      
 
       window.renderDeck = async function () {
         const zone = document.getElementById("swipe-zone");
@@ -5870,15 +5870,16 @@
                 "winks",
                 winkId
               );
-              
+
               await window.fbase.setDoc(winkDoc, {
                 fromUid: currentUserUid,
                 fromAlias: window.myProfileData?.alias || "Someone",
-                fromImg: window.myProfileData?.img || "https://via.placeholder.com/120",
+                fromImg:
+                  window.myProfileData?.img ||
+                  "https://via.placeholder.com/120",
                 timestamp: window.fbase.serverTimestamp(),
                 read: false,
               });
-              
             } catch (e) {
               console.error("Wink failed", e);
             }
@@ -6126,140 +6127,254 @@
         }
       };
 
-      // 2. INBOX LISTENER (Chats)
+      
+      
+      
+      
+      
       window.startInboxListener = function () {
-        if (!currentUserUid) return;
-        const chatList = document.getElementById("tab-chats");
-        const chatsRef = window.fbase.collection(
-          window.db,
-          "users",
-          currentUserUid,
-          "active_chats"
-        );
-        const q = window.fbase.query(
-          chatsRef,
-          window.fbase.orderBy("timestamp", "desc")
-        );
+  if (!currentUserUid) return;
+  const chatList = document.getElementById("tab-chats");
+  
+  // This listens to the receiver's unique inbox
+  const chatsRef = window.fbase.collection(
+    window.db,
+    "users",
+    currentUserUid,
+    "active_chats"
+  );
+  
+  const q = window.fbase.query(
+    chatsRef, 
+    window.fbase.orderBy("timestamp", "desc")
+  );
 
-        window.fbase.onSnapshot(q, (snapshot) => {
-          // Update Global Count (For now, count all active threads as notifications)
-          window.notifState.chats = snapshot.size;
-          window.updateMasterBadge();
+  window.fbase.onSnapshot(q, (snapshot) => {
+    // Update the notification badge based on actual messages
+    window.notifState.chats = snapshot.size;
+    window.updateMasterBadge();
 
-          if (snapshot.empty) {
-            chatList.innerHTML = `<div style="padding:20px; text-align:center; color:#666;">No conversations yet.</div>`;
-            return;
-          }
+    if (snapshot.empty) {
+      chatList.innerHTML = `<div style="padding:20px; text-align:center; color:#666;">No conversations yet.</div>`;
+      return;
+    }
 
-          chatList.innerHTML = "";
-          snapshot.forEach((doc) => {
-            const c = doc.data();
-            const item = document.createElement("div");
-            item.className = "msg-item";
-            item.onclick = () => window.openChat(c.withName, c.withUid);
+    chatList.innerHTML = "";
+    snapshot.forEach((doc) => {
+      const c = doc.data();
+      const item = document.createElement("div");
+      item.className = "msg-item";
+      
+      // Ensure the click opens the chat with the correct target
+      item.onclick = () => window.openChat(c.withName, c.withUid);
 
-            item.innerHTML = `
-                          <div class="msg-avatar" style="background:var(--accent); display:flex; align-items:center; justify-content:center; color:white; font-weight:bold;">
-                              ${c.withName ? c.withName[0].toUpperCase() : "U"}
-                          </div>
-                          <div style="flex:1;">
-                              <div style="font-weight:bold; color:white; font-size:14px;">${
-                                c.withName
-                              }</div>
-                              <div style="color:#888; font-size:12px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:180px;">${
-                                c.lastMsg
-                              }</div>
-                          </div>
-                          <div style="font-size:10px; color:#666;">
-                              ${
-                                c.timestamp
-                                  ? new Date(
-                                      c.timestamp.seconds * 1000
-                                    ).toLocaleTimeString([], {
-                                      hour: "2-digit",
-                                      minute: "2-digit",
-                                    })
-                                  : ""
-                              }
-                          </div>
-                      `;
-            chatList.appendChild(item);
-          });
+      item.innerHTML = `
+        <div class="msg-avatar" style="background:var(--accent); display:flex; align-items:center; justify-content:center; color:white; font-weight:bold;">
+            ${c.withName ? c.withName[0].toUpperCase() : "U"}
+        </div>
+        <div style="flex:1;">
+            <div style="font-weight:bold; color:white; font-size:14px;">${c.withName}</div>
+            <div style="color:#888; font-size:12px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:180px;">${c.lastMsg}</div>
+        </div>
+        <div style="font-size:10px; color:#666;">
+            ${c.timestamp ? new Date(c.timestamp.seconds * 1000).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) : "Just now"}
+        </div>
+      `;
+      chatList.appendChild(item);
+    });
+  });
+};
+
+      
+      
+      
+      
+      
+      
+      
+      
+      window.openChat = function (name, targetUid) {
+  document.getElementById("msg-list-view").style.display = "none";
+  const chatView = document.getElementById("chat-view");
+  chatView.style.display = "flex";
+  document.getElementById("chat-target-name").innerText = name || "User";
+
+  currentChatId = targetUid;
+
+  if (currentUserUid && currentChatId) {
+    // This is the "Meeting Room" ID shared by both users
+    const chatId = [currentUserUid, currentChatId].sort().join("_");
+    const msgCollection = window.fbase.collection(
+      window.db,
+      "artifacts",
+      window.APP_ID,
+      "public",
+      "data",
+      `chat_${chatId}`
+    );
+
+    const q = window.fbase.query(
+      msgCollection,
+      window.fbase.orderBy("createdAt", "asc") // Changed to 'asc' for easier rendering
+    );
+
+    if (currentChatUnsubscribe) currentChatUnsubscribe();
+
+    currentChatUnsubscribe = window.fbase.onSnapshot(q, (snapshot) => {
+      const chatBody = document.getElementById("chat-body");
+      chatBody.innerHTML = "";
+      snapshot.forEach((doc) => {
+        const msg = doc.data();
+        const isMe = msg.senderId === currentUserUid;
+        const bubble = document.createElement("div");
+        bubble.className = `chat-bubble ${isMe ? "me" : "them"}`;
+        bubble.innerHTML = msg.text;
+        chatBody.appendChild(bubble);
+      });
+      chatBody.scrollTop = chatBody.scrollHeight;
+    });
+  }
+};
+
+      
+      
+      
+      
+      
+      
+      
+
+      // 1. Global array to hold pending media in the sandbox
+      window.pendingChatMedia = [];
+
+      // 2. Adds files to the sandbox when you click the '+' button
+      window.queueChatMedia = function (event) {
+        const files = event.target.files;
+        if (!files || files.length === 0) return;
+
+        for (let i = 0; i < files.length; i++) {
+          window.pendingChatMedia.push(files[i]);
+        }
+
+        window.renderMediaSandbox();
+        event.target.value = ""; // Reset input so same file can be selected again
+      };
+
+      // 3. Removes a file if the user clicks 'X' in the sandbox
+      window.removeQueuedMedia = function (index) {
+        window.pendingChatMedia.splice(index, 1);
+        window.renderMediaSandbox();
+      };
+
+      // 4. Renders the thumbnails above the text bar
+      window.renderMediaSandbox = function () {
+        const sandbox = document.getElementById("chat-media-sandbox");
+        if (!sandbox) return; // Safety check
+
+        if (window.pendingChatMedia.length === 0) {
+          sandbox.style.display = "none";
+          sandbox.innerHTML = "";
+          return;
+        }
+
+        sandbox.style.display = "flex";
+        sandbox.innerHTML = "";
+
+        window.pendingChatMedia.forEach((file, index) => {
+          const url = URL.createObjectURL(file);
+          const isVid = file.type.startsWith("video");
+
+          const wrapper = document.createElement("div");
+          wrapper.style.cssText =
+            "position: relative; width: 60px; height: 60px; border-radius: 8px; flex-shrink: 0; border: 1px solid #444; overflow: hidden;";
+
+          const mediaEl = isVid
+            ? `<video src="${url}" style="width:100%; height:100%; object-fit:cover;"></video>`
+            : `<img src="${url}" style="width:100%; height:100%; object-fit:cover;">`;
+
+          wrapper.innerHTML = `
+            ${mediaEl}
+            <div onclick="window.removeQueuedMedia(${index})" style="position: absolute; top: 2px; right: 2px; background: rgba(0,0,0,0.7); color: white; width: 16px; height: 16px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 10px; cursor: pointer; font-weight: bold;">✕</div>
+          `;
+          sandbox.appendChild(wrapper);
         });
       };
 
-      window.openChat = function (name, targetUid) {
-        document.getElementById("msg-list-view").style.display = "none";
-        document.getElementById("chat-view").style.display = "flex";
-        document.getElementById("chat-target-name").innerText = name;
+      // 5. THE NEW SEND MESSAGE FUNCTION (Combines Media + Text instantly)
+      window.sendMessage = async function () {
+        const input = document.getElementById("chat-text-input");
+        const text = input ? input.value.trim() : "";
 
-        const chatBody = document.getElementById("chat-body");
-        chatBody.innerHTML = "";
-        currentChatId = targetUid;
-
-        if (currentUserUid && targetUid) {
-          // Composite ID for public chat collection
-          const chatId = [currentUserUid, targetUid].sort().join("_");
-          const msgCollection = window.fbase.collection(
-            window.db,
-            "artifacts",
-            window.APP_ID,
-            "public",
-            "data",
-            `chat_${chatId}`
-          );
-          const q = window.fbase.query(
-            msgCollection,
-            window.fbase.orderBy("createdAt"),
-            window.fbase.limit(50)
-          );
-
-          if (currentChatUnsubscribe) currentChatUnsubscribe();
-
-          currentChatUnsubscribe = window.fbase.onSnapshot(
-            q,
-            (snapshot) => {
-              chatBody.innerHTML = "";
-              snapshot.forEach((doc) => {
-                const msg = doc.data();
-                const isMe = msg.senderId === currentUserUid;
-                const bubble = document.createElement("div");
-                bubble.className = `chat-bubble ${isMe ? "me" : "them"}`;
-                bubble.innerText = msg.text;
-                chatBody.appendChild(bubble);
-              });
-              chatBody.scrollTop = chatBody.scrollHeight;
-            },
-            (error) => console.error("Chat Error:", error)
-          );
-        }
-      };
-
-      async function sendMessage() {
-        const input = document.querySelector(".chat-input");
-        const text = input.value.trim();
-        if (!text) return;
+        // Don't send if empty and no media is queued
+        if (!text && window.pendingChatMedia.length === 0) return;
 
         if (currentUserUid && currentChatId) {
-          const chatId = [currentUserUid, currentChatId].sort().join("_");
-          const msgCollection = window.fbase.collection(
-            window.db,
-            "artifacts",
-            window.APP_ID,
-            "public",
-            "data",
-            `chat_${chatId}`
+          // Visual feedback on the Send button
+          const btn = document.querySelector(
+            ".chat-input-area button:last-child"
           );
+          const oldText = btn ? btn.innerText : "Send";
+          if (btn) {
+            btn.innerText = "⏳";
+            btn.disabled = true;
+          }
 
           try {
-            // 1. Send the actual message
+            const chatId = [currentUserUid, currentChatId].sort().join("_");
+            const msgCollection = window.fbase.collection(
+              window.db,
+              "artifacts",
+              window.APP_ID,
+              "public",
+              "data",
+              `chat_${chatId}`
+            );
+
+            let mediaHtml = "";
+            let isMedia = false;
+
+            // Step A: Upload all queued media first
+            if (window.pendingChatMedia.length > 0) {
+              isMedia = true;
+              for (let file of window.pendingChatMedia) {
+                const storageRef = window.fbase.ref(
+                  window.storage,
+                  `chats/${chatId}/${Date.now()}_${file.name}`
+                );
+                const snap = await window.fbase.uploadBytes(storageRef, file);
+                const url = await window.fbase.getDownloadURL(snap.ref);
+
+                if (file.type.startsWith("video")) {
+                  mediaHtml += `<video src="${url}" controls style="max-width: 100%; max-height: 200px; border-radius: 8px; margin-bottom: 5px; display: block;"></video>`;
+                } else {
+                  mediaHtml += `<img src="${url}" style="max-width: 100%; max-height: 200px; border-radius: 8px; margin-bottom: 5px; display: block;">`;
+                }
+              }
+            }
+
+            // Step B: Combine uploaded media and typed text
+            let finalMessageHtml = mediaHtml;
+            if (text) {
+              finalMessageHtml += `<div>${text}</div>`;
+            }
+
+            // Step C: Send Message (Using Date.now() for instant local rendering!)
             await window.fbase.addDoc(msgCollection, {
-              text: text,
+              text: finalMessageHtml,
               senderId: currentUserUid,
-              createdAt: window.fbase.serverTimestamp(),
+              createdAt: Date.now(),
             });
 
-            // 2. Update MY Inbox (So I see it in my list)
+            // Step D: Update Inboxes with a smart preview
+            let previewText = text;
+            if (!text && isMedia) previewText = "Sent media 📷";
+            else if (text && isMedia) previewText = "📷 " + text;
+
+            const updateData = {
+              lastMsg: previewText,
+              timestamp: window.fbase.serverTimestamp(),
+            };
+
             const myChatRef = window.fbase.doc(
               window.db,
               "users",
@@ -6270,15 +6385,13 @@
             await window.fbase.setDoc(
               myChatRef,
               {
+                ...updateData,
                 withUid: currentChatId,
                 withName: document.getElementById("chat-target-name").innerText,
-                lastMsg: text,
-                timestamp: window.fbase.serverTimestamp(),
               },
               { merge: true }
             );
 
-            // 3. Update THEIR Inbox (So they see it in their list)
             const theirChatRef = window.fbase.doc(
               window.db,
               "users",
@@ -6289,21 +6402,116 @@
             await window.fbase.setDoc(
               theirChatRef,
               {
+                ...updateData,
                 withUid: currentUserUid,
                 withName: localStorage.getItem("pgX_alias") || "Someone",
-                lastMsg: text,
-                timestamp: window.fbase.serverTimestamp(),
               },
               { merge: true }
             );
 
-            input.value = "";
+            // Clear Sandbox and Input on success
+            if (input) input.value = "";
+            window.pendingChatMedia = [];
+            window.renderMediaSandbox();
           } catch (e) {
             console.error("Send failed", e);
-            alert("Could not send message. Check console.");
+            alert("Could not send message.");
+          } finally {
+            if (btn) {
+              btn.innerText = oldText;
+              btn.disabled = false;
+            }
           }
         }
-      }
+      };
+
+      window.sendChatMedia = async function (event) {
+        const file = event.target.files[0];
+        if (!file || !currentUserUid || !currentChatId) return;
+
+        // UI Loading State on the '+' button
+        const btn = event.target.previousElementSibling;
+        const originalText = btn.innerText;
+        btn.innerText = "⏳";
+        btn.disabled = true;
+
+        try {
+          const chatId = [currentUserUid, currentChatId].sort().join("_");
+          const msgCollection = window.fbase.collection(
+            window.db,
+            "artifacts",
+            window.APP_ID,
+            "public",
+            "data",
+            `chat_${chatId}`
+          );
+
+          // 1. Upload to Storage
+          const storageRef = window.fbase.ref(
+            window.storage,
+            `chats/${chatId}/${Date.now()}_${file.name}`
+          );
+          const snap = await window.fbase.uploadBytes(storageRef, file);
+          const url = await window.fbase.getDownloadURL(snap.ref);
+
+          // 2. Format as HTML
+          const isVideo = file.type.startsWith("video");
+          const mediaHtml = isVideo
+            ? `<video src="${url}" controls style="max-width: 100%; border-radius: 8px;"></video>`
+            : `<img src="${url}" style="max-width: 100%; border-radius: 8px;">`;
+
+          // 3. Send Message
+          await window.fbase.addDoc(msgCollection, {
+            text: mediaHtml,
+            senderId: currentUserUid,
+            createdAt: Date.now(),
+          });
+
+          // 4. Update Inboxes with placeholder text
+          const previewText = isVideo ? "Sent a video 🎥" : "Sent a photo 📷";
+
+          await window.fbase.setDoc(
+            window.fbase.doc(
+              window.db,
+              "users",
+              currentUserUid,
+              "active_chats",
+              currentChatId
+            ),
+            {
+              withUid: currentChatId,
+              withName: document.getElementById("chat-target-name").innerText,
+              lastMsg: previewText,
+              timestamp: window.fbase.serverTimestamp(),
+            },
+            { merge: true }
+          );
+
+          await window.fbase.setDoc(
+            window.fbase.doc(
+              window.db,
+              "users",
+              currentChatId,
+              "active_chats",
+              currentUserUid
+            ),
+            {
+              withUid: currentUserUid,
+              withName: localStorage.getItem("pgX_alias") || "Someone",
+              lastMsg: previewText,
+              timestamp: window.fbase.serverTimestamp(),
+            },
+            { merge: true }
+          );
+        } catch (e) {
+          console.error(e);
+          alert("Media upload failed");
+        } finally {
+          btn.innerText = originalText;
+          btn.disabled = false;
+          event.target.value = ""; // Reset input
+        }
+      };
 
       // --- 5. UI CONTROLS ---
 
@@ -6370,7 +6578,8 @@
           await window.fbase.addDoc(videoCollection, {
             user: window.myProfileData?.alias || "Anon",
             userId: currentUserUid,
-            userImg: window.myProfileData?.img || "https://via.placeholder.com/120",
+            userImg:
+              window.myProfileData?.img || "https://via.placeholder.com/120",
             url: downloadURL,
             timestamp: window.fbase.serverTimestamp(),
             size: file.size,
@@ -6452,31 +6661,19 @@
         );
       };
 
-  
-      
       window.toggleUserDropdown = function () {
-  const menu = document.getElementById("user-dropdown");
-  menu.style.display = menu.style.display === "block" ? "none" : "block";
-};
+        const menu = document.getElementById("user-dropdown");
+        menu.style.display = menu.style.display === "block" ? "none" : "block";
+      };
 
-document.addEventListener("click", function (e) {
-  const dropdown = document.getElementById("user-dropdown");
-  const trigger = document.getElementById("user-icon-trigger");
-  if (!dropdown || !trigger) return;
-  if (!trigger.contains(e.target) && !dropdown.contains(e.target)) {
-    dropdown.style.display = "none";
-  }
-});
-      
-      
-      
-      
-
-
-      
-      
-      
-      
+      document.addEventListener("click", function (e) {
+        const dropdown = document.getElementById("user-dropdown");
+        const trigger = document.getElementById("user-icon-trigger");
+        if (!dropdown || !trigger) return;
+        if (!trigger.contains(e.target) && !dropdown.contains(e.target)) {
+          dropdown.style.display = "none";
+        }
+      });
 
       window.switchView = function (viewId, btn) {
         document
@@ -6517,9 +6714,16 @@ document.addEventListener("click", function (e) {
       };
 
       window.closeChat = function () {
-        document.getElementById("msg-modal").style.display = "none";
-        document.getElementById("msg-list-view").style.display = "block";
-        document.getElementById("chat-view").style.display = "none";
+        const chatView = document.getElementById("chat-view");
+        if (chatView.style.display === "flex") {
+          // Inside a chat -> Go back to inbox list
+          chatView.style.display = "none";
+          document.getElementById("msg-list-view").style.display = "block";
+          if (currentChatUnsubscribe) currentChatUnsubscribe();
+        } else {
+          // In inbox list -> Close modal
+          document.getElementById("msg-modal").style.display = "none";
+        }
       };
 
       window.openTab = function (tabId, btn) {
@@ -6579,29 +6783,31 @@ document.addEventListener("click", function (e) {
       // --- GALLERY & PROFILE LOGIC ---
 
       window.previewMainAndGallery = function (event) {
-  const file = event.target.files[0];
-  if (file) {
-    const reader = new FileReader();
-    reader.onload = function (e) {
-      const imgUrl = e.target.result;
-      // Update Main Circle
-      document.getElementById("my-main-preview").src = imgUrl;
-      // Update Slot 1
-      document.getElementById("g1-preview").src = imgUrl;
-      document.getElementById("g1-preview").style.display = "block";
-      const g1Lbl = document.getElementById("g1-lbl");
-      if (g1Lbl) g1Lbl.style.display = "none";
-      // Update Header Icon (with connection dot preserved)
-      const headerIcon = document.getElementById("user-icon-trigger");
-      if (headerIcon)
-        headerIcon.innerHTML = `
+        const file = event.target.files[0];
+        if (file) {
+          const reader = new FileReader();
+          reader.onload = function (e) {
+            const imgUrl = e.target.result;
+            // Update Main Circle
+            document.getElementById("my-main-preview").src = imgUrl;
+            // Update Slot 1
+            document.getElementById("g1-preview").src = imgUrl;
+            document.getElementById("g1-preview").style.display = "block";
+            const g1Lbl = document.getElementById("g1-lbl");
+            if (g1Lbl) g1Lbl.style.display = "none";
+            // Update Header Icon (with connection dot preserved)
+            const headerIcon = document.getElementById("user-icon-trigger");
+            if (headerIcon)
+              headerIcon.innerHTML = `
           <img src="${imgUrl}" style="width:100%; height:100%; border-radius:50%; object-fit:cover;">
-          <div id="connection-dot" class="connection-dot ${navigator.onLine ? 'online' : 'offline'}"></div>
+          <div id="connection-dot" class="connection-dot ${
+            navigator.onLine ? "online" : "offline"
+          }"></div>
         `;
-    };
-    reader.readAsDataURL(file);
-  }
-};
+          };
+          reader.readAsDataURL(file);
+        }
+      };
 
       // 2. Preview Gallery Slots (2, 3, 4)
       window.previewGallery = function (event, slotId) {
@@ -6820,15 +7026,8 @@ document.addEventListener("click", function (e) {
           btn.disabled = false;
         }
       };
-      
-      
-      
-      
-      
 
-
-       
-             // 6. LOAD PROFILE (Fetches & Populates Slots)
+      // 6. LOAD PROFILE (Fetches & Populates Slots)
       window.loadMyProfile = async function () {
         // FIX 1: Instantly close the dropdown menu so it never gets stuck
         const dropdown = document.getElementById("user-dropdown");
@@ -6836,15 +7035,21 @@ document.addEventListener("click", function (e) {
 
         // FIX 2: Prevent Silent Failures by providing actual user feedback
         if (!currentUserUid) {
-          console.warn("Profile Load Aborted: User session missing or Firebase Auth delayed.");
-          alert("We are still loading your session. Please try again in a moment!");
+          console.warn(
+            "Profile Load Aborted: User session missing or Firebase Auth delayed."
+          );
+          alert(
+            "We are still loading your session. Please try again in a moment!"
+          );
           return;
         }
 
         // FIX 3: Reset Tab State to ensure the modal opens on the actual Profile Editor
-        const editTabBtn = document.querySelector("button[onclick*='profile-tab-edit']");
+        const editTabBtn = document.querySelector(
+          "button[onclick*='profile-tab-edit']"
+        );
         if (editTabBtn) {
-          window.openTab('profile-tab-edit', editTabBtn);
+          window.openTab("profile-tab-edit", editTabBtn);
         }
 
         // --- NEW: POPULATE EMAIL & UID ---
@@ -6871,7 +7076,7 @@ document.addEventListener("click", function (e) {
 
         // Show Modal
         document.getElementById("profile-modal").style.display = "block";
-               
+
         // Fetch Data
         try {
           const userRef = window.fbase.doc(
@@ -6951,7 +7156,7 @@ document.addEventListener("click", function (e) {
         const gallerySlots = document.querySelectorAll(
           "#view-user-modal .gallery-slot"
         );
-        gallerySlots[0].innerHTML = `<img src="${img}" style="width:100%;height:100%;object-fit:cover;">`; // Main Img
+        gallerySlots[0].innerHTML = `<img src="${img}"    style="width:100%;height:100%;object-fit:cover;">`; // Main Img
         gallerySlots[1].innerHTML = "";
         gallerySlots[2].innerHTML = "";
         gallerySlots[3].innerHTML = "";
@@ -7271,13 +7476,13 @@ document.addEventListener("click", function (e) {
         btn.disabled = true;
 
         try {
-          // 1. Prepare User Data for the Queue          
+          // 1. Prepare User Data for the Queue
           const queueData = {
             uid: currentUserUid,
             alias: window.myProfileData?.alias || "User",
             img: window.myProfileData?.img || "https://via.placeholder.com/40",
             timestamp: window.fbase.serverTimestamp(),
-            
+
             // Save coordinates so we can calculate distance filters later
             lat: window.myLocation ? window.myLocation.lat : 0,
             lng: window.myLocation ? window.myLocation.lng : 0,
@@ -7949,10 +8154,9 @@ document.addEventListener("click", function (e) {
             mediaUrl = await window.fbase.getDownloadURL(snap.ref);
             mediaType = file.type.startsWith("video") ? "video" : "image";
           }
-       
-         
-            await window.fbase.addDoc(
-              window.fbase.collection(
+
+          await window.fbase.addDoc(
+            window.fbase.collection(
               window.db,
               "artifacts",
               window.APP_ID,
@@ -7963,8 +8167,9 @@ document.addEventListener("click", function (e) {
             {
               uid: currentUserUid,
               alias: window.myProfileData?.alias || "User",
-              avatar: window.myProfileData?.img || "https://via.placeholder.com/50",
-              text: txt,              
+              avatar:
+                window.myProfileData?.img || "https://via.placeholder.com/50",
+              text: txt,
               media: mediaUrl,
               mediaType: mediaType,
               timestamp: window.fbase.serverTimestamp(),
@@ -8177,8 +8382,6 @@ document.addEventListener("click", function (e) {
           }
         );
       };
-
-
 
       // Load feed immediately on page load (don't wait for auth)
       if (document.readyState === "loading") {
@@ -8896,7 +9099,6 @@ document.addEventListener("click", function (e) {
       };
 
       // START
-     
 
       console.log("Firebase Global Tools (Auth, DB, Storage) Loaded ✅");
 
@@ -8930,10 +9132,5 @@ document.addEventListener("click", function (e) {
         btn.classList.add("active");
       };
     </script>
-      
-      </body>
-      
-  </html> 
-
-
-
+  </body>
+</html>
