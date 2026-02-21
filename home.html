@@ -6071,22 +6071,15 @@
       window.startWinkListener = function () {
         if (!currentUserUid) return;
         const winkList = document.getElementById("tab-winks");
-        const winkRef = window.fbase.collection(
-          window.db,
-          "users",
-          currentUserUid,
-          "winks"
-        );
-        const q = window.fbase.query(
-          winkRef,
-          window.fbase.orderBy("timestamp", "desc"),
-          window.fbase.limit(50)
-        );
+        const winkRef = window.fbase.collection(window.db, "users", currentUserUid, "winks");
+        const q = window.fbase.query(winkRef, window.fbase.orderBy("timestamp", "desc"), window.fbase.limit(50));
 
         if (winkUnsubscribe) winkUnsubscribe();
         winkUnsubscribe = window.fbase.onSnapshot(q, (snapshot) => {
-          // Update Global Count
-          window.notifState.winks = snapshot.size;
+          
+          // Only count unread winks for the red badge
+          const unreadCount = snapshot.docs.filter(doc => !doc.data().read).length;
+          window.notifState.winks = unreadCount;
           window.updateMasterBadge();
 
           if (snapshot.empty) {
@@ -6099,54 +6092,50 @@
             const w = doc.data();
             const item = document.createElement("div");
             item.className = "msg-item";
-            if (!w.read) item.classList.add("unread");
+            
+            const isRead = w.read === true;
+            
+            if (!isRead) item.classList.add("unread");
+            if (isRead) item.style.opacity = "0.6"; // Dim previous winks
+
+            // If it's new, give them a "View" button to mark it read. If it's old, give them a "Chat" button.
+            const actionBtn = isRead
+                ? `<button onclick="window.openChat('${w.fromAlias}', '${w.fromUid}')" style="background:#333; color:white; border:1px solid #555; padding:6px 15px; border-radius:20px; font-weight:bold; font-size:12px; cursor:pointer;">Chat</button>`
+                : `<button onclick="window.viewWink('${doc.id}')" style="background:var(--accent); color:white; border:none; padding:8px 15px; border-radius:20px; font-weight:bold; font-size:12px; cursor:pointer;">View</button>`;
 
             item.innerHTML = `
-                          <img src="${
-                            w.fromImg || "https://via.placeholder.com/50"
-                          }" class="msg-avatar">
-                          <div style="flex:1;">
-                              <div style="font-weight:bold; color:white; font-size:14px;">${
-                                w.fromAlias || "User"
-                              }</div>
-                              <div style="color:var(--accent); font-size:12px;">Sent you a wink! 😉</div>
-                              <div style="color:#666; font-size:10px;">${
-                                w.timestamp
-                                  ? new Date(
-                                      w.timestamp.seconds * 1000
-                                    ).toLocaleTimeString()
-                                  : "Just now"
-                              }</div>
-                          </div>
-                          <button onclick="window.acceptWink('${
-                            w.fromAlias
-                          }', '${w.fromUid}', '${
-              doc.id
-            }')" style="background:var(--accent); color:white; border:none; padding:8px 12px; border-radius:20px; font-weight:bold; font-size:12px; cursor:pointer;">
-                              Chat
-                          </button>
-                      `;
+                <img src="${w.fromImg || "https://via.placeholder.com/50"}" class="msg-avatar">
+                <div style="flex:1;">
+                    <div style="font-weight:bold; color:white; font-size:14px;">${w.fromAlias || "User"}</div>
+                    <div style="color:${isRead ? '#666' : 'var(--accent)'}; font-size:12px;">Sent you a wink! 😉</div>
+                    <div style="color:#666; font-size:10px;">
+                        ${w.timestamp ? new Date(w.timestamp.seconds * 1000).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) : "Just now"}
+                    </div>
+                </div>
+                ${actionBtn}
+            `;
             winkList.appendChild(item);
           });
         });
       };
 
-      window.acceptWink = async function (alias, targetUid, winkId) {
-        window.openChat(alias, targetUid);
+      
+      
+      
+      
+      
+       window.viewWink = async function (winkId) {
         try {
-          await window.fbase.deleteDoc(
-            window.fbase.doc(
-              window.db,
-              "users",
-              currentUserUid,
-              "winks",
-              winkId
-            )
-          );
+          const winkRef = window.fbase.doc(window.db, "users", currentUserUid, "winks", winkId);
+          await window.fbase.updateDoc(winkRef, { 
+              read: true 
+          });
+          // No auto-redirect! User stays on the tab.
         } catch (e) {
-          console.error(e);
+          console.error("Could not update wink status", e);
         }
       };
+
 
       
       
@@ -7991,29 +7980,22 @@
       
       
       
-      
-      
-
-      // 3. REQUEST LISTENER (Inbox)
-      window.startRequestListener = function () {
+            window.startRequestListener = function () {
         if (!currentUserUid) return;
         const list = document.getElementById("tab-reqs");
-        const ref = window.fbase.collection(
-          window.db,
-          "users",
-          currentUserUid,
-          "friend_requests"
-        );
+        const ref = window.fbase.collection(window.db, "users", currentUserUid, "friend_requests");
+        
+        // Order so newest requests are at the top
+        const q = window.fbase.query(ref, window.fbase.orderBy("timestamp", "desc"));
 
-        window.fbase.onSnapshot(ref, (snap) => {
-          // NEW: Update Global Badge
-          window.notifState.reqs = snap.size;
+        window.fbase.onSnapshot(q, (snap) => {
+          // Only count requests that haven't been accepted yet
+          const unacceptedCount = snap.docs.filter(doc => doc.data().status !== 'accepted').length;
+          window.notifState.reqs = unacceptedCount;
           window.updateMasterBadge();
 
           if (snap.empty) {
-            // FIXED: Now uses single quotes on both sides
-            list.innerHTML =
-              '<div style="padding:20px; text-align:center; color:#666;">No pending requests.</div>';
+            list.innerHTML = '<div style="padding:20px; text-align:center; color:#666;">No pending requests.</div>';
             return;
           }
           list.innerHTML = "";
@@ -8021,22 +8003,46 @@
             const d = doc.data();
             const div = document.createElement("div");
             div.className = "msg-item";
-            div.innerHTML = `
-                          <img src="${d.fromImg}" class="msg-avatar">
-                          <div style="flex:1;">
-                              <div style="color:white; font-weight:bold;">${d.fromAlias}</div>
-                              <div style="font-size:11px; color:var(--accent);">Wants to be friends</div>
-                          </div>
-                          <button onclick="window.acceptFriend('${doc.id}', '${d.fromAlias}', '${d.fromImg}')" style="background:#10B981; color:black; border:none; padding:5px 10px; border-radius:6px; font-weight:bold;">Accept</button>
+            
+            const isAccepted = d.status === 'accepted';
+            
+            // Dim the row if it's already accepted
+            if (isAccepted) {
+               div.style.opacity = "0.5";
+            }
 
-                          <button onclick="window.ignoreRequest('${doc.id}')" style="background:#333; color:white; border:none; padding:5px 10px; border-radius:6px; margin-left:5px;">X</button>
-                      `;
+            // Swap out the Accept/Decline buttons for a simple "Chat" button once accepted
+            const actionButtons = isAccepted 
+                ? `<button onclick="window.openChat('${d.fromAlias}', '${doc.id}')" style="background:#333; color:white; border:1px solid #555; padding:5px 15px; border-radius:6px; font-weight:bold;">Chat</button>`
+                : `<button onclick="window.acceptFriend('${doc.id}', '${d.fromAlias}', '${d.fromImg}')" style="background:#10B981; color:black; border:none; padding:5px 10px; border-radius:6px; font-weight:bold;">Accept</button>
+                   <button onclick="window.ignoreRequest('${doc.id}')" style="background:#333; color:white; border:none; padding:5px 10px; border-radius:6px; margin-left:5px;">X</button>`;
+
+            div.innerHTML = `
+              <img src="${d.fromImg}" class="msg-avatar">
+              <div style="flex:1;">
+                  <div style="color:white; font-weight:bold;">${d.fromAlias}</div>
+                  <div style="font-size:11px; color:${isAccepted ? '#666' : 'var(--accent)'};">
+                     ${isAccepted ? 'You are now friends' : 'Wants to be friends'}
+                  </div>
+              </div>
+              ${actionButtons}
+            `;
             list.appendChild(div);
           });
         });
       };
 
-       window.acceptFriend = async function (friendId, alias, img) {
+      
+      
+      
+      
+      
+      
+      
+      
+      
+
+      window.acceptFriend = async function (friendId, alias, img) {
         try {
           // 1. Add them to YOUR friends list
           const myFriendRef = window.fbase.doc(window.db, "users", currentUserUid, "friends", friendId);
@@ -8054,11 +8060,13 @@
             addedAt: window.fbase.serverTimestamp()
           });
 
-          // 3. Delete the pending request
-          await window.ignoreRequest(friendId);
+          // 3. Update the pending request to "accepted" instead of deleting it
+          const reqRef = window.fbase.doc(window.db, "users", currentUserUid, "friend_requests", friendId);
+          await window.fbase.updateDoc(reqRef, {
+            status: 'accepted'
+          });
 
-          // 4. Open the chat automatically
-          window.openChat(alias, friendId);
+          // Redirect removed. The user stays right where they are!
           
         } catch (error) {
           console.error("Error accepting friend:", error);
