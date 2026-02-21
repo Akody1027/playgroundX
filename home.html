@@ -1512,20 +1512,29 @@
       #view-home.active {
         display: flex;
       }
+      
+      
+      
+      
+      
+      
+      
+      
+      
 
-      /* Left Sidebar (Friends) */
       .home-sidebar {
-        width: 60px;
+        width: 60px; /* Collapsed state */
         background: #000;
-        border-right: 2px solid #8b5cf6;
+        border-right: 2px solid var(--accent);
         display: flex;
         flex-direction: column;
-        padding: 10px 5px;
-        transition: width 0.3s ease;
+        padding: 15px 5px;
+        transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         z-index: 20;
+        overflow-x: hidden;
       }
       .home-sidebar.expanded {
-        width: 40%;
+        width: 250px; /* Expanded state */
       }
       .sidebar-toggle {
         align-self: center;
@@ -1534,36 +1543,37 @@
         padding: 5px;
         transition: transform 0.3s ease;
       }
-
       .home-sidebar.expanded .sidebar-toggle {
         transform: rotate(180deg);
         align-self: flex-end;
+        margin-right: 10px;
       }
 
       .friend-row {
         display: flex;
         align-items: center;
-        gap: 10px;
+        gap: 12px;
         margin-bottom: 12px;
         cursor: pointer;
-        overflow: hidden;
-        padding: 5px;
+        padding: 6px;
         border-radius: 8px;
+        transition: background 0.2s;
+        width: 100%;
       }
       .friend-row:hover {
         background: #111;
       }
       .friend-avatar {
-        width: 36px;
-        height: 36px;
+        width: 38px;
+        height: 38px;
         border-radius: 50%;
         object-fit: cover;
         flex-shrink: 0;
-        border: 2px solid var(--accent);
+        border: 2px solid var(--bg-dark);
       }
       .friend-name {
         white-space: nowrap;
-        font-size: 13px;
+        font-size: 14px;
         font-weight: bold;
         color: white;
         opacity: 0;
@@ -1572,6 +1582,15 @@
       .home-sidebar.expanded .friend-name {
         opacity: 1;
       }
+
+      
+      
+      
+      
+      
+      
+      
+      
 
       /* Right Feed (Hype) */
       .home-feed {
@@ -2499,24 +2518,25 @@
     ></div>
 
     <div id="view-home" class="app-view active">
+      
+      
+      
+      
+
       <div id="home-sidebar" class="home-sidebar">
-        <div class="sidebar-toggle" onclick="toggleHomeSidebar()">
-          <svg
-            width="20"
-            height="20"
-            viewBox="0 0 24 24"
-            fill="#8b5cf6"
-            color="#8b5cf6"
-            stroke="currentColor"
-            stroke-width="2"
-          >
+        <div class="sidebar-toggle" onclick="window.toggleHomeSidebar()">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="2">
             <polyline points="13 17 18 12 13 7"></polyline>
             <polyline points="6 17 11 12 6 7"></polyline>
           </svg>
         </div>
-        <div id="friend-list-container" style="text-align: center"></div>
+        <div id="friend-list-container" style="display: flex; flex-direction: column; width: 100%;"></div>
       </div>
 
+      
+      
+      
+      
       <div class="home-feed">
         <div id="feed-container" class="feed-scroll">
           <div style="text-align: center; padding: 40px; color: #444">
@@ -5472,6 +5492,7 @@
             window.startWinkListener();
             window.startInboxListener();
             window.startRequestListener();
+            window.renderHomeSidebar();
 
             // 2. Verify Profile and Admin Status
             await checkAdminStatus(currentUserUid);
@@ -7966,6 +7987,12 @@
           alert("Could not send request.");
         }
       };
+      
+      
+      
+      
+      
+      
 
       // 3. REQUEST LISTENER (Inbox)
       window.startRequestListener = function () {
@@ -8000,7 +8027,8 @@
                               <div style="color:white; font-weight:bold;">${d.fromAlias}</div>
                               <div style="font-size:11px; color:var(--accent);">Wants to be friends</div>
                           </div>
-                          <button onclick="window.acceptFriend('${doc.id}', '${d.fromAlias}')" style="background:#10B981; color:black; border:none; padding:5px 10px; border-radius:6px; font-weight:bold;">Accept</button>
+                          <button onclick="window.acceptFriend('${doc.id}', '${d.fromAlias}', '${d.fromImg}')" style="background:#10B981; color:black; border:none; padding:5px 10px; border-radius:6px; font-weight:bold;">Accept</button>
+
                           <button onclick="window.ignoreRequest('${doc.id}')" style="background:#333; color:white; border:none; padding:5px 10px; border-radius:6px; margin-left:5px;">X</button>
                       `;
             list.appendChild(div);
@@ -8008,12 +8036,42 @@
         });
       };
 
-      window.acceptFriend = async function (friendId, alias) {
-        // Create Chat Entry immediately
-        window.openChat(alias, friendId);
-        window.ignoreRequest(friendId); // Remove from request list
+       window.acceptFriend = async function (friendId, alias, img) {
+        try {
+          // 1. Add them to YOUR friends list
+          const myFriendRef = window.fbase.doc(window.db, "users", currentUserUid, "friends", friendId);
+          await window.fbase.setDoc(myFriendRef, {
+            alias: alias,
+            img: img || "https://via.placeholder.com/40",
+            addedAt: window.fbase.serverTimestamp()
+          });
+
+          // 2. Add you to THEIR friends list
+          const theirFriendRef = window.fbase.doc(window.db, "users", friendId, "friends", currentUserUid);
+          await window.fbase.setDoc(theirFriendRef, {
+            alias: window.myProfileData?.alias || "User",
+            img: window.myProfileData?.img || "https://via.placeholder.com/40",
+            addedAt: window.fbase.serverTimestamp()
+          });
+
+          // 3. Delete the pending request
+          await window.ignoreRequest(friendId);
+
+          // 4. Open the chat automatically
+          window.openChat(alias, friendId);
+          
+        } catch (error) {
+          console.error("Error accepting friend:", error);
+          alert("Failed to add friend. Check connection.");
+        }
       };
 
+
+      
+      
+      
+      
+      
       window.ignoreRequest = async function (docId) {
         await window.fbase.deleteDoc(
           window.fbase.doc(
@@ -8033,45 +8091,79 @@
         const sb = document.getElementById("home-sidebar");
         sb.classList.toggle("expanded");
       };
+      
+      
+      
+      
+      
+      
+      
+            let sidebarUnsub = null;
 
-      // 2. Render Friends (Left Sidebar)
-      window.renderHomeSidebar = async function () {
+      window.renderHomeSidebar = function () {
         if (!currentUserUid) return;
         const container = document.getElementById("friend-list-container");
 
-        try {
-          const friendsRef = window.fbase.collection(
-            window.db,
-            "users",
-            currentUserUid,
-            "friends"
-          );
-          const snap = await window.fbase.getDocs(friendsRef);
+        const friendsRef = window.fbase.collection(
+          window.db,
+          "users",
+          currentUserUid,
+          "friends"
+        );
+        
+        // FIX: Remove orderBy to prevent Firestore from dropping the local snapshot
+        const q = window.fbase.query(friendsRef);
 
+        if (sidebarUnsub) sidebarUnsub();
+
+        sidebarUnsub = window.fbase.onSnapshot(q, (snap) => {
           if (snap.empty) {
-            container.innerHTML =
-              '<div style="font-size:10px; color:#666; text-align:center; margin-top:20px;">No friends</div>';
+            container.innerHTML = '<div style="font-size:10px; color:#666; text-align:center; margin-top:20px; white-space:normal;">No crew yet</div>';
             return;
           }
 
           container.innerHTML = "";
-          snap.forEach((doc) => {
-            const f = doc.data();
+          
+          // 1. Convert to array so we can safely sort it in memory
+          const friends = [];
+          snap.forEach((doc) => friends.push({ id: doc.id, ...doc.data() }));
+          
+          // 2. Sort by newest (handling the temporary null server timestamps)
+          friends.sort((a, b) => {
+             const timeA = a.addedAt ? a.addedAt.seconds : 9999999999; 
+             const timeB = b.addedAt ? b.addedAt.seconds : 9999999999;
+             return timeB - timeA;
+          });
+
+          // 3. Render the UI
+          friends.forEach((f) => {
             const div = document.createElement("div");
             div.className = "friend-row";
-            div.onclick = () =>
-              window.openUserProfile(f.alias, 21, f.img, doc.id); // Open Profile
+            
+            // Clicking opens the profile modal
+            div.onclick = () => window.openUserProfile(f.alias, 21, f.img, f.id);
 
             div.innerHTML = `
-                          <img src="${f.img}" class="friend-avatar">
-                          <div class="friend-name">${f.alias}</div>
-                      `;
+              <div style="position: relative; flex-shrink: 0; display: flex;">
+                  <img src="${f.img || 'https://via.placeholder.com/40'}" class="friend-avatar">
+                  <div style="position:absolute; bottom:0px; right:0px; width:10px; height:10px; background:#10b981; border-radius:50%; border:2px solid #000;"></div>
+              </div>
+              <div class="friend-name">${f.alias}</div>
+            `;
             container.appendChild(div);
           });
-        } catch (e) {
-          console.error("Sidebar Error", e);
-        }
+        });
       };
+
+      
+
+      
+
+      
+      
+      
+      
+      
 
       // 3. Create Post (Auto Cleanup)
 
