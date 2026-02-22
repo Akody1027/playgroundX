@@ -6228,8 +6228,15 @@
           });
         });
       };
+      
+      
+      
+      
+      
+      
 
-      window.openChat = function (name, targetUid) {
+      
+             window.openChat = function (name, targetUid) {
         document.getElementById("msg-list-view").style.display = "none";
         const chatView = document.getElementById("chat-view");
         chatView.style.display = "flex";
@@ -6249,59 +6256,55 @@
             `chat_${chatId}`
           );
 
+          // This query fetches the history!
           const q = window.fbase.query(
             msgCollection,
-            window.fbase.orderBy("createdAt", "asc") // Changed to 'asc' for easier rendering
+            window.fbase.orderBy("createdAt", "asc") 
           );
-          
-          
-          
-          
-        if (currentChatUnsubscribe) currentChatUnsubscribe();
 
-    currentChatUnsubscribe = window.fbase.onSnapshot(q, (snapshot) => {
-      const chatBody = document.getElementById("chat-body");
-      chatBody.innerHTML = "";
-      
-      snapshot.forEach((doc) => {
-        const msg = doc.data();
-        const isMe = msg.senderId === currentUserUid;
-        
-        // 1. Create a wrapper to hold both the bubble and the selfie
-        const rowWrapper = document.createElement("div");
-        rowWrapper.style.display = "flex";
-        rowWrapper.style.alignItems = "flex-end"; // Aligns image to the bottom of the bubble
-        rowWrapper.style.gap = "8px";
-        rowWrapper.style.alignSelf = isMe ? "flex-end" : "flex-start";
-        rowWrapper.style.flexDirection = isMe ? "row-reverse" : "row"; // Put snap on the outside
+          if (currentChatUnsubscribe) currentChatUnsubscribe();
 
-        // 2. Generate the Selfie HTML if it exists
-        let snapImgHtml = "";
-        if (msg.snapUrl) {
-            snapImgHtml = `<img src="${msg.snapUrl}" style="width: 40px; height: 40px; border-radius: 50%; object-fit: cover; border: 2px solid ${isMe ? 'var(--accent)' : '#444'}; flex-shrink: 0; box-shadow: 0 4px 10px rgba(0,0,0,0.5);">`;
-        }
+          currentChatUnsubscribe = window.fbase.onSnapshot(q, (snapshot) => {
+            const chatBody = document.getElementById("chat-body");
+            chatBody.innerHTML = "";
+            
+            snapshot.forEach((doc) => {
+              const msg = doc.data();
+              const isMe = msg.senderId === currentUserUid;
+              
+              // 1. Create a wrapper to hold both the bubble and the selfie
+              const rowWrapper = document.createElement("div");
+              rowWrapper.style.display = "flex";
+              rowWrapper.style.alignItems = "flex-end"; 
+              rowWrapper.style.gap = "8px";
+              rowWrapper.style.alignSelf = isMe ? "flex-end" : "flex-start";
+              rowWrapper.style.flexDirection = isMe ? "row-reverse" : "row"; 
 
-        // 3. Generate the Text Bubble
-        const bubbleHtml = `<div class="chat-bubble ${isMe ? "me" : "them"}" style="align-self: auto;">${msg.text}</div>`;
+              // 2. Generate the Selfie HTML if it exists
+              let snapImgHtml = "";
+              if (msg.snapUrl) {
+                  snapImgHtml = `<img src="${msg.snapUrl}" style="width: 40px; height: 40px; border-radius: 50%; object-fit: cover; border: 2px solid ${isMe ? 'var(--accent)' : '#444'}; flex-shrink: 0; box-shadow: 0 4px 10px rgba(0,0,0,0.5);">`;
+              }
 
-        // 4. Combine and Append
-        rowWrapper.innerHTML = `${snapImgHtml}${bubbleHtml}`;
-        chatBody.appendChild(rowWrapper);
-      });
-      
-      chatBody.scrollTop = chatBody.scrollHeight;
-    });
-      
-          
+              // 3. Generate the Text Bubble (Safely handle if there is no text)
+              const safeText = msg.text || "";
+              let bubbleHtml = "";
+              if (safeText.trim() !== "") {
+                  bubbleHtml = `<div class="chat-bubble ${isMe ? "me" : "them"}" style="align-self: auto; min-height: 20px;">${safeText}</div>`;
+              }
 
-          
-          
-          
-          
-          
+              // 4. Combine and Append
+              rowWrapper.innerHTML = `${snapImgHtml}${bubbleHtml}`;
+              chatBody.appendChild(rowWrapper);
+            });
+            
+            chatBody.scrollTop = chatBody.scrollHeight;
+          });
         }
       };
-
+  
+          
+   
       
       
       
@@ -6424,14 +6427,16 @@
       
       
       
-      
-      // 5. THE NEW SEND MESSAGE FUNCTION (With Live Snap Integration)
+     
+            // 5. THE NEW SEND MESSAGE FUNCTION
       window.sendMessage = async function () {
         const input = document.getElementById("chat-text-input");
         const text = input ? input.value.trim() : "";
+        const isSnapOn = document.getElementById("live-snap-toggle") && document.getElementById("live-snap-toggle").checked;
 
-        // Don't send if empty and no media is queued
-        if (!text && window.pendingChatMedia.length === 0) return;
+        // CRITICAL FIX: Allow sending if there is text, media, OR the camera is on
+        const hasMedia = window.pendingChatMedia && window.pendingChatMedia.length > 0;
+        if (!text && !hasMedia && !isSnapOn) return;
 
         if (currentUserUid && currentChatId) {
           const btn = document.querySelector(".chat-input-area button:last-child");
@@ -6448,8 +6453,8 @@
             let mediaHtml = "";
             let isMedia = false;
 
-            // --- A. UPLOAD QUEUED MEDIA (Gallery uploads) ---
-            if (window.pendingChatMedia.length > 0) {
+            // --- A. UPLOAD QUEUED MEDIA ---
+            if (hasMedia) {
               isMedia = true;
               for (let file of window.pendingChatMedia) {
                 const storageRef = window.fbase.ref(window.storage, `chats/${chatId}/${Date.now()}_${file.name}`);
@@ -6464,52 +6469,54 @@
               }
             }
 
-            // --- B. CAPTURE & UPLOAD LIVE SNAP ---
+            // --- B. SAFE LIVE SNAP CAPTURE ---
             let liveSnapUrl = null;
-            const isSnapOn = document.getElementById("live-snap-toggle") && document.getElementById("live-snap-toggle").checked;
-            
             if (isSnapOn && window.liveSnapStream) {
-               const video = document.getElementById("hidden-snap-video");
-               const canvas = document.getElementById("hidden-snap-canvas");
-               
-               // Compress to a small 150x150 square thumbnail to save bandwidth
-               const size = 150;
-               canvas.width = size;
-               canvas.height = size;
-               const ctx = canvas.getContext("2d");
-               
-               // Center crop the video feed
-               const minDim = Math.min(video.videoWidth, video.videoHeight);
-               const startX = (video.videoWidth - minDim) / 2;
-               const startY = (video.videoHeight - minDim) / 2;
-               ctx.drawImage(video, startX, startY, minDim, minDim, 0, 0, size, size);
-               
-               // Convert canvas to a highly compressed JPEG
-               const snapBlob = await new Promise(res => canvas.toBlob(res, "image/jpeg", 0.6));
-               
-               // Upload to Storage
-               const snapRef = window.fbase.ref(window.storage, `chat_snaps/${chatId}/snap_${Date.now()}.jpg`);
-               const snapUpload = await window.fbase.uploadBytes(snapRef, snapBlob);
-               liveSnapUrl = await window.fbase.getDownloadURL(snapUpload.ref);
+               try {
+                   const { video, canvas } = window.ensureSnapHardware();
+                   
+                   if (video && video.videoWidth > 0 && video.videoHeight > 0) {
+                       const size = 150;
+                       canvas.width = size;
+                       canvas.height = size;
+                       const ctx = canvas.getContext("2d");
+                       
+                       const minDim = Math.min(video.videoWidth, video.videoHeight);
+                       const startX = (video.videoWidth - minDim) / 2;
+                       const startY = (video.videoHeight - minDim) / 2;
+                       ctx.drawImage(video, startX, startY, minDim, minDim, 0, 0, size, size);
+                       
+                       const snapBlob = await new Promise(res => canvas.toBlob(res, "image/jpeg", 0.6));
+                       const snapRef = window.fbase.ref(window.storage, `chat_snaps/${chatId}/snap_${Date.now()}.jpg`);
+                       const snapUpload = await window.fbase.uploadBytes(snapRef, snapBlob);
+                       liveSnapUrl = await window.fbase.getDownloadURL(snapUpload.ref);
+                   } else {
+                       console.warn("Camera feed not ready yet, skipping snap.");
+                   }
+               } catch (snapErr) {
+                   console.error("Live snap failed to capture:", snapErr);
+               }
             }
 
-            // --- C. COMBINE TEXT & MEDIA ---
+            // --- C. COMBINE & SEND ---
             let finalMessageHtml = mediaHtml;
-            if (text) finalMessageHtml += `<div>${text}</div>`;
+            if (text) {
+                finalMessageHtml += `<div>${text}</div>`;
+            }
 
-            // --- D. SEND TO FIRESTORE ---
             await window.fbase.addDoc(msgCollection, {
               text: finalMessageHtml,
-              snapUrl: liveSnapUrl, // Save the selfie URL as a distinct field!
+              snapUrl: liveSnapUrl || null, 
               senderId: currentUserUid,
               createdAt: Date.now(),
             });
 
-            // --- E. UPDATE INBOX PREVIEWS ---
+            // --- D. UPDATE INBOX ---
             let previewText = text;
             if (!text && isMedia) previewText = "Sent media 📷";
             else if (text && isMedia) previewText = "📷 " + text;
-            if (liveSnapUrl) previewText = "🤳 " + previewText; // Add selfie emoji to inbox preview
+            if (!text && !isMedia && liveSnapUrl) previewText = "Sent a Live Snap";
+            if (liveSnapUrl) previewText = "🤳 " + previewText; 
 
             const updateData = { lastMsg: previewText, timestamp: window.fbase.serverTimestamp() };
 
@@ -6519,14 +6526,13 @@
             const theirChatRef = window.fbase.doc(window.db, "users", currentChatId, "active_chats", currentUserUid);
             await window.fbase.setDoc(theirChatRef, { ...updateData, withUid: currentUserUid, withName: localStorage.getItem("pgX_alias") || "Someone" }, { merge: true });
 
-            // Cleanup UI
             if (input) input.value = "";
             window.pendingChatMedia = [];
-            window.renderMediaSandbox();
+            if (window.renderMediaSandbox) window.renderMediaSandbox();
 
           } catch (e) {
             console.error("Send failed", e);
-            alert("Could not send message.");
+            alert("Could not send message. " + e.message);
           } finally {
             if (btn) {
               btn.innerText = oldText;
@@ -6536,7 +6542,6 @@
         }
       };
 
-      
       
       
       
