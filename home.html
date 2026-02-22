@@ -1512,15 +1512,6 @@
       #view-home.active {
         display: flex;
       }
-      
-      
-      
-      
-      
-      
-      
-      
-      
 
       .home-sidebar {
         width: 60px; /* Collapsed state */
@@ -1534,7 +1525,7 @@
         overflow-x: hidden;
       }
       .home-sidebar.expanded {
-        width: 120px; /* Expanded state */
+        width: 200px; /* Expanded state */
       }
       .sidebar-toggle {
         align-self: center;
@@ -1582,15 +1573,6 @@
       .home-sidebar.expanded .friend-name {
         opacity: 1;
       }
-
-      
-      
-      
-      
-      
-      
-      
-      
 
       /* Right Feed (Hype) */
       .home-feed {
@@ -2518,25 +2500,26 @@
     ></div>
 
     <div id="view-home" class="app-view active">
-      
-      
-      
-      
-
       <div id="home-sidebar" class="home-sidebar">
         <div class="sidebar-toggle" onclick="window.toggleHomeSidebar()">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="2">
+          <svg
+            width="20"
+            height="20"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="var(--accent)"
+            stroke-width="2"
+          >
             <polyline points="13 17 18 12 13 7"></polyline>
             <polyline points="6 17 11 12 6 7"></polyline>
           </svg>
         </div>
-        <div id="friend-list-container" style="display: flex; flex-direction: column; width: 100%;"></div>
+        <div
+          id="friend-list-container"
+          style="display: flex; flex-direction: column; width: 100%"
+        ></div>
       </div>
 
-      
-      
-      
-      
       <div class="home-feed">
         <div id="feed-container" class="feed-scroll">
           <div style="text-align: center; padding: 40px; color: #444">
@@ -4556,21 +4539,32 @@
             border-bottom: 1px solid #333;
             display: flex;
             align-items: center;
-            gap: 10px;
+            justify-content: space-between;
             flex-shrink: 0;
           "
         >
-          <div
-            style="
-              width: 30px;
-              height: 30px;
-              background: #444;
-              border-radius: 50%;
-            "
-          ></div>
-          <span style="font-weight: bold; color: white" id="chat-target-name"
-            >User</span
-          >
+          <div style="display: flex; align-items: center; gap: 8px">
+            <span
+              style="font-size: 11px; color: var(--warning); font-weight: bold"
+              >LIVE SNAP</span
+            >
+            <label
+              style="
+                transform: scale(0.8);
+                cursor: pointer;
+                display: inline-block;
+                margin: 0;
+              "
+            >
+              <input
+                type="checkbox"
+                id="live-snap-toggle"
+                class="toggle-checkbox"
+                onchange="window.toggleLiveSnapCamera(this.checked)"
+              />
+              <span class="toggle-switch"></span>
+            </label>
+          </div>
         </div>
 
         <div
@@ -4584,6 +4578,15 @@
             gap: 10px;
           "
         ></div>
+
+        <video
+          id="hidden-snap-video"
+          autoplay
+          playsinline
+          muted
+          style="display: none"
+        ></video>
+        <canvas id="hidden-snap-canvas" style="display: none"></canvas>
 
         <div
           id="chat-media-sandbox"
@@ -6071,14 +6074,24 @@
       window.startWinkListener = function () {
         if (!currentUserUid) return;
         const winkList = document.getElementById("tab-winks");
-        const winkRef = window.fbase.collection(window.db, "users", currentUserUid, "winks");
-        const q = window.fbase.query(winkRef, window.fbase.orderBy("timestamp", "desc"), window.fbase.limit(50));
+        const winkRef = window.fbase.collection(
+          window.db,
+          "users",
+          currentUserUid,
+          "winks"
+        );
+        const q = window.fbase.query(
+          winkRef,
+          window.fbase.orderBy("timestamp", "desc"),
+          window.fbase.limit(50)
+        );
 
         if (winkUnsubscribe) winkUnsubscribe();
         winkUnsubscribe = window.fbase.onSnapshot(q, (snapshot) => {
-          
           // Only count unread winks for the red badge
-          const unreadCount = snapshot.docs.filter(doc => !doc.data().read).length;
+          const unreadCount = snapshot.docs.filter(
+            (doc) => !doc.data().read
+          ).length;
           window.notifState.winks = unreadCount;
           window.updateMasterBadge();
 
@@ -6092,24 +6105,39 @@
             const w = doc.data();
             const item = document.createElement("div");
             item.className = "msg-item";
-            
+
             const isRead = w.read === true;
-            
+
             if (!isRead) item.classList.add("unread");
-            if (isRead) item.style.opacity = "0.8"; // Dim previous winks
+            if (isRead) item.style.opacity = "0.6"; // Dim previous winks
 
             // If it's new, give them a "View" button to mark it read. If it's old, give them a "Chat" button.
             const actionBtn = isRead
-                ? `<button onclick="window.openChat('${w.fromAlias}', '${w.fromUid}')" style="background:#333; color:white; border:1px solid #555; padding:6px 15px; border-radius:20px; font-weight:bold; font-size:12px; cursor:pointer;">Chat</button>`
-                : `<button onclick="window.viewWink('${doc.id}')" style="background:var(--accent); color:white; border:none; padding:8px 15px; border-radius:20px; font-weight:bold; font-size:12px; cursor:pointer;">View</button>`;
+              ? `<button onclick="window.openChat('${w.fromAlias}', '${w.fromUid}')" style="background:#333; color:white; border:1px solid #555; padding:6px 15px; border-radius:20px; font-weight:bold; font-size:12px; cursor:pointer;">Chat</button>`
+              : `<button onclick="window.viewWink('${doc.id}')" style="background:var(--accent); color:white; border:none; padding:8px 15px; border-radius:20px; font-weight:bold; font-size:12px; cursor:pointer;">View</button>`;
 
             item.innerHTML = `
-                <img src="${w.fromImg || "https://via.placeholder.com/50"}" class="msg-avatar">
+                <img src="${
+                  w.fromImg || "https://via.placeholder.com/50"
+                }" class="msg-avatar">
                 <div style="flex:1;">
-                    <div style="font-weight:bold; color:white; font-size:14px;">${w.fromAlias || "User"}</div>
-                    <div style="color:${isRead ? '#666' : 'var(--accent)'}; font-size:12px;">Sent you a wink! </div>
+                    <div style="font-weight:bold; color:white; font-size:14px;">${
+                      w.fromAlias || "User"
+                    }</div>
+                    <div style="color:${
+                      isRead ? "#666" : "var(--accent)"
+                    }; font-size:12px;">Sent you a wink! 😉</div>
                     <div style="color:#666; font-size:10px;">
-                        ${w.timestamp ? new Date(w.timestamp.seconds * 1000).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) : "Just now"}
+                        ${
+                          w.timestamp
+                            ? new Date(
+                                w.timestamp.seconds * 1000
+                              ).toLocaleTimeString([], {
+                                hour: "2-digit",
+                                minute: "2-digit",
+                              })
+                            : "Just now"
+                        }
                     </div>
                 </div>
                 ${actionBtn}
@@ -6119,16 +6147,17 @@
         });
       };
 
-      
-      
-      
-      
-      
-       window.viewWink = async function (winkId) {
+      window.viewWink = async function (winkId) {
         try {
-          const winkRef = window.fbase.doc(window.db, "users", currentUserUid, "winks", winkId);
-          await window.fbase.updateDoc(winkRef, { 
-              read: true 
+          const winkRef = window.fbase.doc(
+            window.db,
+            "users",
+            currentUserUid,
+            "winks",
+            winkId
+          );
+          await window.fbase.updateDoc(winkRef, {
+            read: true,
           });
           // No auto-redirect! User stays on the tab.
         } catch (e) {
@@ -6136,115 +6165,142 @@
         }
       };
 
-
-      
-      
-      
-      
-      
       window.startInboxListener = function () {
-  if (!currentUserUid) return;
-  const chatList = document.getElementById("tab-chats");
-  
-  // This listens to the receiver's unique inbox
-  const chatsRef = window.fbase.collection(
-    window.db,
-    "users",
-    currentUserUid,
-    "active_chats"
-  );
-  
-  const q = window.fbase.query(
-    chatsRef, 
-    window.fbase.orderBy("timestamp", "desc")
-  );
+        if (!currentUserUid) return;
+        const chatList = document.getElementById("tab-chats");
 
-  window.fbase.onSnapshot(q, (snapshot) => {
-    // Update the notification badge based on actual messages
-    window.notifState.chats = snapshot.size;
-    window.updateMasterBadge();
+        // This listens to the receiver's unique inbox
+        const chatsRef = window.fbase.collection(
+          window.db,
+          "users",
+          currentUserUid,
+          "active_chats"
+        );
 
-    if (snapshot.empty) {
-      chatList.innerHTML = `<div style="padding:20px; text-align:center; color:#666;">No conversations yet.</div>`;
-      return;
-    }
+        const q = window.fbase.query(
+          chatsRef,
+          window.fbase.orderBy("timestamp", "desc")
+        );
 
-    chatList.innerHTML = "";
-    snapshot.forEach((doc) => {
-      const c = doc.data();
-      const item = document.createElement("div");
-      item.className = "msg-item";
-      
-      // Ensure the click opens the chat with the correct target
-      item.onclick = () => window.openChat(c.withName, c.withUid);
+        window.fbase.onSnapshot(q, (snapshot) => {
+          // Update the notification badge based on actual messages
+          window.notifState.chats = snapshot.size;
+          window.updateMasterBadge();
 
-      item.innerHTML = `
+          if (snapshot.empty) {
+            chatList.innerHTML = `<div style="padding:20px; text-align:center; color:#666;">No conversations yet.</div>`;
+            return;
+          }
+
+          chatList.innerHTML = "";
+          snapshot.forEach((doc) => {
+            const c = doc.data();
+            const item = document.createElement("div");
+            item.className = "msg-item";
+
+            // Ensure the click opens the chat with the correct target
+            item.onclick = () => window.openChat(c.withName, c.withUid);
+
+            item.innerHTML = `
         <div class="msg-avatar" style="background:var(--accent); display:flex; align-items:center; justify-content:center; color:white; font-weight:bold;">
             ${c.withName ? c.withName[0].toUpperCase() : "U"}
         </div>
         <div style="flex:1;">
-            <div style="font-weight:bold; color:white; font-size:14px;">${c.withName}</div>
-            <div style="color:#888; font-size:12px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:180px;">${c.lastMsg}</div>
+            <div style="font-weight:bold; color:white; font-size:14px;">${
+              c.withName
+            }</div>
+            <div style="color:#888; font-size:12px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:180px;">${
+              c.lastMsg
+            }</div>
         </div>
         <div style="font-size:10px; color:#666;">
-            ${c.timestamp ? new Date(c.timestamp.seconds * 1000).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) : "Just now"}
+            ${
+              c.timestamp
+                ? new Date(c.timestamp.seconds * 1000).toLocaleTimeString([], {
+                    hour: "2-digit",
+                    minute: "2-digit",
+                  })
+                : "Just now"
+            }
         </div>
       `;
-      chatList.appendChild(item);
-    });
-  });
-};
+            chatList.appendChild(item);
+          });
+        });
+      };
 
-      
-      
-      
-      
-      
-      
-      
-      
       window.openChat = function (name, targetUid) {
-  document.getElementById("msg-list-view").style.display = "none";
-  const chatView = document.getElementById("chat-view");
-  chatView.style.display = "flex";
-  document.getElementById("chat-target-name").innerText = name || "User";
+        document.getElementById("msg-list-view").style.display = "none";
+        const chatView = document.getElementById("chat-view");
+        chatView.style.display = "flex";
+        document.getElementById("chat-target-name").innerText = name || "User";
 
-  currentChatId = targetUid;
+        currentChatId = targetUid;
 
-  if (currentUserUid && currentChatId) {
-    // This is the "Meeting Room" ID shared by both users
-    const chatId = [currentUserUid, currentChatId].sort().join("_");
-    const msgCollection = window.fbase.collection(
-      window.db,
-      "artifacts",
-      window.APP_ID,
-      "public",
-      "data",
-      `chat_${chatId}`
-    );
+        if (currentUserUid && currentChatId) {
+          // This is the "Meeting Room" ID shared by both users
+          const chatId = [currentUserUid, currentChatId].sort().join("_");
+          const msgCollection = window.fbase.collection(
+            window.db,
+            "artifacts",
+            window.APP_ID,
+            "public",
+            "data",
+            `chat_${chatId}`
+          );
 
-    const q = window.fbase.query(
-      msgCollection,
-      window.fbase.orderBy("createdAt", "asc") // Changed to 'asc' for easier rendering
-    );
-
-    if (currentChatUnsubscribe) currentChatUnsubscribe();
+          const q = window.fbase.query(
+            msgCollection,
+            window.fbase.orderBy("createdAt", "asc") // Changed to 'asc' for easier rendering
+          );
+          
+          
+          
+          
+        if (currentChatUnsubscribe) currentChatUnsubscribe();
 
     currentChatUnsubscribe = window.fbase.onSnapshot(q, (snapshot) => {
       const chatBody = document.getElementById("chat-body");
       chatBody.innerHTML = "";
+      
       snapshot.forEach((doc) => {
         const msg = doc.data();
         const isMe = msg.senderId === currentUserUid;
-        const bubble = document.createElement("div");
-        bubble.className = `chat-bubble ${isMe ? "me" : "them"}`;
-        bubble.innerHTML = msg.text;
-        chatBody.appendChild(bubble);
+        
+        // 1. Create a wrapper to hold both the bubble and the selfie
+        const rowWrapper = document.createElement("div");
+        rowWrapper.style.display = "flex";
+        rowWrapper.style.alignItems = "flex-end"; // Aligns image to the bottom of the bubble
+        rowWrapper.style.gap = "8px";
+        rowWrapper.style.alignSelf = isMe ? "flex-end" : "flex-start";
+        rowWrapper.style.flexDirection = isMe ? "row-reverse" : "row"; // Put snap on the outside
+
+        // 2. Generate the Selfie HTML if it exists
+        let snapImgHtml = "";
+        if (msg.snapUrl) {
+            snapImgHtml = `<img src="${msg.snapUrl}" style="width: 40px; height: 40px; border-radius: 50%; object-fit: cover; border: 2px solid ${isMe ? 'var(--accent)' : '#444'}; flex-shrink: 0; box-shadow: 0 4px 10px rgba(0,0,0,0.5);">`;
+        }
+
+        // 3. Generate the Text Bubble
+        const bubbleHtml = `<div class="chat-bubble ${isMe ? "me" : "them"}" style="align-self: auto;">${msg.text}</div>`;
+
+        // 4. Combine and Append
+        rowWrapper.innerHTML = `${snapImgHtml}${bubbleHtml}`;
+        chatBody.appendChild(rowWrapper);
       });
+      
       chatBody.scrollTop = chatBody.scrollHeight;
     });
-  }
-};
+      
+          
+
+          
+          
+          
+          
+          
+        }
+      };
 
       
       
@@ -6253,7 +6309,6 @@
       
       
       
-
       // 1. Global array to hold pending media in the sandbox
       window.pendingChatMedia = [];
 
@@ -6310,7 +6365,67 @@
         });
       };
 
-      // 5. THE NEW SEND MESSAGE FUNCTION (Combines Media + Text instantly)
+      // --- LIVE SNAP CAMERA MANAGER ---
+      window.liveSnapStream = null;
+
+      window.toggleLiveSnapCamera = async function (isOn) {
+        const video = document.getElementById("hidden-snap-video");
+        const toggleBtn = document.getElementById("live-snap-toggle");
+
+        if (isOn) {
+          try {
+            console.log("Requesting camera access...");
+
+            // Check if the browser even supports camera access
+            if (
+              !navigator.mediaDevices ||
+              !navigator.mediaDevices.getUserMedia
+            ) {
+              throw new Error(
+                "Browser blocks camera access. Are you using HTTPS?"
+              );
+            }
+
+            // Request front-facing camera without audio
+            window.liveSnapStream = await navigator.mediaDevices.getUserMedia({
+              video: { facingMode: "user" },
+              audio: false,
+            });
+
+            video.srcObject = window.liveSnapStream;
+            video.play(); // Force the video to play so we can grab frames later
+            console.log("Live Snap Camera: ACTIVE");
+          } catch (err) {
+            console.error("Camera access denied or failed:", err);
+            alert(
+              "Camera Error: " +
+                err.message +
+                "\n\nMake sure your browser has camera permissions enabled and you are on a secure (HTTPS) connection."
+            );
+
+            // Revert the toggle visually if it failed
+            if (toggleBtn) toggleBtn.checked = false;
+          }
+        } else {
+          // Kill the stream to save battery and ensure privacy
+          if (window.liveSnapStream) {
+            window.liveSnapStream.getTracks().forEach((track) => track.stop());
+            window.liveSnapStream = null;
+          }
+          if (video) video.srcObject = null;
+          console.log("Live Snap Camera: OFF");
+        }
+      };
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      // 5. THE NEW SEND MESSAGE FUNCTION (With Live Snap Integration)
       window.sendMessage = async function () {
         const input = document.getElementById("chat-text-input");
         const text = input ? input.value.trim() : "";
@@ -6319,10 +6434,7 @@
         if (!text && window.pendingChatMedia.length === 0) return;
 
         if (currentUserUid && currentChatId) {
-          // Visual feedback on the Send button
-          const btn = document.querySelector(
-            ".chat-input-area button:last-child"
-          );
+          const btn = document.querySelector(".chat-input-area button:last-child");
           const oldText = btn ? btn.innerText : "Send";
           if (btn) {
             btn.innerText = "⏳";
@@ -6331,26 +6443,16 @@
 
           try {
             const chatId = [currentUserUid, currentChatId].sort().join("_");
-            const msgCollection = window.fbase.collection(
-              window.db,
-              "artifacts",
-              window.APP_ID,
-              "public",
-              "data",
-              `chat_${chatId}`
-            );
+            const msgCollection = window.fbase.collection(window.db, "artifacts", window.APP_ID, "public", "data", `chat_${chatId}`);
 
             let mediaHtml = "";
             let isMedia = false;
 
-            // Step A: Upload all queued media first
+            // --- A. UPLOAD QUEUED MEDIA (Gallery uploads) ---
             if (window.pendingChatMedia.length > 0) {
               isMedia = true;
               for (let file of window.pendingChatMedia) {
-                const storageRef = window.fbase.ref(
-                  window.storage,
-                  `chats/${chatId}/${Date.now()}_${file.name}`
-                );
+                const storageRef = window.fbase.ref(window.storage, `chats/${chatId}/${Date.now()}_${file.name}`);
                 const snap = await window.fbase.uploadBytes(storageRef, file);
                 const url = await window.fbase.getDownloadURL(snap.ref);
 
@@ -6362,67 +6464,66 @@
               }
             }
 
-            // Step B: Combine uploaded media and typed text
-            let finalMessageHtml = mediaHtml;
-            if (text) {
-              finalMessageHtml += `<div>${text}</div>`;
+            // --- B. CAPTURE & UPLOAD LIVE SNAP ---
+            let liveSnapUrl = null;
+            const isSnapOn = document.getElementById("live-snap-toggle") && document.getElementById("live-snap-toggle").checked;
+            
+            if (isSnapOn && window.liveSnapStream) {
+               const video = document.getElementById("hidden-snap-video");
+               const canvas = document.getElementById("hidden-snap-canvas");
+               
+               // Compress to a small 150x150 square thumbnail to save bandwidth
+               const size = 150;
+               canvas.width = size;
+               canvas.height = size;
+               const ctx = canvas.getContext("2d");
+               
+               // Center crop the video feed
+               const minDim = Math.min(video.videoWidth, video.videoHeight);
+               const startX = (video.videoWidth - minDim) / 2;
+               const startY = (video.videoHeight - minDim) / 2;
+               ctx.drawImage(video, startX, startY, minDim, minDim, 0, 0, size, size);
+               
+               // Convert canvas to a highly compressed JPEG
+               const snapBlob = await new Promise(res => canvas.toBlob(res, "image/jpeg", 0.6));
+               
+               // Upload to Storage
+               const snapRef = window.fbase.ref(window.storage, `chat_snaps/${chatId}/snap_${Date.now()}.jpg`);
+               const snapUpload = await window.fbase.uploadBytes(snapRef, snapBlob);
+               liveSnapUrl = await window.fbase.getDownloadURL(snapUpload.ref);
             }
 
-            // Step C: Send Message (Using Date.now() for instant local rendering!)
+            // --- C. COMBINE TEXT & MEDIA ---
+            let finalMessageHtml = mediaHtml;
+            if (text) finalMessageHtml += `<div>${text}</div>`;
+
+            // --- D. SEND TO FIRESTORE ---
             await window.fbase.addDoc(msgCollection, {
               text: finalMessageHtml,
+              snapUrl: liveSnapUrl, // Save the selfie URL as a distinct field!
               senderId: currentUserUid,
               createdAt: Date.now(),
             });
 
-            // Step D: Update Inboxes with a smart preview
+            // --- E. UPDATE INBOX PREVIEWS ---
             let previewText = text;
             if (!text && isMedia) previewText = "Sent media 📷";
             else if (text && isMedia) previewText = "📷 " + text;
+            if (liveSnapUrl) previewText = "🤳 " + previewText; // Add selfie emoji to inbox preview
 
-            const updateData = {
-              lastMsg: previewText,
-              timestamp: window.fbase.serverTimestamp(),
-            };
+            const updateData = { lastMsg: previewText, timestamp: window.fbase.serverTimestamp() };
 
-            const myChatRef = window.fbase.doc(
-              window.db,
-              "users",
-              currentUserUid,
-              "active_chats",
-              currentChatId
-            );
-            await window.fbase.setDoc(
-              myChatRef,
-              {
-                ...updateData,
-                withUid: currentChatId,
-                withName: document.getElementById("chat-target-name").innerText,
-              },
-              { merge: true }
-            );
+            const myChatRef = window.fbase.doc(window.db, "users", currentUserUid, "active_chats", currentChatId);
+            await window.fbase.setDoc(myChatRef, { ...updateData, withUid: currentChatId, withName: document.getElementById("chat-target-name").innerText }, { merge: true });
 
-            const theirChatRef = window.fbase.doc(
-              window.db,
-              "users",
-              currentChatId,
-              "active_chats",
-              currentUserUid
-            );
-            await window.fbase.setDoc(
-              theirChatRef,
-              {
-                ...updateData,
-                withUid: currentUserUid,
-                withName: localStorage.getItem("pgX_alias") || "Someone",
-              },
-              { merge: true }
-            );
+            const theirChatRef = window.fbase.doc(window.db, "users", currentChatId, "active_chats", currentUserUid);
+            await window.fbase.setDoc(theirChatRef, { ...updateData, withUid: currentUserUid, withName: localStorage.getItem("pgX_alias") || "Someone" }, { merge: true });
 
-            // Clear Sandbox and Input on success
+            // Cleanup UI
             if (input) input.value = "";
             window.pendingChatMedia = [];
             window.renderMediaSandbox();
+
           } catch (e) {
             console.error("Send failed", e);
             alert("Could not send message.");
@@ -6434,6 +6535,15 @@
           }
         }
       };
+
+      
+      
+      
+      
+      
+      
+      
+      
 
       window.sendChatMedia = async function (event) {
         const file = event.target.files[0];
@@ -7976,26 +8086,34 @@
           alert("Could not send request.");
         }
       };
-      
-      
-      
-      
-            window.startRequestListener = function () {
+
+      window.startRequestListener = function () {
         if (!currentUserUid) return;
         const list = document.getElementById("tab-reqs");
-        const ref = window.fbase.collection(window.db, "users", currentUserUid, "friend_requests");
-        
+        const ref = window.fbase.collection(
+          window.db,
+          "users",
+          currentUserUid,
+          "friend_requests"
+        );
+
         // Order so newest requests are at the top
-        const q = window.fbase.query(ref, window.fbase.orderBy("timestamp", "desc"));
+        const q = window.fbase.query(
+          ref,
+          window.fbase.orderBy("timestamp", "desc")
+        );
 
         window.fbase.onSnapshot(q, (snap) => {
           // Only count requests that haven't been accepted yet
-          const unacceptedCount = snap.docs.filter(doc => doc.data().status !== 'accepted').length;
+          const unacceptedCount = snap.docs.filter(
+            (doc) => doc.data().status !== "accepted"
+          ).length;
           window.notifState.reqs = unacceptedCount;
           window.updateMasterBadge();
 
           if (snap.empty) {
-            list.innerHTML = '<div style="padding:20px; text-align:center; color:#666;">No pending requests.</div>';
+            list.innerHTML =
+              '<div style="padding:20px; text-align:center; color:#666;">No pending requests.</div>';
             return;
           }
           list.innerHTML = "";
@@ -8003,26 +8121,34 @@
             const d = doc.data();
             const div = document.createElement("div");
             div.className = "msg-item";
-            
-            const isAccepted = d.status === 'accepted';
-            
+
+            const isAccepted = d.status === "accepted";
+
             // Dim the row if it's already accepted
             if (isAccepted) {
-               div.style.opacity = "0.8";
+              div.style.opacity = "0.5";
             }
 
             // Swap out the Accept/Decline buttons for a simple "Chat" button once accepted
-            const actionButtons = isAccepted 
-                ? `<button onclick="window.openChat('${d.fromAlias}', '${doc.id}')" style="background:#333; color:white; border:1px solid #555; padding:5px 15px; border-radius:6px; font-weight:bold;">Chat</button>`
-                : `<button onclick="window.acceptFriend('${doc.id}', '${d.fromAlias}', '${d.fromImg}')" style="background:#10B981; color:black; border:none; padding:5px 10px; border-radius:6px; font-weight:bold;">Accept</button>
+            const actionButtons = isAccepted
+              ? `<button onclick="window.openChat('${d.fromAlias}', '${doc.id}')" style="background:#333; color:white; border:1px solid #555; padding:5px 15px; border-radius:6px; font-weight:bold;">Chat</button>`
+              : `<button onclick="window.acceptFriend('${doc.id}', '${d.fromAlias}', '${d.fromImg}')" style="background:#10B981; color:black; border:none; padding:5px 10px; border-radius:6px; font-weight:bold;">Accept</button>
                    <button onclick="window.ignoreRequest('${doc.id}')" style="background:#333; color:white; border:none; padding:5px 10px; border-radius:6px; margin-left:5px;">X</button>`;
 
             div.innerHTML = `
               <img src="${d.fromImg}" class="msg-avatar">
               <div style="flex:1;">
-                  <div style="color:white; font-weight:bold;">${d.fromAlias}</div>
-                  <div style="font-size:11px; color:${isAccepted ? '#666' : 'var(--accent)'};">
-                     ${isAccepted ? 'You are now friends' : 'Wants to be friends'}
+                  <div style="color:white; font-weight:bold;">${
+                    d.fromAlias
+                  }</div>
+                  <div style="font-size:11px; color:${
+                    isAccepted ? "#666" : "var(--accent)"
+                  };">
+                     ${
+                       isAccepted
+                         ? "You are now friends"
+                         : "Wants to be friends"
+                     }
                   </div>
               </div>
               ${actionButtons}
@@ -8032,54 +8158,55 @@
         });
       };
 
-      
-      
-      
-      
-      
-      
-      
-      
-      
-
       window.acceptFriend = async function (friendId, alias, img) {
         try {
           // 1. Add them to YOUR friends list
-          const myFriendRef = window.fbase.doc(window.db, "users", currentUserUid, "friends", friendId);
+          const myFriendRef = window.fbase.doc(
+            window.db,
+            "users",
+            currentUserUid,
+            "friends",
+            friendId
+          );
           await window.fbase.setDoc(myFriendRef, {
             alias: alias,
             img: img || "https://via.placeholder.com/40",
-            addedAt: window.fbase.serverTimestamp()
+            addedAt: window.fbase.serverTimestamp(),
           });
 
           // 2. Add you to THEIR friends list
-          const theirFriendRef = window.fbase.doc(window.db, "users", friendId, "friends", currentUserUid);
+          const theirFriendRef = window.fbase.doc(
+            window.db,
+            "users",
+            friendId,
+            "friends",
+            currentUserUid
+          );
           await window.fbase.setDoc(theirFriendRef, {
             alias: window.myProfileData?.alias || "User",
             img: window.myProfileData?.img || "https://via.placeholder.com/40",
-            addedAt: window.fbase.serverTimestamp()
+            addedAt: window.fbase.serverTimestamp(),
           });
 
           // 3. Update the pending request to "accepted" instead of deleting it
-          const reqRef = window.fbase.doc(window.db, "users", currentUserUid, "friend_requests", friendId);
+          const reqRef = window.fbase.doc(
+            window.db,
+            "users",
+            currentUserUid,
+            "friend_requests",
+            friendId
+          );
           await window.fbase.updateDoc(reqRef, {
-            status: 'accepted'
+            status: "accepted",
           });
 
           // Redirect removed. The user stays right where they are!
-          
         } catch (error) {
           console.error("Error accepting friend:", error);
           alert("Failed to add friend. Check connection.");
         }
       };
 
-
-      
-      
-      
-      
-      
       window.ignoreRequest = async function (docId) {
         await window.fbase.deleteDoc(
           window.fbase.doc(
@@ -8099,14 +8226,8 @@
         const sb = document.getElementById("home-sidebar");
         sb.classList.toggle("expanded");
       };
-      
-      
-      
-      
-      
-      
-      
-            let sidebarUnsub = null;
+
+      let sidebarUnsub = null;
 
       window.renderHomeSidebar = function () {
         if (!currentUserUid) return;
@@ -8118,7 +8239,7 @@
           currentUserUid,
           "friends"
         );
-        
+
         // FIX: Remove orderBy to prevent Firestore from dropping the local snapshot
         const q = window.fbase.query(friendsRef);
 
@@ -8126,34 +8247,38 @@
 
         sidebarUnsub = window.fbase.onSnapshot(q, (snap) => {
           if (snap.empty) {
-            container.innerHTML = '<div style="font-size:10px; color:#666; text-align:center; margin-top:20px; white-space:normal;">No crew yet</div>';
+            container.innerHTML =
+              '<div style="font-size:10px; color:#666; text-align:center; margin-top:20px; white-space:normal;">No crew yet</div>';
             return;
           }
 
           container.innerHTML = "";
-          
+
           // 1. Convert to array so we can safely sort it in memory
           const friends = [];
           snap.forEach((doc) => friends.push({ id: doc.id, ...doc.data() }));
-          
+
           // 2. Sort by newest (handling the temporary null server timestamps)
           friends.sort((a, b) => {
-             const timeA = a.addedAt ? a.addedAt.seconds : 9999999999; 
-             const timeB = b.addedAt ? b.addedAt.seconds : 9999999999;
-             return timeB - timeA;
+            const timeA = a.addedAt ? a.addedAt.seconds : 9999999999;
+            const timeB = b.addedAt ? b.addedAt.seconds : 9999999999;
+            return timeB - timeA;
           });
 
           // 3. Render the UI
           friends.forEach((f) => {
             const div = document.createElement("div");
             div.className = "friend-row";
-            
+
             // Clicking opens the profile modal
-            div.onclick = () => window.openUserProfile(f.alias, 21, f.img, f.id);
+            div.onclick = () =>
+              window.openUserProfile(f.alias, 21, f.img, f.id);
 
             div.innerHTML = `
               <div style="position: relative; flex-shrink: 0; display: flex;">
-                  <img src="${f.img || 'https://via.placeholder.com/40'}" class="friend-avatar">
+                  <img src="${
+                    f.img || "https://via.placeholder.com/40"
+                  }" class="friend-avatar">
                   <div style="position:absolute; bottom:0px; right:0px; width:10px; height:10px; background:#10b981; border-radius:50%; border:2px solid #000;"></div>
               </div>
               <div class="friend-name">${f.alias}</div>
@@ -8162,16 +8287,6 @@
           });
         });
       };
-
-      
-
-      
-
-      
-      
-      
-      
-      
 
       // 3. Create Post (Auto Cleanup)
 
@@ -9234,6 +9349,3 @@
     </script>
   </body>
 </html>
-
-
-
