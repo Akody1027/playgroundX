@@ -4050,8 +4050,7 @@
           style="
             margin-top: 20px;
             border-top: 1px solid #333;
-            padding-top: 20px;
-          "
+            padding-top: 20px ; "
         >
           <div class="toggle-row" style="background: #222">
             <div style="display: flex; align-items: center; gap: 8px">
@@ -4519,7 +4518,8 @@
         <div id="tab-chats" class="tab-pane"></div>
       </div>
 
-      <div
+      
+          <div
         id="chat-view"
         style="
           display: none;
@@ -4530,7 +4530,7 @@
           background: #121212;
           position: relative;
           z-index: 10;
-        "
+        ")
       >
         <div
           style="
@@ -4543,30 +4543,22 @@
             flex-shrink: 0;
           "
         >
+          <div id="chat-target-name" style="color: white; font-weight: bold; font-size: 16px;"></div>
+
           <div style="display: flex; align-items: center; gap: 8px">
             <span
               style="font-size: 11px; color: var(--warning); font-weight: bold"
-              >LIVE SNAP</span
-            >
-            <label
-              style="
-                transform: scale(0.8);
-                cursor: pointer;
-                display: inline-block;
-                margin: 0;
-              "
-            >
-              <input
-                type="checkbox"
-                id="live-snap-toggle"
-                class="toggle-checkbox"
-                onchange="window.toggleLiveSnapCamera(this.checked)"
-              />
-              <span class="toggle-switch"></span>
+              >LIVE SNAP</span>             
+              
             </label>
           </div>
         </div>
 
+        
+        
+        
+        
+        
         <div
           id="chat-body"
           style="
@@ -6236,31 +6228,34 @@
       
 
       
-             window.openChat = function (name, targetUid) {
+       window.openChat = function (name, targetUid) {
         document.getElementById("msg-list-view").style.display = "none";
         const chatView = document.getElementById("chat-view");
         chatView.style.display = "flex";
         document.getElementById("chat-target-name").innerText = name || "User";
 
-        currentChatId = targetUid;
+        currentChatId = targetUid; // Restored to your original variable
 
         if (currentUserUid && currentChatId) {
-          // This is the "Meeting Room" ID shared by both users
           const chatId = [currentUserUid, currentChatId].sort().join("_");
+          
+          // ⚠️ IMPORTANT: If your original app used a different path (like "chats"), change this!
           const msgCollection = window.fbase.collection(
-            window.db,
-            "artifacts",
-            window.APP_ID,
-            "public",
-            "data",
+            window.db, 
+            "artifacts", 
+            window.APP_ID, 
+            "public", 
+            "data", 
             `chat_${chatId}`
           );
 
-          // This query fetches the history!
-          const q = window.fbase.query(
-            msgCollection,
-            window.fbase.orderBy("createdAt", "asc") 
-          );
+          // Safe query fallback
+          let q;
+          if (window.fbase.orderBy) {
+              q = window.fbase.query(msgCollection, window.fbase.orderBy("createdAt", "asc"));
+          } else {
+              q = window.fbase.query(msgCollection);
+          }
 
           if (currentChatUnsubscribe) currentChatUnsubscribe();
 
@@ -6268,11 +6263,15 @@
             const chatBody = document.getElementById("chat-body");
             chatBody.innerHTML = "";
             
-            snapshot.forEach((doc) => {
-              const msg = doc.data();
+            let messages = [];
+            snapshot.forEach((doc) => messages.push(doc.data()));
+            
+            // Client-side sort just to be safe
+            messages.sort((a, b) => (a.createdAt || 0) - (b.createdAt || 0));
+
+            messages.forEach((msg) => {
               const isMe = msg.senderId === currentUserUid;
               
-              // 1. Create a wrapper to hold both the bubble and the selfie
               const rowWrapper = document.createElement("div");
               rowWrapper.style.display = "flex";
               rowWrapper.style.alignItems = "flex-end"; 
@@ -6280,20 +6279,17 @@
               rowWrapper.style.alignSelf = isMe ? "flex-end" : "flex-start";
               rowWrapper.style.flexDirection = isMe ? "row-reverse" : "row"; 
 
-              // 2. Generate the Selfie HTML if it exists
               let snapImgHtml = "";
               if (msg.snapUrl) {
                   snapImgHtml = `<img src="${msg.snapUrl}" style="width: 40px; height: 40px; border-radius: 50%; object-fit: cover; border: 2px solid ${isMe ? 'var(--accent)' : '#444'}; flex-shrink: 0; box-shadow: 0 4px 10px rgba(0,0,0,0.5);">`;
               }
 
-              // 3. Generate the Text Bubble (Safely handle if there is no text)
               const safeText = msg.text || "";
               let bubbleHtml = "";
               if (safeText.trim() !== "") {
                   bubbleHtml = `<div class="chat-bubble ${isMe ? "me" : "them"}" style="align-self: auto; min-height: 20px;">${safeText}</div>`;
               }
 
-              // 4. Combine and Append
               rowWrapper.innerHTML = `${snapImgHtml}${bubbleHtml}`;
               chatBody.appendChild(rowWrapper);
             });
@@ -6302,8 +6298,8 @@
           });
         }
       };
+
   
-          
    
       
       
@@ -6427,16 +6423,16 @@
       
       
       
-     
-            // 5. THE NEW SEND MESSAGE FUNCTION
-      window.sendMessage = async function () {
+       window.sendMessage = async function () {
         const input = document.getElementById("chat-text-input");
         const text = input ? input.value.trim() : "";
-        const isSnapOn = document.getElementById("live-snap-toggle") && document.getElementById("live-snap-toggle").checked;
-
-        // CRITICAL FIX: Allow sending if there is text, media, OR the camera is on
+        
+        const snapToggle = document.getElementById("live-snap-toggle");
+        const isSnapOn = snapToggle ? snapToggle.checked : false;
         const hasMedia = window.pendingChatMedia && window.pendingChatMedia.length > 0;
-        if (!text && !hasMedia && !isSnapOn) return;
+
+        // Abort if literally nothing is being sent
+        if (!text && !hasMedia && !isSnapOn) return; 
 
         if (currentUserUid && currentChatId) {
           const btn = document.querySelector(".chat-input-area button:last-child");
@@ -6448,6 +6444,8 @@
 
           try {
             const chatId = [currentUserUid, currentChatId].sort().join("_");
+            
+            // ⚠️ Must match the msgCollection path in openChat!
             const msgCollection = window.fbase.collection(window.db, "artifacts", window.APP_ID, "public", "data", `chat_${chatId}`);
 
             let mediaHtml = "";
@@ -6469,7 +6467,7 @@
               }
             }
 
-            // --- B. SAFE LIVE SNAP CAPTURE ---
+            // --- B. CAPTURE LIVE SNAP ---
             let liveSnapUrl = null;
             if (isSnapOn && window.liveSnapStream) {
                try {
@@ -6490,11 +6488,9 @@
                        const snapRef = window.fbase.ref(window.storage, `chat_snaps/${chatId}/snap_${Date.now()}.jpg`);
                        const snapUpload = await window.fbase.uploadBytes(snapRef, snapBlob);
                        liveSnapUrl = await window.fbase.getDownloadURL(snapUpload.ref);
-                   } else {
-                       console.warn("Camera feed not ready yet, skipping snap.");
                    }
                } catch (snapErr) {
-                   console.error("Live snap failed to capture:", snapErr);
+                   console.error("Snap error:", snapErr);
                }
             }
 
@@ -6531,17 +6527,18 @@
             if (window.renderMediaSandbox) window.renderMediaSandbox();
 
           } catch (e) {
-            console.error("Send failed", e);
-            alert("Could not send message. " + e.message);
+            alert("Send failed: " + e.message);
           } finally {
             if (btn) {
               btn.innerText = oldText;
               btn.disabled = false;
             }
           }
+        } else {
+           alert("System error: Missing User ID.");
         }
       };
-
+   
       
       
       
